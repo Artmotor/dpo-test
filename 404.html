@@ -9,19 +9,24 @@
         // Сохраняем путь и перенаправляем на index.html
         (function(){
             var path = window.location.pathname;
-            // Не перенаправляем, если это корень или файл
-            if (path === '/' || path.match(/\.(html|css|js|png|jpg|svg|ico)$/)) {
+            
+            // Не перенаправляем если это корень или файл с расширением
+            if (path === '/' || path.match(/\.\w+$/)) {
                 return;
             }
+            
+            // Сохраняем URL для восстановления после загрузки index.html
             sessionStorage.setItem('redirect', window.location.href);
+            
+            // Перенаправляем на главную
             window.location.replace('/');
         })();
     </script>
 </head>
 <body>
-    <div style="text-align:center;padding:50px;font-family:sans-serif;">
+    <div style="text-align:center;padding:50px;font-family:Arial,sans-serif;">
         <h2>Перенаправление...</h2>
-        <p><a href="/">Нажмите здесь, если перенаправление не работает</a></p>
+        <p>Если перенаправление не работает, <a href="/">нажмите здесь</a></p>
     </div>
 </body>
 </html>
