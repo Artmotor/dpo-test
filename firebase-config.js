@@ -1,4 +1,4 @@
-// firebase-config.js
+// firebase-config.js - Production версия
 const firebaseConfig = {
   apiKey: "AIzaSyC9Gp359H5gVRE6DpDUp1md9o2uu1c5A7k",
   authDomain: "vgau-lk.firebaseapp.com",
@@ -9,30 +9,24 @@ const firebaseConfig = {
   measurementId: "G-7JKFLK0SSS"
 };
 
-
-// Инициализация Firebase
-firebase.initializeApp(firebaseConfig);
+// Проверяем, не инициализирован ли уже Firebase
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 
 // Сервисы
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-// Настройка кеширования (новый способ)
-const firestoreSettings = {
-  cache: {
-    sizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
-  }
-};
+// Правильная настройка Firestore с merge: true
+try {
+    db.settings({
+        cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
+        merge: true
+    });
+} catch (error) {
+    console.warn('Firestore settings warning:', error.message);
+}
 
-db.settings(firestoreSettings).catch((err) => {
-  if (err.code === 'failed-precondition') {
-    console.warn('Офлайн-режим отключен (множественные вкладки)');
-  } else if (err.code === 'unimplemented') {
-    console.warn('Браузер не поддерживает офлайн-режим');
-  } else {
-    console.warn('Ошибка настройки кеша:', err);
-  }
-});
-
-console.log('Firebase инициализирован');
+console.log('Firebase инициализирован успешно');
