@@ -9,16 +9,30 @@ const firebaseConfig = {
   measurementId: "G-7JKFLK0SSS"
 };
 
+
+// Инициализация Firebase
 firebase.initializeApp(firebaseConfig);
+
+// Сервисы
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-// Включаем офлайн-режим
-db.enablePersistence().catch((err) => {
-  if (err.code == 'failed-precondition') {
-    console.warn('Множественные вкладки - офлайн режим ограничен');
-  } else if (err.code == 'unimplemented') {
-    console.warn('Браузер не поддерживает офлайн режим');
+// Настройка кеширования (новый способ)
+const firestoreSettings = {
+  cache: {
+    sizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED
+  }
+};
+
+db.settings(firestoreSettings).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    console.warn('Офлайн-режим отключен (множественные вкладки)');
+  } else if (err.code === 'unimplemented') {
+    console.warn('Браузер не поддерживает офлайн-режим');
+  } else {
+    console.warn('Ошибка настройки кеша:', err);
   }
 });
+
+console.log('Firebase инициализирован');
