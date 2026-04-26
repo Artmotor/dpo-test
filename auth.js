@@ -1,4 +1,7 @@
 // auth.js (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+const auth = window.auth;
+const db = window.db;
+
 class AuthService {
     /**
      * Регистрация нового пользователя
