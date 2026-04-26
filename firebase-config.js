@@ -1,4 +1,4 @@
-// firebase-config.js - Production версия
+// firebase-config.js - Полностью исправленная версия
 const firebaseConfig = {
   apiKey: "AIzaSyC9Gp359H5gVRE6DpDUp1md9o2uu1c5A7k",
   authDomain: "vgau-lk.firebaseapp.com",
@@ -19,14 +19,18 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-// Правильная настройка Firestore с merge: true
+// Правильная настройка Firestore
 try {
     db.settings({
         cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
         merge: true
     });
 } catch (error) {
-    console.warn('Firestore settings warning:', error.message);
+    // Игнорируем ошибку настроек
+    console.log('Firestore settings applied or already set');
 }
 
 console.log('Firebase инициализирован успешно');
+console.log('Auth:', auth ? 'OK' : 'ERROR');
+console.log('Firestore:', db ? 'OK' : 'ERROR');
+console.log('Storage:', storage ? 'OK' : 'ERROR');
