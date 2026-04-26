@@ -1,0 +1,283 @@
+<!-- methodist-fields.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление полями - Институт ДПО</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-light">
+    <!-- Навигация -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient-primary shadow-sm sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="bi bi-building me-2"></i>Институт ДПО
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link rounded-pill" href="methodist-cabinet.html">
+                            <i class="bi bi-people me-1"></i>Слушатели
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active rounded-pill" href="methodist-fields.html">
+                            <i class="bi bi-gear me-1"></i>Управление полями
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <span class="nav-link text-white" id="methodistName">Методист</span>
+                    <button class="btn btn-outline-light btn-sm rounded-pill ms-3" onclick="AuthService.signOut()">
+                        <i class="bi bi-box-arrow-right me-1"></i>Выйти
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="row g-4">
+            <!-- Форма добавления поля -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4 sticky-top" style="top: 100px;">
+                    <div class="card-header bg-gradient-primary text-white border-0 pt-4 px-4">
+                        <h4 class="fw-bold mb-0">
+                            <i class="bi bi-plus-circle me-2"></i>Добавить поле
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="addFieldForm">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">ID поля (на латинице)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-hash"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="fieldId" 
+                                           placeholder="Например: snilsNumber" required
+                                           pattern="[a-zA-Z0-9_]+">
+                                </div>
+                                <small class="text-muted">Только латинские буквы, цифры и _</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Название поля</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="bi bi-pencil"></i>
+                                    </span>
+                                    <input type="text" class="form-control" id="fieldLabel" 
+                                           placeholder="Например: Номер СНИЛС" required>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Тип поля</label>
+                                <select class="form-select rounded-pill" id="fieldType">
+                                    <option value="text">Текстовое поле</option>
+                                    <option value="number">Числовое поле</option>
+                                    <option value="date">Дата</option>
+                                    <option value="phone">Телефон</option>
+                                    <option value="email">Email</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="fieldRequired" checked>
+                                    <label class="form-check-label fw-bold">Обязательное поле</label>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="fieldEditable" checked>
+                                    <label class="form-check-label fw-bold">Слушатель может редактировать</label>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary rounded-pill w-100">
+                                <i class="bi bi-plus-circle me-1"></i>Добавить поле
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Список полей -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <h4 class="fw-bold mb-0">
+                            <i class="bi bi-list-ul text-primary me-2"></i>Существующие поля
+                        </h4>
+                        <span class="badge bg-primary rounded-pill" id="fieldsCount">0 полей</span>
+                    </div>
+                    <div class="card-body px-4 pb-4">
+                        <div id="fieldsTableContainer">
+                            <!-- Заполняется динамически -->
+                        </div>
+                        <div id="noFields" class="text-center py-5 d-none">
+                            <i class="bi bi-inbox display-4 text-muted"></i>
+                            <h5 class="text-muted mt-3">Нет пользовательских полей</h5>
+                            <p class="text-muted">Добавьте первое поле через форму слева</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Стандартные поля -->
+                <div class="card border-0 shadow-sm rounded-4 mt-4">
+                    <div class="card-header bg-white border-0 pt-4 px-4">
+                        <h4 class="fw-bold mb-0">
+                            <i class="bi bi-shield-lock text-warning me-2"></i>Системные поля
+                        </h4>
+                        <small class="text-muted">Эти поля нельзя удалить</small>
+                    </div>
+                    <div class="card-body px-4 pb-4">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Название</th>
+                                        <th>Тип</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code>fullName</code></td>
+                                        <td>ФИО</td>
+                                        <td><span class="badge bg-primary rounded-pill">text</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>email</code></td>
+                                        <td>Email</td>
+                                        <td><span class="badge bg-info rounded-pill">email</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>phone</code></td>
+                                        <td>Телефон</td>
+                                        <td><span class="badge bg-success rounded-pill">phone</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>passportNumber</code></td>
+                                        <td>Серия и номер паспорта</td>
+                                        <td><span class="badge bg-primary rounded-pill">text</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>passportIssueDate</code></td>
+                                        <td>Дата выдачи паспорта</td>
+                                        <td><span class="badge bg-warning rounded-pill">date</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>passportIssuedBy</code></td>
+                                        <td>Кем выдан паспорт</td>
+                                        <td><span class="badge bg-primary rounded-pill">text</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>passportUnitCode</code></td>
+                                        <td>Код подразделения</td>
+                                        <td><span class="badge bg-primary rounded-pill">text</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>registrationAddress</code></td>
+                                        <td>Адрес регистрации</td>
+                                        <td><span class="badge bg-primary rounded-pill">text</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code>actualAddress</code></td>
+                                        <td>Фактический адрес</td>
+                                        <td><span class="badge bg-primary rounded-pill">text</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования поля -->
+    <div class="modal fade" id="editFieldModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header bg-gradient-primary text-white border-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-pencil-square me-2"></i>Редактировать поле
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editFieldId">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">ID поля</label>
+                        <input type="text" class="form-control" id="editFieldIdInput" 
+                               placeholder="ID поля">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Название поля</label>
+                        <input type="text" class="form-control" id="editFieldLabel" 
+                               placeholder="Название поля">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Тип поля</label>
+                        <select class="form-select rounded-pill" id="editFieldType">
+                            <option value="text">Текстовое поле</option>
+                            <option value="number">Числовое поле</option>
+                            <option value="date">Дата</option>
+                            <option value="phone">Телефон</option>
+                            <option value="email">Email</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="editFieldRequired">
+                            <label class="form-check-label fw-bold">Обязательное поле</label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="editFieldEditable">
+                            <label class="form-check-label fw-bold">Слушатель может редактировать</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary rounded-pill" onclick="saveFieldEdit()">
+                        <i class="bi bi-check-lg me-1"></i>Сохранить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast уведомления -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast" role="alert">
+            <div class="toast-header">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong class="me-auto">Уведомление</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body" id="toastMessage"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="fields-manager.js"></script>
+</body>
+</html>
