@@ -317,25 +317,30 @@ document.addEventListener('DOMContentLoaded', () => {
 /**
  * Проверка роли и перенаправление
  */
-// auth.js - Production версия (часть с checkUserRoleAndRedirect)
+// В auth.js замените функцию checkUserRoleAndRedirect на эту:
 async function checkUserRoleAndRedirect(user) {
+    console.log('checkUserRoleAndRedirect вызван для:', user.uid);
+    
     try {
         const userDoc = await db.collection('listeners').doc(user.uid).get();
         
         if (userDoc.exists) {
             const role = userDoc.data().role;
+            console.log('Роль найдена:', role);
+            
             if (role === 'methodist') {
                 window.location.replace('/methodist-cabinet.html');
             } else {
                 window.location.replace('/student-cabinet.html');
             }
         } else {
-            console.error('Учётная запись не найдена');
+            console.error('Документ не найден');
             await auth.signOut();
             window.location.replace('/index.html');
         }
     } catch (error) {
-        console.error('Ошибка проверки роли:', error);
+        console.error('Ошибка проверки роли:', error.message);
+        console.error('Полная ошибка:', error);
         window.location.replace('/dashboard.html');
     }
 }
