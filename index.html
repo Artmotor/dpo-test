@@ -1,4 +1,4 @@
-<!-- index.html -->
+<!-- index.html (ИСПРАВЛЕННАЯ ВЕРСИЯ) -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="styles.css">
     <script>
+        // SPA роутинг
         (function(){
             var redirect = sessionStorage.redirect;
             delete sessionStorage.redirect;
@@ -38,6 +39,18 @@
                     </div>
                     
                     <div class="card-body p-4 p-lg-5">
+                        <!-- Индикатор ошибки -->
+                        <div id="errorAlert" class="alert alert-danger d-none rounded-3" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <span id="errorMessage"></span>
+                        </div>
+                        
+                        <!-- Индикатор успеха -->
+                        <div id="successAlert" class="alert alert-success d-none rounded-3" role="alert">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <span id="successMessage"></span>
+                        </div>
+
                         <!-- Табы входа/регистрации -->
                         <ul class="nav nav-pills nav-fill mb-4" role="tablist">
                             <li class="nav-item">
@@ -57,14 +70,16 @@
                             <div class="tab-pane fade show active" id="login">
                                 <form id="loginForm">
                                     <div class="form-floating mb-3">
-                                        <input type="email" class="form-control" id="loginEmail" placeholder="email" required>
+                                        <input type="email" class="form-control" id="loginEmail" 
+                                               placeholder="name@example.com" required autocomplete="email">
                                         <label><i class="bi bi-envelope me-2"></i>Email</label>
                                     </div>
                                     <div class="form-floating mb-4">
-                                        <input type="password" class="form-control" id="loginPassword" placeholder="password" required>
+                                        <input type="password" class="form-control" id="loginPassword" 
+                                               placeholder="Пароль" required autocomplete="current-password">
                                         <label><i class="bi bi-lock me-2"></i>Пароль</label>
                                     </div>
-                                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-bold shadow-sm" id="loginButton">
                                         <i class="bi bi-box-arrow-in-right me-2"></i>Войти
                                     </button>
                                 </form>
@@ -74,22 +89,26 @@
                             <div class="tab-pane fade" id="register">
                                 <form id="registerForm">
                                     <div class="form-floating mb-3">
-                                        <input type="text" class="form-control" id="regFullName" placeholder="ФИО" required>
+                                        <input type="text" class="form-control" id="regFullName" 
+                                               placeholder="Иванов Иван Иванович" required autocomplete="name">
                                         <label><i class="bi bi-person me-2"></i>ФИО полностью</label>
                                     </div>
                                     <div class="form-floating mb-3">
-                                        <input type="email" class="form-control" id="regEmail" placeholder="email" required>
+                                        <input type="email" class="form-control" id="regEmail" 
+                                               placeholder="name@example.com" required autocomplete="email">
                                         <label><i class="bi bi-envelope me-2"></i>Email</label>
                                     </div>
                                     <div class="form-floating mb-3">
-                                        <input type="tel" class="form-control" id="regPhone" placeholder="+79001234567" required>
+                                        <input type="tel" class="form-control" id="regPhone" 
+                                               placeholder="+79001234567" required autocomplete="tel">
                                         <label><i class="bi bi-phone me-2"></i>Телефон</label>
                                     </div>
                                     <div class="form-floating mb-4">
-                                        <input type="password" class="form-control" id="regPassword" placeholder="password" required minlength="6">
+                                        <input type="password" class="form-control" id="regPassword" 
+                                               placeholder="Пароль" required minlength="6" autocomplete="new-password">
                                         <label><i class="bi bi-lock me-2"></i>Пароль (мин. 6 символов)</label>
                                     </div>
-                                    <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm">
+                                    <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill fw-bold shadow-sm" id="registerButton">
                                         <i class="bi bi-person-check me-2"></i>Зарегистрироваться
                                     </button>
                                 </form>
@@ -107,23 +126,16 @@
         </div>
     </div>
 
-    <!-- Toast уведомления -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3">
-        <div id="liveToast" class="toast" role="alert">
-            <div class="toast-header">
-                <i class="bi bi-info-circle me-2"></i>
-                <strong class="me-auto">Уведомление</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-            </div>
-            <div class="toast-body" id="toastMessage"></div>
-        </div>
-    </div>
-
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+    
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Наши скрипты -->
     <script src="firebase-config.js"></script>
     <script src="auth.js"></script>
 </body>
