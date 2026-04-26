@@ -1,4 +1,4 @@
-/* styles.css */
+/* styles.css - Полностью исправленный */
 :root {
     --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
@@ -242,8 +242,7 @@ body {
     margin-top: 4rem;
 }
 
-/* Исправленная секция в styles.css */
-/* Адаптивность */
+/* Адаптивность - ИСПРАВЛЕНО */
 @media (max-width: 768px) {
     .auth-card {
         margin: 1rem;
@@ -258,4 +257,10 @@ body {
         font-size: 0.85rem;
     }
 }
-/* Убрана лишняя | в конце */
+
+/* Ретина дисплеи - ИСПРАВЛЕНО */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .auth-card {
+        backdrop-filter: blur(20px);
+    }
+}
