@@ -317,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /**
  * Проверка роли и перенаправление
  */
+// auth.js - Production версия (часть с checkUserRoleAndRedirect)
 async function checkUserRoleAndRedirect(user) {
     try {
         const userDoc = await db.collection('listeners').doc(user.uid).get();
@@ -324,19 +325,17 @@ async function checkUserRoleAndRedirect(user) {
         if (userDoc.exists) {
             const role = userDoc.data().role;
             if (role === 'methodist') {
-                window.location.href = '/methodist-cabinet.html';
+                window.location.replace('/methodist-cabinet.html');
             } else {
-                window.location.href = '/student-cabinet.html';
+                window.location.replace('/student-cabinet.html');
             }
         } else {
-            // Документ не найден - выходим
-            console.error('Документ пользователя не найден');
+            console.error('Учётная запись не найдена');
             await auth.signOut();
-            window.location.href = '/index.html';
+            window.location.replace('/index.html');
         }
     } catch (error) {
         console.error('Ошибка проверки роли:', error);
-        // Если ошибка - перенаправляем на dashboard для повторной проверки
-        window.location.href = '/dashboard.html';
+        window.location.replace('/dashboard.html');
     }
 }
