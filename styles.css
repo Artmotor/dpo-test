@@ -242,6 +242,7 @@ body {
     margin-top: 4rem;
 }
 
+/* Исправленная секция в styles.css */
 /* Адаптивность */
 @media (max-width: 768px) {
     .auth-card {
@@ -256,4 +257,5 @@ body {
     .table-responsive {
         font-size: 0.85rem;
     }
-|
+}
+/* Убрана лишняя | в конце */
