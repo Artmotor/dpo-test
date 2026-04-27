@@ -1,118 +1,236 @@
-<!-- student-cabinet.html - Production версия -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <meta http-equiv="Content-Security-Policy" 
-          content="default-src 'self' https://*.gstatic.com https://*.googleapis.com https://*.firebaseio.com https://*.firebase.com;
-                   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.gstatic.com https://*.googleapis.com https://cdn.jsdelivr.net;
-                   style-src 'self' 'unsafe-inline' https://*.googleapis.com https://cdn.jsdelivr.net;
-                   img-src 'self' data: blob: https:;
-                   connect-src 'self' https://*.firebaseio.com https://*.googleapis.com wss://*.firebaseio.com https://*.firebase.com https://firestore.googleapis.com https://identitytoolkit.googleapis.com;
-                   font-src 'self' https://*.gstatic.com https://cdn.jsdelivr.net;
-                   frame-src 'self' https://*.firebaseapp.com;
-                   object-src 'none';
-                   base-uri 'self';
-                   form-action 'self';">
-    
-    <title>Личный кабинет слушателя - Институт ДПО</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+    <title>Институт ДПО - Личный кабинет слушателя</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            padding: 10px 20px;
+            border-radius: 8px;
+            width: auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .info-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .info-row {
+            margin-bottom: 12px;
+            padding: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #555;
+            display: inline-block;
+            width: 180px;
+        }
+
+        .info-value {
+            color: #333;
+            display: inline-block;
+        }
+
+        .edit-btn {
+            background: #28a745;
+            margin-top: 20px;
+            width: auto;
+            padding: 10px 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .save-btn {
+            background: #28a745;
+            width: auto;
+            padding: 10px 20px;
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            width: auto;
+            padding: 10px 20px;
+        }
+
+        .success-message, .error-message {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <!-- Навигация -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient-primary shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="#">
-                <i class="bi bi-building me-2"></i>Институт ДПО
-            </a>
-            <div class="navbar-nav ms-auto">
-                <span class="nav-link text-white" id="userName"></span>
-                <button class="btn btn-outline-light btn-sm rounded-pill ms-3" onclick="AuthService.signOut()">
-                    <i class="bi bi-box-arrow-right me-1"></i>Выйти
-                </button>
-            </div>
-        </div>
-    </nav>
+<body>
+    <div class="header">
+        <h1>📚 Институт ДПО - Личный кабинет слушателя</h1>
+        <button class="logout-btn" onclick="logout()">Выйти</button>
+    </div>
 
-    <div class="container py-4">
-        <div class="row">
-            <div class="col-12">
-                <h2 class="mb-4 fw-bold text-primary">
-                    <i class="bi bi-person-badge me-2"></i>Личный кабинет слушателя
-                </h2>
-            </div>
+    <div class="container">
+        <div id="successMessage" class="success-message"></div>
+        <div id="errorMessage" class="error-message"></div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('profile')">👤 Мои данные</button>
+            <button class="tab-btn" onclick="switchTab('documents')">📄 Паспортные данные</button>
+            <button class="tab-btn" onclick="switchTab('address')">🏠 Адреса</button>
         </div>
 
-        <div class="row g-4">
-            <!-- Карточка профиля -->
-            <div class="col-lg-8">
-                <div class="card shadow-sm border-0 rounded-4">
-                    <div class="card-header bg-white border-0 pt-4 px-4">
-                        <h4 class="fw-bold mb-0">
-                            <i class="bi bi-info-circle text-primary me-2"></i>Персональные данные
-                        </h4>
-                    </div>
-                    <div class="card-body px-4 pb-4">
-                        <div id="profileFields" class="row g-3">
-                            <!-- Заполняется динамически -->
-                        </div>
-                        <button class="btn btn-primary rounded-pill mt-3" onclick="toggleEditMode()">
-                            <i class="bi bi-pencil me-1"></i>Редактировать
-                        </button>
-                        <button class="btn btn-success rounded-pill mt-3 ms-2 d-none" id="saveButton" onclick="saveProfile()">
-                            <i class="bi bi-check-lg me-1"></i>Сохранить
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Карточка курса -->
-            <div class="col-lg-4">
-                <div class="card shadow-sm border-0 rounded-4 bg-gradient-info text-white">
-                    <div class="card-body p-4">
-                        <h5 class="fw-bold mb-3">
-                            <i class="bi bi-mortarboard me-2"></i>Текущий курс
-                        </h5>
-                        <h3 class="display-6 fw-bold" id="currentCourse">Не назначен</h3>
-                        <p class="text-white-50 mb-0" id="courseStatus"></p>
-                    </div>
-                </div>
+        <!-- Вкладка профиля -->
+        <div id="profileTab" class="tab-content active">
+            <div class="info-card">
+                <h3>Личная информация</h3>
+                <div id="profileInfo"></div>
+                <button class="edit-btn" onclick="editProfile()">✏️ Редактировать профиль</button>
             </div>
         </div>
 
-        <!-- Секция документов -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card shadow-sm border-0 rounded-4">
-                    <div class="card-header bg-white border-0 pt-4 px-4">
-                        <h4 class="fw-bold mb-0">
-                            <i class="bi bi-file-earmark-text text-primary me-2"></i>Документы
-                        </h4>
-                    </div>
-                    <div class="card-body px-4 pb-4">
-                        <div class="row g-4" id="documentsGrid">
-                            <!-- Заполняется динамически -->
-                        </div>
-                    </div>
-                </div>
+        <!-- Вкладка документов -->
+        <div id="documentsTab" class="tab-content">
+            <div class="info-card">
+                <h3>Паспортные данные</h3>
+                <div id="documentsInfo"></div>
+                <button class="edit-btn" onclick="editDocuments()">✏️ Редактировать документы</button>
+            </div>
+        </div>
+
+        <!-- Вкладка адресов -->
+        <div id="addressTab" class="tab-content">
+            <div class="info-card">
+                <h3>Адреса</h3>
+                <div id="addressInfo"></div>
+                <button class="edit-btn" onclick="editAddress()">✏️ Редактировать адреса</button>
             </div>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
-    <script src="auth.js"></script>
-    <script src="image-compressor.js"></script>
-    <script src="document-service.js"></script>
+    <script src="common.js"></script>
     <script src="student.js"></script>
 </body>
 </html>
