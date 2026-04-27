@@ -115,7 +115,7 @@
             background: none;
             border: none;
             color: #667eea;
-            font-size: 14px;
+            font-size: 18px;
         }
 
         input, select {
@@ -160,6 +160,10 @@
             cursor: pointer;
         }
 
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
         .error-message {
             color: #e74c3c;
             font-size: 12px;
@@ -186,8 +190,14 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .modal {
@@ -199,6 +209,7 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
         }
 
         .modal-content {
@@ -208,6 +219,18 @@
             border-radius: 10px;
             width: 90%;
             max-width: 400px;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .modal-header {
@@ -215,6 +238,13 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
         }
 
         .modal-body {
@@ -229,15 +259,20 @@
 
         .close {
             color: white;
-            float: right;
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
         }
 
+        .close:hover {
+            color: #ccc;
+        }
+
         .btn-secondary {
             background: #6c757d;
             margin-right: 10px;
+            width: auto;
+            padding: 10px 20px;
         }
 
         .loading {
@@ -245,67 +280,93 @@
             text-align: center;
             padding: 10px;
             color: #667eea;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+            .form-container {
+                padding: 20px;
+            }
+            .tab {
+                padding: 10px;
+                font-size: 14px;
+            }
+            button {
+                padding: 12px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Институт ДПО</h1>
+            <h1>📚 Институт ДПО</h1>
             <p>Система дистанционного обучения</p>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('login')">Вход</button>
-            <button class="tab" onclick="switchTab('register')">Регистрация</button>
+            <button class="tab active" onclick="switchTab('login')">🔐 Вход</button>
+            <button class="tab" onclick="switchTab('register')">📝 Регистрация</button>
         </div>
 
         <div class="form-container">
-            <div id="loadingIndicator" class="loading">Загрузка...</div>
+            <div id="loadingIndicator" class="loading">⏳ Загрузка...</div>
             
             <!-- Форма входа -->
             <div id="loginForm" class="form active">
                 <div id="loginSuccess" class="success-message"></div>
                 <div id="loginInfo" class="info-message"></div>
+                
                 <div class="form-group">
-                    <label>Email</label>
+                    <label>📧 Email</label>
                     <input type="email" id="loginEmail" placeholder="example@mail.ru">
                     <div id="loginEmailError" class="error-message"></div>
                 </div>
+                
                 <div class="form-group">
-                    <label>Пароль</label>
+                    <label>🔒 Пароль</label>
                     <div class="password-wrapper">
                         <input type="password" id="loginPassword" placeholder="Введите пароль">
                         <button type="button" class="toggle-password" onclick="togglePassword('loginPassword')">👁️</button>
                     </div>
                     <div id="loginPasswordError" class="error-message"></div>
                 </div>
+                
                 <div class="forgot-password">
-                    <a onclick="showResetPasswordModal()">Забыли пароль?</a>
+                    <a onclick="showResetPasswordModal()">❓ Забыли пароль?</a>
                 </div>
-                <button onclick="login()">Войти</button>
+                
+                <button onclick="login()">🚪 Войти</button>
             </div>
 
             <!-- Форма регистрации -->
             <div id="registerForm" class="form">
                 <div id="registerSuccess" class="success-message"></div>
+                
                 <div class="form-group">
-                    <label>ФИО</label>
+                    <label>👤 ФИО</label>
                     <input type="text" id="regFullName" placeholder="Иванов Иван Иванович">
                     <div id="regFullNameError" class="error-message"></div>
                 </div>
+                
                 <div class="form-group">
-                    <label>Email</label>
+                    <label>📧 Email</label>
                     <input type="email" id="regEmail" placeholder="example@mail.ru">
                     <div id="regEmailError" class="error-message"></div>
                 </div>
+                
                 <div class="form-group">
-                    <label>Телефон</label>
+                    <label>📱 Телефон</label>
                     <input type="tel" id="regPhone" placeholder="+7 (999) 123-45-67">
                     <div id="regPhoneError" class="error-message"></div>
                 </div>
+                
                 <div class="form-group">
-                    <label>Образование</label>
+                    <label>🎓 Образование</label>
                     <select id="regEducation">
                         <option value="">Выберите образование</option>
                         <option value="высшее">Высшее</option>
@@ -314,23 +375,26 @@
                     </select>
                     <div id="regEducationError" class="error-message"></div>
                 </div>
+                
                 <div class="form-group">
-                    <label>Пароль</label>
+                    <label>🔒 Пароль</label>
                     <div class="password-wrapper">
                         <input type="password" id="regPassword" placeholder="Минимум 6 символов">
                         <button type="button" class="toggle-password" onclick="togglePassword('regPassword')">👁️</button>
                     </div>
                     <div id="regPasswordError" class="error-message"></div>
                 </div>
+                
                 <div class="form-group">
-                    <label>Подтверждение пароля</label>
+                    <label>🔒 Подтверждение пароля</label>
                     <div class="password-wrapper">
                         <input type="password" id="regConfirmPassword" placeholder="Повторите пароль">
                         <button type="button" class="toggle-password" onclick="togglePassword('regConfirmPassword')">👁️</button>
                     </div>
                     <div id="regConfirmError" class="error-message"></div>
                 </div>
-                <button onclick="register()">Зарегистрироваться</button>
+                
+                <button onclick="register()">✅ Зарегистрироваться</button>
             </div>
         </div>
     </div>
@@ -339,16 +403,19 @@
     <div id="resetModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
+                <h3>🔄 Сброс пароля</h3>
                 <span class="close" onclick="closeResetModal()">&times;</span>
-                <h3>Сброс пароля</h3>
             </div>
             <div class="modal-body">
                 <div id="resetMessage" class="success-message"></div>
                 <div class="form-group">
-                    <label>Email</label>
+                    <label>📧 Введите ваш email</label>
                     <input type="email" id="resetEmail" placeholder="example@mail.ru">
                     <div id="resetEmailError" class="error-message"></div>
                 </div>
+                <p style="font-size: 12px; color: #666; margin-top: 10px;">
+                    На указанный email будет отправлена ссылка для сброса пароля
+                </p>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeResetModal()">Отмена</button>
@@ -361,11 +428,10 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
-    <script src="common.js"></script>
     
     <script>
-        let currentUser = null;
-
+        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+        
         function togglePassword(inputId) {
             const input = document.getElementById(inputId);
             if (input) {
@@ -390,6 +456,12 @@
                 tabs[0].classList.remove('active');
                 tabs[1].classList.add('active');
             }
+            clearErrors();
+        }
+
+        function clearErrors() {
+            const errors = document.querySelectorAll('.error-message');
+            errors.forEach(error => error.style.display = 'none');
         }
 
         function showError(elementId, message) {
@@ -414,6 +486,8 @@
             }
         }
 
+        // ========== РЕГИСТРАЦИЯ ==========
+        
         async function register() {
             const fullName = document.getElementById('regFullName').value.trim();
             const email = document.getElementById('regEmail').value.trim();
@@ -422,31 +496,27 @@
             const password = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('regConfirmPassword').value;
             
+            // Валидация
             if (!fullName) {
                 showError('regFullNameError', 'Введите ФИО');
                 return;
             }
-            
             if (!email || !email.includes('@')) {
                 showError('regEmailError', 'Введите корректный email');
                 return;
             }
-            
             if (!phone) {
                 showError('regPhoneError', 'Введите номер телефона');
                 return;
             }
-            
             if (!education) {
                 showError('regEducationError', 'Выберите образование');
                 return;
             }
-            
             if (!password || password.length < 6) {
                 showError('regPasswordError', 'Пароль должен быть не менее 6 символов');
                 return;
             }
-            
             if (password !== confirmPassword) {
                 showError('regConfirmError', 'Пароли не совпадают');
                 return;
@@ -462,8 +532,8 @@
                 // Отправляем письмо для подтверждения
                 await user.sendEmailVerification();
                 
-                // Создаем документ пользователя в Firestore с ролью student
-                const userData = {
+                // Создаем документ в Firestore
+                await window.db.collection('users').doc(user.uid).set({
                     fullName: fullName,
                     email: email,
                     phone: phone,
@@ -478,19 +548,17 @@
                     passportIssuedBy: '',
                     passportIssueDate: '',
                     snils: ''
-                };
+                });
                 
-                await window.db.collection('users').doc(user.uid).set(userData);
-                
-                // Выходим из системы, чтобы пользователь подтвердил email
+                // Выходим из системы
                 await window.auth.signOut();
                 
-                showSuccess('Регистрация успешна! На ваш email отправлено письмо для подтверждения. Подтвердите email и войдите в систему.', 'registerSuccess');
+                showSuccess('✅ Регистрация успешна! На ваш email отправлено письмо для подтверждения.', 'registerSuccess');
                 
                 setTimeout(() => {
                     switchTab('login');
                     document.getElementById('loginEmail').value = email;
-                    showSuccess('Подтвердите email и войдите в систему', 'loginSuccess');
+                    showSuccess('📧 Подтвердите email и войдите в систему', 'loginSuccess');
                 }, 2000);
                 
             } catch (error) {
@@ -505,6 +573,8 @@
             }
         }
 
+        // ========== ВХОД С ПЕРЕНАПРАВЛЕНИЕМ ПО РОЛИ ==========
+        
         async function login() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
@@ -521,24 +591,28 @@
                 const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
                 const user = userCredential.user;
                 
-                // Проверяем подтверждение email
+                console.log('Авторизован пользователь:', user.email);
+                
+                // Проверка подтверждения email
                 if (!user.emailVerified) {
                     await window.auth.signOut();
-                    showError('loginEmailError', 'Пожалуйста, подтвердите email. Проверьте вашу почту.');
-                    showSuccess('На ваш email отправлено письмо с подтверждением', 'loginInfo');
-                    document.getElementById('loadingIndicator').style.display = 'none';
+                    showError('loginEmailError', '⚠️ Пожалуйста, подтвердите email. Проверьте вашу почту.');
                     return;
                 }
                 
-                // Получаем документ пользователя из Firestore
+                // Получаем документ пользователя
                 const userDoc = await window.db.collection('users').doc(user.uid).get();
                 
+                let role = 'student';
+                
                 if (!userDoc.exists) {
-                    // Если документа нет, создаем его
-                    console.log('Документ пользователя не найден, создаем...');
-                    const userData = {
+                    // Создаем документ если его нет
+                    console.log('Документ не найден, создаем...');
+                    const defaultData = {
                         fullName: email.split('@')[0],
                         email: email,
+                        phone: '',
+                        education: '',
                         role: 'student',
                         emailVerified: true,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -550,28 +624,32 @@
                         passportIssueDate: '',
                         snils: ''
                     };
-                    await window.db.collection('users').doc(user.uid).set(userData);
-                    
-                    // Перенаправляем на страницу студента
-                    window.location.href = 'student-cabinet.html';
-                    return;
+                    await window.db.collection('users').doc(user.uid).set(defaultData);
+                    role = 'student';
+                } else {
+                    role = userDoc.data().role || 'student';
                 }
-                
-                const userData = userDoc.data();
                 
                 // Обновляем время последнего входа
                 await window.db.collection('users').doc(user.uid).update({
                     lastLogin: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                // Перенаправляем в зависимости от роли
-                if (userData.role === 'student') {
-                    window.location.href = 'student-cabinet.html';
-                } else if (userData.role === 'metodist') {
-                    window.location.href = 'metodist-cabinet.html';
-                } else {
-                    throw new Error('Неизвестная роль пользователя');
-                }
+                console.log('Роль пользователя:', role);
+                
+                // Показываем сообщение о перенаправлении
+                showSuccess(`🔄 Перенаправление в ${role === 'metodist' ? 'панель методиста' : 'личный кабинет слушателя'}...`, 'loginSuccess');
+                
+                // Задержка перед перенаправлением для отображения сообщения
+                setTimeout(() => {
+                    if (role === 'metodist') {
+                        console.log('Перенаправление на metodist-cabinet.html');
+                        window.location.href = 'metodist-cabinet.html';
+                    } else {
+                        console.log('Перенаправление на student-cabinet.html');
+                        window.location.href = 'student-cabinet.html';
+                    }
+                }, 1000);
                 
             } catch (error) {
                 console.error('Ошибка входа:', error);
@@ -584,14 +662,16 @@
                 } else {
                     showError('loginEmailError', 'Ошибка: ' + error.message);
                 }
-            } finally {
                 document.getElementById('loadingIndicator').style.display = 'none';
             }
         }
 
+        // ========== СБРОС ПАРОЛЯ ==========
+        
         function showResetPasswordModal() {
             document.getElementById('resetModal').style.display = 'block';
             document.getElementById('resetEmail').value = '';
+            document.getElementById('resetMessage').style.display = 'none';
         }
 
         function closeResetModal() {
@@ -600,6 +680,7 @@
 
         async function resetPassword() {
             const email = document.getElementById('resetEmail').value.trim();
+            
             if (!email) {
                 showError('resetEmailError', 'Введите email');
                 return;
@@ -608,7 +689,7 @@
             try {
                 await window.auth.sendPasswordResetEmail(email);
                 const messageElement = document.getElementById('resetMessage');
-                messageElement.textContent = `Ссылка для сброса пароля отправлена на ${email}`;
+                messageElement.textContent = `✅ Ссылка для сброса пароля отправлена на ${email}`;
                 messageElement.style.display = 'block';
                 
                 setTimeout(() => {
@@ -624,6 +705,34 @@
                 }
             }
         }
+
+        // ========== ПРОВЕРКА УЖЕ АВТОРИЗОВАННОГО ПОЛЬЗОВАТЕЛЯ ==========
+        
+        window.auth.onAuthStateChanged(async (user) => {
+            console.log('Auth state changed:', user ? user.email : 'нет пользователя');
+            
+            if (user && user.emailVerified) {
+                // Если пользователь уже авторизован, перенаправляем его
+                try {
+                    const userDoc = await window.db.collection('users').doc(user.uid).get();
+                    let role = 'student';
+                    
+                    if (userDoc.exists) {
+                        role = userDoc.data().role || 'student';
+                    }
+                    
+                    console.log('Автоматическое перенаправление, роль:', role);
+                    
+                    if (role === 'metodist') {
+                        window.location.href = 'metodist-cabinet.html';
+                    } else {
+                        window.location.href = 'student-cabinet.html';
+                    }
+                } catch (error) {
+                    console.error('Ошибка при авто-перенаправлении:', error);
+                }
+            }
+        });
 
         // Закрытие модального окна при клике вне его
         window.onclick = function(event) {
