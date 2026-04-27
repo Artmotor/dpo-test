@@ -239,6 +239,13 @@
             background: #6c757d;
             margin-right: 10px;
         }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: #667eea;
+        }
     </style>
 </head>
 <body>
@@ -254,6 +261,8 @@
         </div>
 
         <div class="form-container">
+            <div id="loadingIndicator" class="loading">Загрузка...</div>
+            
             <!-- Форма входа -->
             <div id="loginForm" class="form active">
                 <div id="loginSuccess" class="success-message"></div>
@@ -282,17 +291,17 @@
                 <div id="registerSuccess" class="success-message"></div>
                 <div class="form-group">
                     <label>ФИО</label>
-                    <input type="text" id="regFullName">
+                    <input type="text" id="regFullName" placeholder="Иванов Иван Иванович">
                     <div id="regFullNameError" class="error-message"></div>
                 </div>
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" id="regEmail">
+                    <input type="email" id="regEmail" placeholder="example@mail.ru">
                     <div id="regEmailError" class="error-message"></div>
                 </div>
                 <div class="form-group">
                     <label>Телефон</label>
-                    <input type="tel" id="regPhone">
+                    <input type="tel" id="regPhone" placeholder="+7 (999) 123-45-67">
                     <div id="regPhoneError" class="error-message"></div>
                 </div>
                 <div class="form-group">
@@ -308,7 +317,7 @@
                 <div class="form-group">
                     <label>Пароль</label>
                     <div class="password-wrapper">
-                        <input type="password" id="regPassword">
+                        <input type="password" id="regPassword" placeholder="Минимум 6 символов">
                         <button type="button" class="toggle-password" onclick="togglePassword('regPassword')">👁️</button>
                     </div>
                     <div id="regPasswordError" class="error-message"></div>
@@ -316,7 +325,7 @@
                 <div class="form-group">
                     <label>Подтверждение пароля</label>
                     <div class="password-wrapper">
-                        <input type="password" id="regConfirmPassword">
+                        <input type="password" id="regConfirmPassword" placeholder="Повторите пароль">
                         <button type="button" class="toggle-password" onclick="togglePassword('regConfirmPassword')">👁️</button>
                     </div>
                     <div id="regConfirmError" class="error-message"></div>
@@ -337,7 +346,7 @@
                 <div id="resetMessage" class="success-message"></div>
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" id="resetEmail">
+                    <input type="email" id="resetEmail" placeholder="example@mail.ru">
                     <div id="resetEmailError" class="error-message"></div>
                 </div>
             </div>
@@ -357,6 +366,14 @@
     <script>
         let currentUser = null;
 
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+            }
+        }
+
         function switchTab(tab) {
             const loginForm = document.getElementById('loginForm');
             const registerForm = document.getElementById('registerForm');
@@ -375,6 +392,28 @@
             }
         }
 
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function showSuccess(message, elementId) {
+            const successElement = document.getElementById(elementId);
+            if (successElement) {
+                successElement.textContent = message;
+                successElement.style.display = 'block';
+                setTimeout(() => {
+                    successElement.style.display = 'none';
+                }, 5000);
+            }
+        }
+
         async function register() {
             const fullName = document.getElementById('regFullName').value.trim();
             const email = document.getElementById('regEmail').value.trim();
@@ -383,29 +422,48 @@
             const password = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('regConfirmPassword').value;
             
-            if (!fullName || !email || !phone || !education || !password) {
-                alert('Заполните все поля');
+            if (!fullName) {
+                showError('regFullNameError', 'Введите ФИО');
+                return;
+            }
+            
+            if (!email || !email.includes('@')) {
+                showError('regEmailError', 'Введите корректный email');
+                return;
+            }
+            
+            if (!phone) {
+                showError('regPhoneError', 'Введите номер телефона');
+                return;
+            }
+            
+            if (!education) {
+                showError('regEducationError', 'Выберите образование');
+                return;
+            }
+            
+            if (!password || password.length < 6) {
+                showError('regPasswordError', 'Пароль должен быть не менее 6 символов');
                 return;
             }
             
             if (password !== confirmPassword) {
-                alert('Пароли не совпадают');
+                showError('regConfirmError', 'Пароли не совпадают');
                 return;
             }
             
-            if (password.length < 6) {
-                alert('Пароль должен быть не менее 6 символов');
-                return;
-            }
+            document.getElementById('loadingIndicator').style.display = 'block';
             
             try {
+                // Создаем пользователя в Auth
                 const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
                 
+                // Отправляем письмо для подтверждения
                 await user.sendEmailVerification();
                 
-                // Сохраняем пользователя с ролью "student"
-                await window.db.collection('users').doc(user.uid).set({
+                // Создаем документ пользователя в Firestore с ролью student
+                const userData = {
                     fullName: fullName,
                     email: email,
                     phone: phone,
@@ -413,22 +471,37 @@
                     role: 'student',
                     emailVerified: false,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    // Дополнительные поля для слушателя
+                    lastLogin: null,
                     actualAddress: '',
                     registrationAddress: '',
                     passportNumber: '',
                     passportIssuedBy: '',
                     passportIssueDate: '',
                     snils: ''
-                });
+                };
                 
+                await window.db.collection('users').doc(user.uid).set(userData);
+                
+                // Выходим из системы, чтобы пользователь подтвердил email
                 await window.auth.signOut();
-                alert('Регистрация успешна! Подтвердите email и войдите в систему.');
-                switchTab('login');
-                document.getElementById('loginEmail').value = email;
+                
+                showSuccess('Регистрация успешна! На ваш email отправлено письмо для подтверждения. Подтвердите email и войдите в систему.', 'registerSuccess');
+                
+                setTimeout(() => {
+                    switchTab('login');
+                    document.getElementById('loginEmail').value = email;
+                    showSuccess('Подтвердите email и войдите в систему', 'loginSuccess');
+                }, 2000);
                 
             } catch (error) {
-                alert('Ошибка: ' + error.message);
+                console.error('Ошибка регистрации:', error);
+                if (error.code === 'auth/email-already-in-use') {
+                    showError('regEmailError', 'Этот email уже зарегистрирован');
+                } else {
+                    showError('regEmailError', 'Ошибка: ' + error.message);
+                }
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
             }
         }
 
@@ -437,38 +510,88 @@
             const password = document.getElementById('loginPassword').value;
             
             if (!email || !password) {
-                alert('Введите email и пароль');
+                showError('loginEmailError', 'Введите email и пароль');
                 return;
             }
             
+            document.getElementById('loadingIndicator').style.display = 'block';
+            
             try {
+                // Вход в систему
                 const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
                 const user = userCredential.user;
                 
+                // Проверяем подтверждение email
                 if (!user.emailVerified) {
                     await window.auth.signOut();
-                    alert('Подтвердите email перед входом');
+                    showError('loginEmailError', 'Пожалуйста, подтвердите email. Проверьте вашу почту.');
+                    showSuccess('На ваш email отправлено письмо с подтверждением', 'loginInfo');
+                    document.getElementById('loadingIndicator').style.display = 'none';
                     return;
                 }
                 
+                // Получаем документ пользователя из Firestore
                 const userDoc = await window.db.collection('users').doc(user.uid).get();
+                
+                if (!userDoc.exists) {
+                    // Если документа нет, создаем его
+                    console.log('Документ пользователя не найден, создаем...');
+                    const userData = {
+                        fullName: email.split('@')[0],
+                        email: email,
+                        role: 'student',
+                        emailVerified: true,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                        actualAddress: '',
+                        registrationAddress: '',
+                        passportNumber: '',
+                        passportIssuedBy: '',
+                        passportIssueDate: '',
+                        snils: ''
+                    };
+                    await window.db.collection('users').doc(user.uid).set(userData);
+                    
+                    // Перенаправляем на страницу студента
+                    window.location.href = 'student-cabinet.html';
+                    return;
+                }
+                
                 const userData = userDoc.data();
                 
+                // Обновляем время последнего входа
+                await window.db.collection('users').doc(user.uid).update({
+                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Перенаправляем в зависимости от роли
                 if (userData.role === 'student') {
                     window.location.href = 'student-cabinet.html';
                 } else if (userData.role === 'metodist') {
                     window.location.href = 'metodist-cabinet.html';
                 } else {
-                    alert('Неизвестная роль пользователя');
+                    throw new Error('Неизвестная роль пользователя');
                 }
                 
             } catch (error) {
-                alert('Ошибка входа: ' + error.message);
+                console.error('Ошибка входа:', error);
+                if (error.code === 'auth/user-not-found') {
+                    showError('loginEmailError', 'Пользователь не найден');
+                } else if (error.code === 'auth/wrong-password') {
+                    showError('loginPasswordError', 'Неверный пароль');
+                } else if (error.code === 'auth/too-many-requests') {
+                    showError('loginEmailError', 'Слишком много попыток. Попробуйте позже');
+                } else {
+                    showError('loginEmailError', 'Ошибка: ' + error.message);
+                }
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
             }
         }
 
         function showResetPasswordModal() {
             document.getElementById('resetModal').style.display = 'block';
+            document.getElementById('resetEmail').value = '';
         }
 
         function closeResetModal() {
@@ -478,19 +601,31 @@
         async function resetPassword() {
             const email = document.getElementById('resetEmail').value.trim();
             if (!email) {
-                alert('Введите email');
+                showError('resetEmailError', 'Введите email');
                 return;
             }
             
             try {
                 await window.auth.sendPasswordResetEmail(email);
-                alert('Ссылка для сброса пароля отправлена на email');
-                closeResetModal();
+                const messageElement = document.getElementById('resetMessage');
+                messageElement.textContent = `Ссылка для сброса пароля отправлена на ${email}`;
+                messageElement.style.display = 'block';
+                
+                setTimeout(() => {
+                    closeResetModal();
+                }, 3000);
+                
             } catch (error) {
-                alert('Ошибка: ' + error.message);
+                console.error('Ошибка сброса пароля:', error);
+                if (error.code === 'auth/user-not-found') {
+                    showError('resetEmailError', 'Пользователь с таким email не найден');
+                } else {
+                    showError('resetEmailError', 'Ошибка: ' + error.message);
+                }
             }
         }
 
+        // Закрытие модального окна при клике вне его
         window.onclick = function(event) {
             const modal = document.getElementById('resetModal');
             if (event.target === modal) {
