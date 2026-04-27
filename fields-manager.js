@@ -1,18 +1,15 @@
-// fields-manager.js - Управление пользовательскими полями
-// Этот файл загружается первым и содержит основную логику
+// fields-manager.js - работает без индексов
 
 class FieldsManager {
     constructor() {
         this.collection = 'custom_fields';
-        this.listeners = [];
     }
 
-    // Получить все поля
+    // Получить все поля (без сортировки в запросе)
     async getAllFields() {
         try {
-            const snapshot = await window.db.collection(this.collection)
-                .orderBy('order', 'asc')
-                .get();
+            // Убираем .orderBy() - не требует индекса
+            const snapshot = await window.db.collection(this.collection).get();
             
             const fields = [];
             snapshot.forEach(doc => {
@@ -22,20 +19,22 @@ class FieldsManager {
                 });
             });
             
-            return fields;
+            // Сортируем в JavaScript (очень быстро для небольшого количества полей)
+            return fields.sort((a, b) => (a.order || 0) - (b.order || 0));
+            
         } catch (error) {
             console.error('Ошибка загрузки полей:', error);
             return [];
         }
     }
 
-    // Получить активные поля (видимые для слушателя)
+    // Получить активные поля
     async getActiveFields() {
         const allFields = await this.getAllFields();
         return allFields.filter(field => field.isActive !== false);
     }
 
-    // Добавить новое поле
+    // Добавить поле
     async addField(fieldData) {
         try {
             const fields = await this.getAllFields();
@@ -96,7 +95,6 @@ class FieldsManager {
             const currentData = userDoc.data();
             const customFields = currentData.customFields || {};
             
-            // Обновляем только переданные поля
             const updatedFields = { ...customFields, ...values };
             
             await userRef.update({
@@ -125,7 +123,7 @@ class FieldsManager {
         }
     }
 
-    // Проверить, заполнены ли все обязательные поля
+    // Проверить заполнение обязательных полей
     async checkRequiredFields(userId) {
         const fields = await this.getActiveFields();
         const values = await this.getFieldValues(userId);
