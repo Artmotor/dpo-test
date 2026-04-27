@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Институт ДПО - Панель методиста</title>
+    <title>Панель методиста - Институт ДПО</title>
     <style>
         * {
             margin: 0;
@@ -13,35 +13,49 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
+            background: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .header h1 {
+            color: #667eea;
             font-size: 24px;
         }
 
         .logout-btn {
             background: #e74c3c;
-            padding: 10px 20px;
+            color: white;
+            border: none;
+            padding: 10px 25px;
             border-radius: 8px;
-            width: auto;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
         }
 
         .container {
             max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
+            margin: 30px auto;
+            padding: 0 20px;
         }
 
+        /* Статистика */
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -51,10 +65,15 @@
 
         .stat-card {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 25px;
+            border-radius: 15px;
             text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
 
         .stat-number {
@@ -66,28 +85,38 @@
         .stat-label {
             color: #666;
             margin-top: 10px;
+            font-size: 14px;
         }
 
+        /* Поиск */
         .search-box {
             background: white;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 15px;
             margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .search-box input {
             width: 100%;
-            padding: 12px;
+            padding: 12px 15px;
             border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 16px;
+            transition: all 0.3s;
         }
 
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* Таблица */
         .students-table {
             background: white;
-            border-radius: 10px;
+            border-radius: 15px;
             overflow-x: auto;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
         table {
@@ -96,7 +125,7 @@
         }
 
         th, td {
-            padding: 12px;
+            padding: 15px;
             text-align: left;
             border-bottom: 1px solid #e0e0e0;
         }
@@ -105,6 +134,7 @@
             background: #f8f9fa;
             font-weight: bold;
             color: #555;
+            font-size: 14px;
         }
 
         tr:hover {
@@ -113,11 +143,21 @@
 
         .edit-btn {
             background: #28a745;
-            padding: 5px 10px;
-            width: auto;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
             font-size: 12px;
+            transition: all 0.3s;
         }
 
+        .edit-btn:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+
+        /* Модальное окно */
         .modal {
             display: none;
             position: fixed;
@@ -127,31 +167,51 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
         }
 
         .modal-content {
             background-color: white;
             margin: 5% auto;
             padding: 0;
-            border-radius: 10px;
+            border-radius: 15px;
             width: 90%;
             max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .modal-header {
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border-radius: 10px 10px 0 0;
+            border-radius: 15px 15px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
         }
 
-        .modal-body {
-            padding: 20px;
+        .modal-header h3 {
+            margin: 0;
         }
 
         .close {
@@ -159,6 +219,14 @@
             font-size: 28px;
             font-weight: bold;
             cursor: pointer;
+        }
+
+        .close:hover {
+            color: #ddd;
+        }
+
+        .modal-body {
+            padding: 20px;
         }
 
         .form-group {
@@ -172,16 +240,36 @@
             color: #555;
         }
 
-        .form-group input, .form-group select {
+        .form-group input,
+        .form-group select {
             width: 100%;
             padding: 10px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
         }
 
         .readonly-field {
             background: #f5f5f5;
             color: #666;
+            cursor: not-allowed;
+        }
+
+        hr {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        h4 {
+            margin-bottom: 15px;
+            color: #667eea;
         }
 
         .form-actions {
@@ -192,35 +280,41 @@
 
         .save-btn {
             background: #28a745;
-            width: auto;
+            color: white;
+            border: none;
             padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            flex: 1;
         }
 
         .cancel-btn {
             background: #6c757d;
-            width: auto;
+            color: white;
+            border: none;
             padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            flex: 1;
         }
 
+        .save-btn:hover, .cancel-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Сообщения */
         .success-message, .error-message {
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 15px 20px;
+            border-radius: 10px;
             display: none;
             z-index: 1001;
             animation: slideIn 0.3s;
-        }
-
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
         }
 
         @keyframes slideIn {
@@ -234,10 +328,42 @@
             }
         }
 
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        /* Загрузка */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        /* Адаптив */
         @media (max-width: 768px) {
+            .header h1 {
+                font-size: 18px;
+            }
+            .stat-number {
+                font-size: 28px;
+            }
             th, td {
+                padding: 10px;
                 font-size: 12px;
-                padding: 8px;
+            }
+            .edit-btn {
+                padding: 4px 8px;
+                font-size: 10px;
             }
         }
     </style>
@@ -245,13 +371,14 @@
 <body>
     <div class="header">
         <h1>📊 Институт ДПО - Панель методиста</h1>
-        <button class="logout-btn" onclick="logout()">Выйти</button>
+        <button class="logout-btn" onclick="logout()">🚪 Выйти</button>
     </div>
 
     <div class="container">
         <div id="successMessage" class="success-message"></div>
         <div id="errorMessage" class="error-message"></div>
 
+        <!-- Статистика -->
         <div class="stats">
             <div class="stat-card">
                 <div class="stat-number" id="totalStudents">0</div>
@@ -267,10 +394,12 @@
             </div>
         </div>
 
+        <!-- Поиск -->
         <div class="search-box">
             <input type="text" id="searchInput" placeholder="🔍 Поиск по ФИО, email или телефону..." onkeyup="searchStudents()">
         </div>
 
+        <!-- Таблица слушателей -->
         <div class="students-table">
             <table>
                 <thead>
@@ -296,7 +425,7 @@
     <div id="editModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Редактирование данных слушателя</h3>
+                <h3>✏️ Редактирование данных слушателя</h3>
                 <span class="close" onclick="closeEditModal()">&times;</span>
             </div>
             <div class="modal-body">
@@ -316,35 +445,35 @@
                     <label>Образование (не редактируется)</label>
                     <input type="text" id="editEducation" readonly class="readonly-field">
                 </div>
-                <hr style="margin: 20px 0;">
-                <h4>Дополнительная информация (редактируется)</h4>
+                <hr>
+                <h4>📄 Дополнительная информация (редактируется)</h4>
                 <div class="form-group">
-                    <label>Фактический адрес</label>
-                    <input type="text" id="editActualAddress">
+                    <label>🏠 Фактический адрес</label>
+                    <input type="text" id="editActualAddress" placeholder="Индекс, город, улица, дом, кв.">
                 </div>
                 <div class="form-group">
-                    <label>Адрес прописки</label>
-                    <input type="text" id="editRegistrationAddress">
+                    <label>📜 Адрес прописки</label>
+                    <input type="text" id="editRegistrationAddress" placeholder="Индекс, город, улица, дом, кв.">
                 </div>
                 <div class="form-group">
-                    <label>Номер паспорта</label>
-                    <input type="text" id="editPassportNumber">
+                    <label>🆔 Номер паспорта</label>
+                    <input type="text" id="editPassportNumber" placeholder="Серия и номер паспорта">
                 </div>
                 <div class="form-group">
-                    <label>Кем выдан паспорт</label>
-                    <input type="text" id="editPassportIssuedBy">
+                    <label>🏛️ Кем выдан паспорт</label>
+                    <input type="text" id="editPassportIssuedBy" placeholder="Кем выдан">
                 </div>
                 <div class="form-group">
-                    <label>Когда выдан паспорт</label>
+                    <label>📅 Когда выдан паспорт</label>
                     <input type="date" id="editPassportIssueDate">
                 </div>
                 <div class="form-group">
-                    <label>СНИЛС</label>
-                    <input type="text" id="editSnils">
+                    <label>🔢 СНИЛС</label>
+                    <input type="text" id="editSnils" placeholder="Номер СНИЛС">
                 </div>
                 <div class="form-actions">
-                    <button class="save-btn" onclick="saveStudentData()">Сохранить</button>
-                    <button class="cancel-btn" onclick="closeEditModal()">Отмена</button>
+                    <button class="save-btn" onclick="saveStudentData()">💾 Сохранить</button>
+                    <button class="cancel-btn" onclick="closeEditModal()">❌ Отмена</button>
                 </div>
             </div>
         </div>
@@ -354,7 +483,186 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
-    <script src="common.js"></script>
-    <script src="metodist.js"></script>
+    
+    <script>
+        let allStudents = [];
+        let currentEditStudentId = null;
+
+        // Функции для сообщений
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        // Загрузка списка слушателей
+        async function loadStudents() {
+            try {
+                const snapshot = await window.db.collection('users')
+                    .where('role', '==', 'student')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                
+                allStudents = [];
+                snapshot.forEach(doc => {
+                    allStudents.push({ id: doc.id, ...doc.data() });
+                });
+                
+                displayStudents(allStudents);
+                updateStats();
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showError('Ошибка загрузки данных');
+            }
+        }
+
+        // Отображение таблицы
+        function displayStudents(students) {
+            const tbody = document.getElementById('studentsTableBody');
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Нет слушателей</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = students.map(s => `
+                <tr>
+                    <td>${s.fullName || 'Не указано'}</td>
+                    <td>${s.email || 'Не указан'}</td>
+                    <td>${s.phone || 'Не указан'}</td>
+                    <td>${s.emailVerified ? '✅ Подтвержден' : '⏳ Не подтвержден'}</td>
+                    <td>${formatDate(s.createdAt)}</td>
+                    <td><button class="edit-btn" onclick="openEditModal('${s.id}')">✏️ Редактировать</button></td>
+                </tr>
+            `).join('');
+        }
+
+        // Поиск
+        function searchStudents() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allStudents.filter(s => 
+                (s.fullName && s.fullName.toLowerCase().includes(term)) ||
+                (s.email && s.email.toLowerCase().includes(term)) ||
+                (s.phone && s.phone.toLowerCase().includes(term))
+            );
+            displayStudents(filtered);
+        }
+
+        // Статистика
+        function updateStats() {
+            const total = allStudents.length;
+            const verified = allStudents.filter(s => s.emailVerified).length;
+            const active = allStudents.filter(s => {
+                const lastLogin = s.lastLogin?.toDate();
+                if (!lastLogin) return false;
+                const days = (Date.now() - lastLogin.getTime()) / (1000 * 60 * 60 * 24);
+                return days <= 30;
+            }).length;
+            
+            document.getElementById('totalStudents').textContent = total;
+            document.getElementById('verifiedStudents').textContent = verified;
+            document.getElementById('activeStudents').textContent = active;
+        }
+
+        // Форматирование даты
+        function formatDate(timestamp) {
+            if (!timestamp) return 'Не указана';
+            try {
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                return date.toLocaleDateString('ru-RU');
+            } catch(e) {
+                return 'Не указана';
+            }
+        }
+
+        // Открытие модального окна
+        function openEditModal(studentId) {
+            const student = allStudents.find(s => s.id === studentId);
+            if (!student) return;
+            
+            currentEditStudentId = studentId;
+            
+            document.getElementById('editFullName').value = student.fullName || '';
+            document.getElementById('editEmail').value = student.email || '';
+            document.getElementById('editPhone').value = student.phone || '';
+            document.getElementById('editEducation').value = student.education || '';
+            document.getElementById('editActualAddress').value = student.actualAddress || '';
+            document.getElementById('editRegistrationAddress').value = student.registrationAddress || '';
+            document.getElementById('editPassportNumber').value = student.passportNumber || '';
+            document.getElementById('editPassportIssuedBy').value = student.passportIssuedBy || '';
+            document.getElementById('editPassportIssueDate').value = student.passportIssueDate || '';
+            document.getElementById('editSnils').value = student.snils || '';
+            
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        // Закрытие модального окна
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditStudentId = null;
+        }
+
+        // Сохранение данных
+        async function saveStudentData() {
+            if (!currentEditStudentId) return;
+            
+            const updates = {
+                actualAddress: document.getElementById('editActualAddress').value,
+                registrationAddress: document.getElementById('editRegistrationAddress').value,
+                passportNumber: document.getElementById('editPassportNumber').value,
+                passportIssuedBy: document.getElementById('editPassportIssuedBy').value,
+                passportIssueDate: document.getElementById('editPassportIssueDate').value,
+                snils: document.getElementById('editSnils').value,
+                updatedByMetodist: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            try {
+                await window.db.collection('users').doc(currentEditStudentId).update(updates);
+                
+                const index = allStudents.findIndex(s => s.id === currentEditStudentId);
+                if (index !== -1) {
+                    allStudents[index] = { ...allStudents[index], ...updates };
+                }
+                
+                displayStudents(allStudents);
+                showSuccess('✅ Данные успешно обновлены!');
+                closeEditModal();
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showError('❌ Ошибка сохранения данных');
+            }
+        }
+
+        // Выход
+        async function logout() {
+            await window.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
+        // Проверка авторизации
+        window.auth.onAuthStateChanged(async (user) => {
+            if (!user || !user.emailVerified) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            const userDoc = await window.db.collection('users').doc(user.uid).get();
+            const userData = userDoc.data();
+            
+            if (userData.role !== 'metodist') {
+                window.location.href = 'student-cabinet.html';
+                return;
+            }
+            
+            await loadStudents();
+        });
+    </script>
 </body>
 </html>
