@@ -1,15 +1,18 @@
-// metodist.js - скрипт для панели методиста
+// metodist.js - исправленная версия
 
 let allStudents = [];
 let currentEditStudentId = null;
 
 // Загрузка списка слушателей
 async function loadStudents() {
+    console.log('Загрузка списка слушателей...');
     try {
         const snapshot = await window.db.collection('users')
             .where('role', '==', 'student')
             .orderBy('createdAt', 'desc')
             .get();
+        
+        console.log('Найдено слушателей:', snapshot.size);
         
         allStudents = [];
         snapshot.forEach(doc => {
@@ -23,13 +26,14 @@ async function loadStudents() {
         updateStats();
     } catch (error) {
         console.error('Ошибка загрузки студентов:', error);
-        showError('errorMessage', 'Ошибка загрузки списка слушателей');
+        showError('errorMessage', 'Ошибка загрузки списка слушателей: ' + error.message);
     }
 }
 
 // Отображение списка слушателей
 function displayStudents(students) {
     const tbody = document.getElementById('studentsTableBody');
+    if (!tbody) return;
     
     if (students.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Нет слушателей</td></tr>';
@@ -52,7 +56,7 @@ function displayStudents(students) {
 
 // Поиск слушателей
 function searchStudents() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
     
     const filtered = allStudents.filter(student => 
         (student.fullName && student.fullName.toLowerCase().includes(searchTerm)) ||
@@ -74,9 +78,13 @@ function updateStats() {
         return daysSinceLogin <= 30;
     }).length;
     
-    document.getElementById('totalStudents').textContent = total;
-    document.getElementById('verifiedStudents').textContent = verified;
-    document.getElementById('activeStudents').textContent = active;
+    const totalElem = document.getElementById('totalStudents');
+    const verifiedElem = document.getElementById('verifiedStudents');
+    const activeElem = document.getElementById('activeStudents');
+    
+    if (totalElem) totalElem.textContent = total;
+    if (verifiedElem) verifiedElem.textContent = verified;
+    if (activeElem) activeElem.textContent = active;
 }
 
 // Открытие модального окна для редактирования
@@ -87,25 +95,39 @@ async function openEditModal(studentId) {
     currentEditStudentId = studentId;
     
     // Заполняем readonly поля
-    document.getElementById('editFullName').value = student.fullName || '';
-    document.getElementById('editEmail').value = student.email || '';
-    document.getElementById('editPhone').value = student.phone || '';
-    document.getElementById('editEducation').value = student.education || '';
+    const fullNameInput = document.getElementById('editFullName');
+    const emailInput = document.getElementById('editEmail');
+    const phoneInput = document.getElementById('editPhone');
+    const educationInput = document.getElementById('editEducation');
+    
+    if (fullNameInput) fullNameInput.value = student.fullName || '';
+    if (emailInput) emailInput.value = student.email || '';
+    if (phoneInput) phoneInput.value = student.phone || '';
+    if (educationInput) educationInput.value = student.education || '';
     
     // Заполняем редактируемые поля
-    document.getElementById('editActualAddress').value = student.actualAddress || '';
-    document.getElementById('editRegistrationAddress').value = student.registrationAddress || '';
-    document.getElementById('editPassportNumber').value = student.passportNumber || '';
-    document.getElementById('editPassportIssuedBy').value = student.passportIssuedBy || '';
-    document.getElementById('editPassportIssueDate').value = student.passportIssueDate || '';
-    document.getElementById('editSnils').value = student.snils || '';
+    const actualAddressInput = document.getElementById('editActualAddress');
+    const registrationAddressInput = document.getElementById('editRegistrationAddress');
+    const passportNumberInput = document.getElementById('editPassportNumber');
+    const passportIssuedByInput = document.getElementById('editPassportIssuedBy');
+    const passportIssueDateInput = document.getElementById('editPassportIssueDate');
+    const snilsInput = document.getElementById('editSnils');
     
-    document.getElementById('editModal').style.display = 'block';
+    if (actualAddressInput) actualAddressInput.value = student.actualAddress || '';
+    if (registrationAddressInput) registrationAddressInput.value = student.registrationAddress || '';
+    if (passportNumberInput) passportNumberInput.value = student.passportNumber || '';
+    if (passportIssuedByInput) passportIssuedByInput.value = student.passportIssuedBy || '';
+    if (passportIssueDateInput) passportIssueDateInput.value = student.passportIssueDate || '';
+    if (snilsInput) snilsInput.value = student.snils || '';
+    
+    const modal = document.getElementById('editModal');
+    if (modal) modal.style.display = 'block';
 }
 
 // Закрытие модального окна
 function closeEditModal() {
-    document.getElementById('editModal').style.display = 'none';
+    const modal = document.getElementById('editModal');
+    if (modal) modal.style.display = 'none';
     currentEditStudentId = null;
 }
 
@@ -113,13 +135,20 @@ function closeEditModal() {
 async function saveStudentData() {
     if (!currentEditStudentId) return;
     
+    const actualAddress = document.getElementById('editActualAddress')?.value || '';
+    const registrationAddress = document.getElementById('editRegistrationAddress')?.value || '';
+    const passportNumber = document.getElementById('editPassportNumber')?.value || '';
+    const passportIssuedBy = document.getElementById('editPassportIssuedBy')?.value || '';
+    const passportIssueDate = document.getElementById('editPassportIssueDate')?.value || '';
+    const snils = document.getElementById('editSnils')?.value || '';
+    
     const updates = {
-        actualAddress: document.getElementById('editActualAddress').value,
-        registrationAddress: document.getElementById('editRegistrationAddress').value,
-        passportNumber: document.getElementById('editPassportNumber').value,
-        passportIssuedBy: document.getElementById('editPassportIssuedBy').value,
-        passportIssueDate: document.getElementById('editPassportIssueDate').value,
-        snils: document.getElementById('editSnils').value,
+        actualAddress: actualAddress,
+        registrationAddress: registrationAddress,
+        passportNumber: passportNumber,
+        passportIssuedBy: passportIssuedBy,
+        passportIssueDate: passportIssueDate,
+        snils: snils,
         updatedByMetodist: firebase.firestore.FieldValue.serverTimestamp()
     };
     
@@ -137,27 +166,102 @@ async function saveStudentData() {
         closeEditModal();
     } catch (error) {
         console.error('Ошибка сохранения:', error);
-        showError('errorMessage', 'Ошибка сохранения данных');
+        showError('errorMessage', 'Ошибка сохранения данных: ' + error.message);
     }
 }
 
-// Инициализация
-window.auth.onAuthStateChanged(async (user) => {
-    if (user && user.emailVerified) {
-        try {
-            const userDoc = await window.db.collection('users').doc(user.uid).get();
-            const userData = userDoc.data();
-            
-            if (userData && userData.role === 'metodist') {
-                await loadStudents();
-            } else {
-                alert('У вас нет доступа к этой странице');
-                window.location.href = 'index.html';
-            }
-        } catch (error) {
-            console.error('Ошибка:', error);
+// Функции для форматирования
+function formatDate(timestamp) {
+    if (!timestamp) return 'Не указана';
+    try {
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return date.toLocaleDateString('ru-RU');
+    } catch (e) {
+        return 'Не указана';
+    }
+}
+
+function formatDateTime(timestamp) {
+    if (!timestamp) return 'Не указано';
+    try {
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return date.toLocaleString('ru-RU');
+    } catch (e) {
+        return 'Не указано';
+    }
+}
+
+function showSuccess(message, elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = message;
+        element.style.display = 'block';
+        setTimeout(() => {
+            element.style.display = 'none';
+        }, 3000);
+    }
+}
+
+function showError(elementId, message) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = message;
+        element.style.display = 'block';
+        setTimeout(() => {
+            element.style.display = 'none';
+        }, 5000);
+    }
+}
+
+// Инициализация страницы методиста
+async function initMetodistPage() {
+    console.log('Инициализация страницы методиста...');
+    
+    const user = window.auth.currentUser;
+    if (!user) {
+        console.log('Пользователь не авторизован, перенаправление на главную');
+        window.location.href = 'index.html';
+        return;
+    }
+    
+    try {
+        const userDoc = await window.db.collection('users').doc(user.uid).get();
+        
+        if (!userDoc.exists) {
+            console.log('Документ пользователя не найден');
+            await window.auth.signOut();
             window.location.href = 'index.html';
+            return;
         }
+        
+        const userData = userDoc.data();
+        console.log('Роль пользователя:', userData.role);
+        
+        if (userData.role !== 'metodist') {
+            console.log('Не методист, перенаправление на страницу слушателя');
+            window.location.href = 'student-cabinet.html';
+            return;
+        }
+        
+        console.log('Доступ разрешен, загрузка данных');
+        await loadStudents();
+        
+    } catch (error) {
+        console.error('Ошибка инициализации:', error);
+        window.location.href = 'index.html';
+    }
+}
+
+// Проверка авторизации при загрузке страницы
+window.auth.onAuthStateChanged(async (user) => {
+    console.log('Auth state changed in metodist:', user?.email);
+    
+    if (user && user.emailVerified) {
+        await initMetodistPage();
+    } else if (user && !user.emailVerified) {
+        alert('Пожалуйста, подтвердите email');
+        await window.auth.signOut();
+        window.location.href = 'index.html';
     } else {
         window.location.href = 'index.html';
     }
