@@ -13,23 +13,23 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f5f5;
             min-height: 100vh;
         }
 
         .header {
-            background: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             padding: 20px 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .header h1 {
-            color: #667eea;
             font-size: 24px;
         }
 
@@ -42,6 +42,7 @@
             cursor: pointer;
             font-size: 16px;
             transition: all 0.3s;
+            width: auto;
         }
 
         .logout-btn:hover {
@@ -55,6 +56,58 @@
             padding: 0 20px;
         }
 
+        /* Вкладки */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab-btn:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* Контент вкладок */
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Статистика */
         .stats {
             display: grid;
@@ -64,12 +117,13 @@
         }
 
         .stat-card {
-            background: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 25px;
             border-radius: 15px;
             text-align: center;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             transition: transform 0.3s;
+            color: white;
         }
 
         .stat-card:hover {
@@ -79,20 +133,19 @@
         .stat-number {
             font-size: 36px;
             font-weight: bold;
-            color: #667eea;
         }
 
         .stat-label {
-            color: #666;
             margin-top: 10px;
             font-size: 14px;
+            opacity: 0.9;
         }
 
         /* Поиск */
         .search-box {
             background: white;
             padding: 20px;
-            border-radius: 15px;
+            border-radius: 12px;
             margin-bottom: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
@@ -114,9 +167,9 @@
         /* Таблица */
         .students-table {
             background: white;
-            border-radius: 15px;
+            border-radius: 12px;
             overflow-x: auto;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         table {
@@ -182,11 +235,6 @@
             animation: slideDown 0.3s;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
         @keyframes slideDown {
             from {
                 transform: translateY(-50px);
@@ -241,7 +289,8 @@
         }
 
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 10px;
             border: 2px solid #e0e0e0;
@@ -250,9 +299,15 @@
         }
 
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
             border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
         }
 
         .readonly-field {
@@ -340,30 +395,162 @@
             border-left: 4px solid #dc3545;
         }
 
-        /* Загрузка */
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: #667eea;
-            font-size: 16px;
+        /* Стили для управления полями */
+        .fields-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
-        /* Адаптив */
+        .add-field-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            width: auto;
+        }
+
+        .add-field-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .field-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .field-info {
+            flex: 1;
+        }
+
+        .field-info strong {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .field-meta {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .field-meta code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .field-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .edit-field-btn {
+            background: #ffc107;
+            color: #856404;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .delete-field-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+
+        .badge-required {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .badge-optional {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-active {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .badge-inactive {
+            background: #6c757d;
+            color: white;
+        }
+
+        .empty-fields {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        /* Адаптивность */
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 18px;
             }
-            .stat-number {
-                font-size: 28px;
+            
+            .tabs {
+                flex-direction: column;
             }
-            th, td {
-                padding: 10px;
-                font-size: 12px;
+            
+            .tab-btn {
+                width: 100%;
             }
-            .edit-btn {
-                padding: 4px 8px;
-                font-size: 10px;
+            
+            .stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .field-item {
+                flex-direction: column;
+            }
+            
+            .field-actions {
+                width: 100%;
+            }
+            
+            .field-actions button {
+                flex: 1;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .form-actions button {
+                width: 100%;
             }
         }
     </style>
@@ -378,50 +565,74 @@
         <div id="successMessage" class="success-message"></div>
         <div id="errorMessage" class="error-message"></div>
 
-        <!-- Статистика -->
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-number" id="totalStudents">0</div>
-                <div class="stat-label">Всего слушателей</div>
+        <!-- Вкладки -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('students')">👥 Слушатели</button>
+            <button class="tab-btn" onclick="switchTab('fields')">⚙️ Управление полями</button>
+        </div>
+
+        <!-- Вкладка слушателей -->
+        <div id="studentsTab" class="tab-content active">
+            <!-- Статистика -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalStudents">0</div>
+                    <div class="stat-label">Всего слушателей</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="verifiedStudents">0</div>
+                    <div class="stat-label">Подтвердили email</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="activeStudents">0</div>
+                    <div class="stat-label">Активные слушатели</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-number" id="verifiedStudents">0</div>
-                <div class="stat-label">Подтвердили email</div>
+
+            <!-- Поиск -->
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Поиск по ФИО, email или телефону..." onkeyup="searchStudents()">
             </div>
-            <div class="stat-card">
-                <div class="stat-number" id="activeStudents">0</div>
-                <div class="stat-label">Активные слушатели</div>
+
+            <!-- Таблица слушателей -->
+            <div class="students-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ФИО</th>
+                            <th>Email</th>
+                            <th>Телефон</th>
+                            <th>Статус</th>
+                            <th>Дата регистрации</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center;">Загрузка...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Поиск -->
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="🔍 Поиск по ФИО, email или телефону..." onkeyup="searchStudents()">
-        </div>
-
-        <!-- Таблица слушателей -->
-        <div class="students-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ФИО</th>
-                        <th>Email</th>
-                        <th>Телефон</th>
-                        <th>Статус</th>
-                        <th>Дата регистрации</th>
-                        <th>Действия</th>
-                    </tr>
-                </thead>
-                <tbody id="studentsTableBody">
-                    <tr>
-                        <td colspan="6" style="text-align: center;">Загрузка...</td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- Вкладка управления полями -->
+        <div id="fieldsTab" class="tab-content">
+            <div class="fields-header">
+                <h3>⚙️ Управление дополнительными полями</h3>
+                <button class="add-field-btn" onclick="openFieldEditor()">➕ Создать поле</button>
+            </div>
+            <p style="color: #666; margin-bottom: 20px;">
+                Здесь вы можете создавать, редактировать и удалять поля, которые будут отображаться у слушателей.<br>
+                Каждое поле имеет свою семантику (ссылку на схему данных) и уникальный идентификатор.
+            </p>
+            <div id="fieldsListContainer">
+                <div style="text-align: center; padding: 40px; color: #999;">Загрузка полей...</div>
+            </div>
         </div>
     </div>
 
-    <!-- Модальное окно редактирования -->
+    <!-- Модальное окно редактирования слушателя -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -479,16 +690,111 @@
         </div>
     </div>
 
+    <!-- Модальное окно для создания/редактирования поля -->
+    <div id="fieldEditorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="fieldEditorTitle">Создание поля</h3>
+                <span class="close" onclick="closeFieldEditor()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="fieldEditorForm">
+                    <div class="form-group">
+                        <label>Название поля *</label>
+                        <input type="text" id="fieldLabel" placeholder="Например: Отчество" required>
+                    </div>
+                    <div class="form-group">
+                        <label>ID поля (латиницей) *</label>
+                        <input type="text" id="fieldId" placeholder="Например: patronymic" required>
+                        <small style="color: #666;">Уникальный идентификатор, только латиница и без пробелов</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Тип поля</label>
+                        <select id="fieldType">
+                            <option value="text">📝 Текстовое поле</option>
+                            <option value="textarea">📄 Многострочный текст</option>
+                            <option value="email">📧 Email</option>
+                            <option value="tel">📞 Телефон</option>
+                            <option value="date">📅 Дата</option>
+                            <option value="number">#️⃣ Число</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Семантика (URL схемы)</label>
+                        <input type="url" id="fieldSemantics" placeholder="http://schemas.titul24.ru/simplex/отчество">
+                        <small style="color: #666;">Ссылка на схему данных (например, http://schemas.titul24.ru/simplex/...)</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Placeholder (подсказка)</label>
+                        <input type="text" id="fieldPlaceholder" placeholder="Пример ввода...">
+                    </div>
+                    <div class="form-group">
+                        <label>Порядок отображения</label>
+                        <input type="number" id="fieldOrder" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="fieldRequired"> Обязательное поле
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                            <input type="checkbox" id="fieldActive" checked> Поле активно (видно слушателям)
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="save-btn" onclick="saveField()">💾 Сохранить</button>
+                        <button type="button" class="cancel-btn" onclick="closeFieldEditor()">❌ Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- Конфигурация -->
     <script src="firebase-config.js"></script>
     
+    <!-- Общие функции -->
+    <script src="common.js"></script>
+    
+    <!-- Управление полями (ядро) -->
+    <script src="fields-manager.js"></script>
+    
+    <!-- Основной скрипт методиста -->
     <script>
         let allStudents = [];
         let currentEditStudentId = null;
+        let allFields = [];
 
-        // Функции для сообщений
+        // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ВКЛАДКАМИ ==========
+        
+        function switchTab(tabName) {
+            const studentsTab = document.getElementById('studentsTab');
+            const fieldsTab = document.getElementById('fieldsTab');
+            const studentsBtn = document.querySelector('[onclick="switchTab(\'students\')"]');
+            const fieldsBtn = document.querySelector('[onclick="switchTab(\'fields\')"]');
+            
+            if (tabName === 'students') {
+                studentsTab.classList.add('active');
+                fieldsTab.classList.remove('active');
+                studentsBtn.classList.add('active');
+                fieldsBtn.classList.remove('active');
+            } else {
+                studentsTab.classList.remove('active');
+                fieldsTab.classList.add('active');
+                studentsBtn.classList.remove('active');
+                fieldsBtn.classList.add('active');
+                loadFields(); // Загружаем поля при переключении
+            }
+        }
+
+        // ========== ФУНКЦИИ ДЛЯ СООБЩЕНИЙ ==========
+        
         function showSuccess(message) {
             const el = document.getElementById('successMessage');
             el.textContent = message;
@@ -503,7 +809,8 @@
             setTimeout(() => el.style.display = 'none', 5000);
         }
 
-        // Загрузка списка слушателей
+        // ========== ФУНКЦИИ ДЛЯ РАБОТЫ СО СЛУШАТЕЛЯМИ ==========
+        
         async function loadStudents() {
             try {
                 const snapshot = await window.db.collection('users')
@@ -519,12 +826,11 @@
                 displayStudents(allStudents);
                 updateStats();
             } catch (error) {
-                console.error('Ошибка:', error);
+                console.error('Ошибка загрузки:', error);
                 showError('Ошибка загрузки данных');
             }
         }
 
-        // Отображение таблицы
         function displayStudents(students) {
             const tbody = document.getElementById('studentsTableBody');
             if (students.length === 0) {
@@ -534,9 +840,9 @@
             
             tbody.innerHTML = students.map(s => `
                 <tr>
-                    <td>${s.fullName || 'Не указано'}</td>
-                    <td>${s.email || 'Не указан'}</td>
-                    <td>${s.phone || 'Не указан'}</td>
+                    <td>${escapeHtml(s.fullName || 'Не указано')}</td>
+                    <td>${escapeHtml(s.email || 'Не указан')}</td>
+                    <td>${escapeHtml(s.phone || 'Не указан')}</td>
                     <td>${s.emailVerified ? '✅ Подтвержден' : '⏳ Не подтвержден'}</td>
                     <td>${formatDate(s.createdAt)}</td>
                     <td><button class="edit-btn" onclick="openEditModal('${s.id}')">✏️ Редактировать</button></td>
@@ -544,7 +850,6 @@
             `).join('');
         }
 
-        // Поиск
         function searchStudents() {
             const term = document.getElementById('searchInput').value.toLowerCase();
             const filtered = allStudents.filter(s => 
@@ -555,7 +860,6 @@
             displayStudents(filtered);
         }
 
-        // Статистика
         function updateStats() {
             const total = allStudents.length;
             const verified = allStudents.filter(s => s.emailVerified).length;
@@ -571,7 +875,6 @@
             document.getElementById('activeStudents').textContent = active;
         }
 
-        // Форматирование даты
         function formatDate(timestamp) {
             if (!timestamp) return 'Не указана';
             try {
@@ -582,7 +885,16 @@
             }
         }
 
-        // Открытие модального окна
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         function openEditModal(studentId) {
             const student = allStudents.find(s => s.id === studentId);
             if (!student) return;
@@ -603,13 +915,11 @@
             document.getElementById('editModal').style.display = 'block';
         }
 
-        // Закрытие модального окна
         function closeEditModal() {
             document.getElementById('editModal').style.display = 'none';
             currentEditStudentId = null;
         }
 
-        // Сохранение данных
         async function saveStudentData() {
             if (!currentEditStudentId) return;
             
@@ -640,13 +950,182 @@
             }
         }
 
-        // Выход
+        // ========== ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ ПОЛЯМИ ==========
+        
+        async function loadFields() {
+            try {
+                allFields = await window.fieldsManager.getAllFields();
+                displayFieldsList();
+            } catch (error) {
+                console.error('Ошибка загрузки полей:', error);
+                const container = document.getElementById('fieldsListContainer');
+                if (container) {
+                    container.innerHTML = '<div class="empty-fields">❌ Ошибка загрузки полей</div>';
+                }
+            }
+        }
+
+        function displayFieldsList() {
+            const container = document.getElementById('fieldsListContainer');
+            if (!container) return;
+            
+            if (allFields.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-fields">
+                        📭 Нет созданных полей<br><br>
+                        Нажмите кнопку "➕ Создать поле", чтобы добавить новое поле для слушателей
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = allFields.map(field => `
+                <div class="field-item">
+                    <div class="field-info">
+                        <strong>${escapeHtml(field.label)}</strong>
+                        ${field.isRequired ? '<span class="badge badge-required">Обязательное</span>' : '<span class="badge badge-optional">Необязательное</span>'}
+                        ${field.isActive !== false ? '<span class="badge badge-active">Активно</span>' : '<span class="badge badge-inactive">Отключено</span>'}
+                        <div class="field-meta">
+                            <div><strong>ID:</strong> <code>${escapeHtml(field.id)}</code></div>
+                            <div><strong>Тип:</strong> ${getFieldTypeName(field.type)}</div>
+                            ${field.semantics ? `<div><strong>Семантика:</strong> <a href="${escapeHtml(field.semantics)}" target="_blank" style="color: #667eea;">${escapeHtml(field.semantics)}</a></div>` : ''}
+                            ${field.placeholder ? `<div><strong>Placeholder:</strong> ${escapeHtml(field.placeholder)}</div>` : ''}
+                            <div><strong>Порядок:</strong> ${field.order || 0}</div>
+                        </div>
+                    </div>
+                    <div class="field-actions">
+                        <button class="edit-field-btn" onclick="editField('${field.id}')">✏️ Редактировать</button>
+                        <button class="delete-field-btn" onclick="deleteField('${field.id}')">🗑️ Удалить</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getFieldTypeName(type) {
+            const types = {
+                'text': '📝 Текстовое поле',
+                'textarea': '📄 Многострочный текст',
+                'email': '📧 Email',
+                'tel': '📞 Телефон',
+                'date': '📅 Дата',
+                'number': '#️⃣ Число'
+            };
+            return types[type] || '📝 Текст';
+        }
+
+        function openFieldEditor(fieldId = null) {
+            const isEdit = fieldId !== null;
+            const field = isEdit ? allFields.find(f => f.id === fieldId) : null;
+            
+            const title = document.getElementById('fieldEditorTitle');
+            const form = document.getElementById('fieldEditorForm');
+            
+            title.textContent = isEdit ? '✏️ Редактирование поля' : '➕ Создание нового поля';
+            
+            document.getElementById('fieldLabel').value = field?.label || '';
+            document.getElementById('fieldId').value = field?.id || '';
+            document.getElementById('fieldId').disabled = isEdit;
+            document.getElementById('fieldType').value = field?.type || 'text';
+            document.getElementById('fieldRequired').checked = field?.isRequired || false;
+            document.getElementById('fieldActive').checked = field?.isActive !== false;
+            document.getElementById('fieldSemantics').value = field?.semantics || '';
+            document.getElementById('fieldPlaceholder').value = field?.placeholder || '';
+            document.getElementById('fieldOrder').value = field?.order || allFields.length;
+            
+            form.dataset.editId = fieldId || '';
+            
+            document.getElementById('fieldEditorModal').style.display = 'block';
+        }
+
+        function closeFieldEditor() {
+            document.getElementById('fieldEditorModal').style.display = 'none';
+            document.getElementById('fieldEditorForm').dataset.editId = '';
+            document.getElementById('fieldId').disabled = false;
+        }
+
+        async function saveField() {
+            const isEdit = document.getElementById('fieldEditorForm').dataset.editId !== '';
+            const fieldId = document.getElementById('fieldId').value.trim();
+            const label = document.getElementById('fieldLabel').value.trim();
+            const type = document.getElementById('fieldType').value;
+            const isRequired = document.getElementById('fieldRequired').checked;
+            const isActive = document.getElementById('fieldActive').checked;
+            const semantics = document.getElementById('fieldSemantics').value.trim();
+            const placeholder = document.getElementById('fieldPlaceholder').value.trim();
+            const order = parseInt(document.getElementById('fieldOrder').value) || 0;
+            
+            if (!label) {
+                showError('Введите название поля');
+                return;
+            }
+            
+            if (!isEdit && !fieldId) {
+                showError('Введите ID поля (латиницей, без пробелов)');
+                return;
+            }
+            
+            if (!isEdit && allFields.some(f => f.id === fieldId)) {
+                showError('Поле с таким ID уже существует');
+                return;
+            }
+            
+            try {
+                const fieldData = {
+                    label: label,
+                    type: type,
+                    isRequired: isRequired,
+                    isActive: isActive,
+                    semantics: semantics,
+                    placeholder: placeholder,
+                    order: order
+                };
+                
+                if (isEdit) {
+                    await window.fieldsManager.updateField(document.getElementById('fieldEditorForm').dataset.editId, fieldData);
+                    showSuccess('✅ Поле успешно обновлено!');
+                } else {
+                    await window.fieldsManager.addField({ id: fieldId, ...fieldData });
+                    showSuccess('✅ Поле успешно создано!');
+                }
+                
+                closeFieldEditor();
+                await loadFields();
+                
+            } catch (error) {
+                console.error('Ошибка сохранения поля:', error);
+                showError('Ошибка сохранения поля: ' + error.message);
+            }
+        }
+
+        async function editField(fieldId) {
+            openFieldEditor(fieldId);
+        }
+
+        async function deleteField(fieldId) {
+            const field = allFields.find(f => f.id === fieldId);
+            if (!confirm(`Удалить поле "${field?.label}"?\n\nВнимание! Все данные слушателей для этого поля будут потеряны.`)) {
+                return;
+            }
+            
+            try {
+                await window.fieldsManager.deleteField(fieldId);
+                showSuccess('✅ Поле удалено');
+                await loadFields();
+            } catch (error) {
+                console.error('Ошибка удаления:', error);
+                showError('Ошибка удаления поля');
+            }
+        }
+
+        // ========== ВЫХОД ==========
+        
         async function logout() {
             await window.auth.signOut();
             window.location.href = 'index.html';
         }
 
-        // Проверка авторизации
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        
         window.auth.onAuthStateChanged(async (user) => {
             if (!user || !user.emailVerified) {
                 window.location.href = 'index.html';
@@ -664,8 +1143,5 @@
             await loadStudents();
         });
     </script>
-    <!-- Подключаем скрипты для управления полями -->
-    <script src="fields-manager.js"></script>
-    <script src="metodist-fields.js"></script>
 </body>
 </html>
