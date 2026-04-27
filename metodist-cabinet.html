@@ -225,11 +225,11 @@
 
         .modal-content {
             background-color: white;
-            margin: 5% auto;
+            margin: 3% auto;
             padding: 0;
             border-radius: 15px;
             width: 90%;
-            max-width: 600px;
+            max-width: 700px;
             max-height: 90vh;
             overflow-y: auto;
             animation: slideDown 0.3s;
@@ -515,6 +515,21 @@
             color: #999;
         }
 
+        /* Динамические поля в модальном окне */
+        .dynamic-fields-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .dynamic-field {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+        }
+
         /* Адаптивность */
         @media (max-width: 768px) {
             .header h1 {
@@ -632,7 +647,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно редактирования слушателя -->
+    <!-- Модальное окно редактирования слушателя (расширенное для динамических полей) -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -640,6 +655,7 @@
                 <span class="close" onclick="closeEditModal()">&times;</span>
             </div>
             <div class="modal-body">
+                <!-- Основные данные (только для просмотра) -->
                 <div class="form-group">
                     <label>ФИО (не редактируется)</label>
                     <input type="text" id="editFullName" readonly class="readonly-field">
@@ -657,7 +673,9 @@
                     <input type="text" id="editEducation" readonly class="readonly-field">
                 </div>
                 <hr>
-                <h4>📄 Дополнительная информация (редактируется)</h4>
+                
+                <!-- Стандартные дополнительные поля -->
+                <h4>📄 Стандартные данные</h4>
                 <div class="form-group">
                     <label>🏠 Фактический адрес</label>
                     <input type="text" id="editActualAddress" placeholder="Индекс, город, улица, дом, кв.">
@@ -682,6 +700,11 @@
                     <label>🔢 СНИЛС</label>
                     <input type="text" id="editSnils" placeholder="Номер СНИЛС">
                 </div>
+                <hr>
+                
+                <!-- Динамические поля от методиста -->
+                <div id="dynamicFieldsContainer"></div>
+                
                 <div class="form-actions">
                     <button class="save-btn" onclick="saveStudentData()">💾 Сохранить</button>
                     <button class="cancel-btn" onclick="closeEditModal()">❌ Отмена</button>
@@ -722,7 +745,7 @@
                     <div class="form-group">
                         <label>Семантика (URL схемы)</label>
                         <input type="url" id="fieldSemantics" placeholder="http://schemas.titul24.ru/simplex/отчество">
-                        <small style="color: #666;">Ссылка на схему данных (например, http://schemas.titul24.ru/simplex/...)</small>
+                        <small style="color: #666;">Ссылка на схему данных</small>
                     </div>
                     <div class="form-group">
                         <label>Placeholder (подсказка)</label>
@@ -770,6 +793,7 @@
         let allStudents = [];
         let currentEditStudentId = null;
         let allFields = [];
+        let currentStudentCustomValues = {};
 
         // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ВКЛАДКАМИ ==========
         
@@ -789,7 +813,7 @@
                 fieldsTab.classList.add('active');
                 studentsBtn.classList.remove('active');
                 fieldsBtn.classList.add('active');
-                loadFields(); // Загружаем поля при переключении
+                loadFields();
             }
         }
 
@@ -807,6 +831,16 @@
             el.textContent = message;
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
         // ========== ФУНКЦИИ ДЛЯ РАБОТЫ СО СЛУШАТЕЛЯМИ ==========
@@ -885,22 +919,15 @@
             }
         }
 
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
-
-        function openEditModal(studentId) {
+        // ========== ОТКРЫТИЕ МОДАЛЬНОГО ОКНА С ДИНАМИЧЕСКИМИ ПОЛЯМИ ==========
+        
+        async function openEditModal(studentId) {
             const student = allStudents.find(s => s.id === studentId);
             if (!student) return;
             
             currentEditStudentId = studentId;
             
+            // Заполняем стандартные поля
             document.getElementById('editFullName').value = student.fullName || '';
             document.getElementById('editEmail').value = student.email || '';
             document.getElementById('editPhone').value = student.phone || '';
@@ -912,17 +939,86 @@
             document.getElementById('editPassportIssueDate').value = student.passportIssueDate || '';
             document.getElementById('editSnils').value = student.snils || '';
             
+            // Получаем динамические поля
+            currentStudentCustomValues = student.customFields || {};
+            
+            // Загружаем и отображаем динамические поля
+            await loadDynamicFieldsForStudent();
+            
             document.getElementById('editModal').style.display = 'block';
         }
 
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-            currentEditStudentId = null;
+        // Загрузка динамических полей для редактирования слушателя
+        async function loadDynamicFieldsForStudent() {
+            const container = document.getElementById('dynamicFieldsContainer');
+            if (!container) return;
+            
+            try {
+                // Получаем все активные поля
+                const activeFields = await window.fieldsManager.getActiveFields();
+                
+                if (activeFields.length === 0) {
+                    container.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Нет дополнительных полей</p>';
+                    return;
+                }
+                
+                let html = '<h4>📋 Дополнительные поля (созданные методистом)</h4>';
+                
+                activeFields.forEach(field => {
+                    const value = currentStudentCustomValues[field.id] || '';
+                    const fieldId = `dynamic_${field.id}`;
+                    
+                    html += `
+                        <div class="dynamic-field">
+                            <div class="form-group">
+                                <label>
+                                    ${escapeHtml(field.label)}
+                                    ${field.isRequired ? '<span style="color: #e74c3c;"> *</span>' : ''}
+                                </label>
+                                ${renderDynamicFieldInput(field, value, fieldId)}
+                                ${field.semantics ? `
+                                    <small style="display: block; margin-top: 5px; color: #667eea;">
+                                        🔗 Семантика: <a href="${escapeHtml(field.semantics)}" target="_blank">${escapeHtml(field.semantics)}</a>
+                                    </small>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Ошибка загрузки динамических полей:', error);
+                container.innerHTML = '<p style="color: red;">Ошибка загрузки дополнительных полей</p>';
+            }
         }
 
+        // Рендер поля в зависимости от типа
+        function renderDynamicFieldInput(field, value, fieldId) {
+            const placeholder = field.placeholder || `Введите ${field.label.toLowerCase()}`;
+            
+            switch (field.type) {
+                case 'textarea':
+                    return `<textarea id="${fieldId}" placeholder="${escapeHtml(placeholder)}" rows="3">${escapeHtml(value)}</textarea>`;
+                case 'date':
+                    return `<input type="date" id="${fieldId}" value="${escapeHtml(value)}">`;
+                case 'number':
+                    return `<input type="number" id="${fieldId}" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(value)}">`;
+                case 'email':
+                    return `<input type="email" id="${fieldId}" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(value)}">`;
+                case 'tel':
+                    return `<input type="tel" id="${fieldId}" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(value)}">`;
+                default:
+                    return `<input type="text" id="${fieldId}" placeholder="${escapeHtml(placeholder)}" value="${escapeHtml(value)}">`;
+            }
+        }
+
+        // Сохранение всех данных (включая динамические поля)
         async function saveStudentData() {
             if (!currentEditStudentId) return;
             
+            // Стандартные поля
             const updates = {
                 actualAddress: document.getElementById('editActualAddress').value,
                 registrationAddress: document.getElementById('editRegistrationAddress').value,
@@ -933,21 +1029,41 @@
                 updatedByMetodist: firebase.firestore.FieldValue.serverTimestamp()
             };
             
+            // Собираем значения динамических полей
             try {
+                const activeFields = await window.fieldsManager.getActiveFields();
+                const customValues = {};
+                
+                for (const field of activeFields) {
+                    const input = document.getElementById(`dynamic_${field.id}`);
+                    if (input) {
+                        customValues[field.id] = input.value;
+                    }
+                }
+                
+                updates.customFields = customValues;
+                
                 await window.db.collection('users').doc(currentEditStudentId).update(updates);
                 
+                // Обновляем локальные данные
                 const index = allStudents.findIndex(s => s.id === currentEditStudentId);
                 if (index !== -1) {
                     allStudents[index] = { ...allStudents[index], ...updates };
                 }
                 
-                displayStudents(allStudents);
-                showSuccess('✅ Данные успешно обновлены!');
+                showSuccess('✅ Все данные успешно обновлены!');
                 closeEditModal();
+                
             } catch (error) {
-                console.error('Ошибка:', error);
-                showError('❌ Ошибка сохранения данных');
+                console.error('Ошибка сохранения:', error);
+                showError('❌ Ошибка сохранения данных: ' + error.message);
             }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditStudentId = null;
+            currentStudentCustomValues = {};
         }
 
         // ========== ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ ПОЛЯМИ ==========
@@ -1018,7 +1134,6 @@
             const field = isEdit ? allFields.find(f => f.id === fieldId) : null;
             
             const title = document.getElementById('fieldEditorTitle');
-            const form = document.getElementById('fieldEditorForm');
             
             title.textContent = isEdit ? '✏️ Редактирование поля' : '➕ Создание нового поля';
             
@@ -1032,7 +1147,7 @@
             document.getElementById('fieldPlaceholder').value = field?.placeholder || '';
             document.getElementById('fieldOrder').value = field?.order || allFields.length;
             
-            form.dataset.editId = fieldId || '';
+            document.getElementById('fieldEditorForm').dataset.editId = fieldId || '';
             
             document.getElementById('fieldEditorModal').style.display = 'block';
         }
