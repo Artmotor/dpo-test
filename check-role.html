@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Проверка роли пользователя</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+</head>
+<body>
+    <h1>Проверка роли пользователя</h1>
+    <div id="info"></div>
+    <button onclick="checkRole()">Проверить роль</button>
+    <button onclick="logout()">Выйти</button>
+
+    <script>
+        const infoDiv = document.getElementById('info');
+        
+        async function checkRole() {
+            const user = window.auth.currentUser;
+            if (!user) {
+                infoDiv.innerHTML = '<p style="color: red;">Пользователь не авторизован</p>';
+                return;
+            }
+            
+            infoDiv.innerHTML = `<p>Email: ${user.email}</p>`;
+            infoDiv.innerHTML += `<p>Email подтвержден: ${user.emailVerified}</p>`;
+            
+            try {
+                const userDoc = await window.db.collection('users').doc(user.uid).get();
+                if (userDoc.exists) {
+                    const data = userDoc.data();
+                    infoDiv.innerHTML += `<p>Роль в Firestore: ${data.role || 'не указана'}</p>`;
+                    infoDiv.innerHTML += `<p>Полные данные: <pre>${JSON.stringify(data, null, 2)}</pre></p>`;
+                } else {
+                    infoDiv.innerHTML += `<p style="color: red;">Документ в Firestore не найден!</p>`;
+                }
+            } catch (error) {
+                infoDiv.innerHTML += `<p style="color: red;">Ошибка: ${error.message}</p>`;
+            }
+        }
+        
+        async function logout() {
+            await window.auth.signOut();
+            infoDiv.innerHTML = '<p>Вы вышли из системы</p>';
+        }
+        
+        // Автоматическая проверка при загрузке
+        window.auth.onAuthStateChanged((user) => {
+            if (user) {
+                checkRole();
+            } else {
+                infoDiv.innerHTML = '<p>Не авторизован. <a href="index.html">Войти</a></p>';
+            }
+        });
+    </script>
+</body>
+</html>
