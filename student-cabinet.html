@@ -14,15 +14,19 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f5f5;
+            min-height: 100vh;
         }
 
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 20px;
+            padding: 20px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .header h1 {
@@ -31,34 +35,54 @@
 
         .logout-btn {
             background: #e74c3c;
-            padding: 10px 20px;
+            color: white;
+            border: none;
+            padding: 10px 25px;
             border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
             width: auto;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
         }
 
         .container {
             max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+            margin: 30px auto;
+            padding: 0 20px;
         }
 
+        /* Вкладки */
         .tabs {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
             background: white;
             padding: 10px;
-            border-radius: 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 12px;
+            padding: 12px 20px;
             background: #f0f0f0;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tab-btn:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
         }
 
         .tab-btn.active {
@@ -66,62 +90,79 @@
             color: white;
         }
 
+        /* Контент вкладок */
         .tab-content {
             display: none;
             background: white;
             padding: 30px;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s;
         }
 
         .tab-content.active {
             display: block;
         }
 
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Карточки информации */
         .info-card {
             background: #f8f9fa;
+            border-radius: 12px;
             padding: 20px;
-            border-radius: 10px;
         }
 
         .info-card h3 {
             color: #667eea;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 2px solid #e0e0e0;
         }
 
         .info-row {
             margin-bottom: 12px;
-            padding: 8px;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .info-label {
             font-weight: bold;
             color: #555;
-            display: inline-block;
-            width: 180px;
+            min-width: 180px;
         }
 
         .info-value {
             color: #333;
-            display: inline-block;
+            flex: 1;
         }
 
         .edit-btn {
             background: #28a745;
-            margin-top: 20px;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s;
             width: auto;
-            padding: 10px 20px;
         }
 
+        .edit-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        /* Формы редактирования */
         .form-group {
             margin-bottom: 15px;
         }
@@ -133,11 +174,27 @@
             color: #555;
         }
 
-        .form-group input {
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
             width: 100%;
             padding: 10px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
         }
 
         .form-actions {
@@ -158,26 +215,170 @@
             padding: 10px 20px;
         }
 
+        /* Сообщения */
         .success-message, .error-message {
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
             display: none;
+            z-index: 1001;
+            animation: slideIn 0.3s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         .success-message {
             background: #d4edda;
             color: #155724;
+            border-left: 4px solid #28a745;
         }
 
         .error-message {
             background: #f8d7da;
             color: #721c24;
+            border-left: 4px solid #dc3545;
         }
 
+        /* Стили для динамических полей */
+        .custom-field {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .custom-field.required-missing {
+            border-left: 4px solid #ff9800;
+            background: #fff8e1;
+        }
+
+        .required-star {
+            color: #e74c3c;
+            margin-left: 5px;
+        }
+
+        .missing-badge {
+            background: #ff9800;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-left: 10px;
+        }
+
+        .field-warning {
+            color: #ff9800;
+            font-size: 11px;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .field-semantics {
+            font-size: 11px;
+            color: #667eea;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .field-semantics a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .field-semantics a:hover {
+            text-decoration: underline;
+        }
+
+        .warning-banner {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .warning-btn {
+            background: #ffc107;
+            color: #856404;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: auto;
+        }
+
+        .warning-btn:hover {
+            background: #e0a800;
+        }
+
+        .save-fields-btn {
+            background: #28a745;
+            width: auto;
+            padding: 10px 20px;
+            margin-top: 10px;
+        }
+
+        .empty-fields {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        /* Адаптивность */
         @media (max-width: 768px) {
-            .info-grid {
-                grid-template-columns: 1fr;
+            .header h1 {
+                font-size: 18px;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab-btn {
+                width: 100%;
+            }
+            
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .info-label {
+                min-width: auto;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .form-actions button {
+                width: 100%;
+            }
+            
+            .warning-banner {
+                flex-direction: column;
+                text-align: center;
             }
         }
     </style>
@@ -185,17 +386,19 @@
 <body>
     <div class="header">
         <h1>📚 Институт ДПО - Личный кабинет слушателя</h1>
-        <button class="logout-btn" onclick="logout()">Выйти</button>
+        <button class="logout-btn" onclick="logout()">🚪 Выйти</button>
     </div>
 
     <div class="container">
         <div id="successMessage" class="success-message"></div>
         <div id="errorMessage" class="error-message"></div>
 
+        <!-- Вкладки -->
         <div class="tabs">
             <button class="tab-btn active" onclick="switchTab('profile')">👤 Мои данные</button>
             <button class="tab-btn" onclick="switchTab('documents')">📄 Паспортные данные</button>
             <button class="tab-btn" onclick="switchTab('address')">🏠 Адреса</button>
+            <button class="tab-btn" onclick="switchTab('additionalFields')">📋 Дополнительные поля</button>
         </div>
 
         <!-- Вкладка профиля -->
@@ -207,7 +410,7 @@
             </div>
         </div>
 
-        <!-- Вкладка документов -->
+        <!-- Вкладка паспортных данных -->
         <div id="documentsTab" class="tab-content">
             <div class="info-card">
                 <h3>Паспортные данные</h3>
@@ -224,13 +427,388 @@
                 <button class="edit-btn" onclick="editAddress()">✏️ Редактировать адреса</button>
             </div>
         </div>
+
+        <!-- Вкладка дополнительных полей -->
+        <div id="additionalFieldsTab" class="tab-content">
+            <div class="info-card">
+                <h3>📋 Дополнительная информация</h3>
+                <div id="missingFieldsWarning" style="display: none;"></div>
+                <div id="customFieldsContainer"></div>
+            </div>
+        </div>
     </div>
 
+    <!-- Подключаем Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- Конфигурация -->
     <script src="firebase-config.js"></script>
+    
+    <!-- Общие функции -->
     <script src="common.js"></script>
-    <script src="student.js"></script>
+    
+    <!-- Управление полями (ядро) -->
+    <script src="fields-manager.js"></script>
+    
+    <!-- Основной скрипт слушателя -->
+    <script>
+        let currentUserData = null;
+        let currentEditMode = null;
+
+        // Переключение вкладок
+        function switchTab(tabName) {
+            const tabs = ['profile', 'documents', 'address', 'additionalFields'];
+            tabs.forEach(tab => {
+                const tabElement = document.getElementById(`${tab}Tab`);
+                const btnElement = document.querySelector(`[onclick="switchTab('${tab}')"]`);
+                if (tabElement) {
+                    if (tab === tabName) {
+                        tabElement.classList.add('active');
+                        if (btnElement) btnElement.classList.add('active');
+                    } else {
+                        tabElement.classList.remove('active');
+                        if (btnElement) btnElement.classList.remove('active');
+                    }
+                }
+            });
+            
+            // При переключении на вкладку дополнительных полей обновляем их
+            if (tabName === 'additionalFields' && window.loadCustomFields) {
+                setTimeout(() => window.loadCustomFields(), 100);
+            }
+        }
+
+        // Показ сообщений
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        // Форматирование даты
+        function formatDate(timestamp) {
+            if (!timestamp) return 'Не указана';
+            try {
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                return date.toLocaleDateString('ru-RU');
+            } catch (e) {
+                return 'Не указана';
+            }
+        }
+
+        // Загрузка данных пользователя
+        async function loadUserData() {
+            const user = window.auth.currentUser;
+            if (!user) return;
+
+            try {
+                const doc = await window.db.collection('users').doc(user.uid).get();
+                
+                if (!doc.exists) {
+                    const defaultData = {
+                        fullName: user.email.split('@')[0],
+                        email: user.email,
+                        phone: '',
+                        education: '',
+                        role: 'student',
+                        emailVerified: user.emailVerified,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                        actualAddress: '',
+                        registrationAddress: '',
+                        passportNumber: '',
+                        passportIssuedBy: '',
+                        passportIssueDate: '',
+                        snils: ''
+                    };
+                    await window.db.collection('users').doc(user.uid).set(defaultData);
+                    currentUserData = defaultData;
+                } else {
+                    currentUserData = doc.data();
+                }
+                
+                displayProfileData();
+                displayDocumentsData();
+                displayAddressData();
+                
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+                showError('Ошибка загрузки данных');
+            }
+        }
+
+        // Отображение профиля
+        function displayProfileData() {
+            const container = document.getElementById('profileInfo');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="info-row">
+                    <span class="info-label">ФИО:</span>
+                    <span class="info-value">${currentUserData?.fullName || 'Не указано'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">${currentUserData?.email || 'Не указан'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Телефон:</span>
+                    <span class="info-value">${currentUserData?.phone || 'Не указан'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Образование:</span>
+                    <span class="info-value">${currentUserData?.education || 'Не указано'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Дата регистрации:</span>
+                    <span class="info-value">${formatDate(currentUserData?.createdAt)}</span>
+                </div>
+            `;
+        }
+
+        // Отображение паспортных данных
+        function displayDocumentsData() {
+            const container = document.getElementById('documentsInfo');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="info-row">
+                    <span class="info-label">Номер паспорта:</span>
+                    <span class="info-value">${currentUserData?.passportNumber || 'Не указан'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Кем выдан:</span>
+                    <span class="info-value">${currentUserData?.passportIssuedBy || 'Не указано'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Когда выдан:</span>
+                    <span class="info-value">${currentUserData?.passportIssueDate || 'Не указано'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">СНИЛС:</span>
+                    <span class="info-value">${currentUserData?.snils || 'Не указан'}</span>
+                </div>
+            `;
+        }
+
+        // Отображение адресов
+        function displayAddressData() {
+            const container = document.getElementById('addressInfo');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="info-row">
+                    <span class="info-label">Фактический адрес:</span>
+                    <span class="info-value">${currentUserData?.actualAddress || 'Не указан'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Адрес прописки:</span>
+                    <span class="info-value">${currentUserData?.registrationAddress || 'Не указан'}</span>
+                </div>
+            `;
+        }
+
+        // Редактирование профиля
+        function editProfile() {
+            currentEditMode = 'profile';
+            const container = document.getElementById('profileInfo');
+            container.innerHTML = `
+                <div class="form-group">
+                    <label>ФИО</label>
+                    <input type="text" id="editFullName" value="${escapeHtml(currentUserData?.fullName || '')}">
+                </div>
+                <div class="form-group">
+                    <label>Телефон</label>
+                    <input type="tel" id="editPhone" value="${escapeHtml(currentUserData?.phone || '')}">
+                </div>
+                <div class="form-group">
+                    <label>Образование</label>
+                    <select id="editEducation">
+                        <option value="высшее" ${currentUserData?.education === 'высшее' ? 'selected' : ''}>Высшее</option>
+                        <option value="среднее-специальное" ${currentUserData?.education === 'среднее-специальное' ? 'selected' : ''}>Среднее специальное</option>
+                        <option value="среднее" ${currentUserData?.education === 'среднее' ? 'selected' : ''}>Среднее</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button class="save-btn" onclick="saveProfile()">💾 Сохранить</button>
+                    <button class="cancel-btn" onclick="cancelEdit()">❌ Отмена</button>
+                </div>
+            `;
+        }
+
+        // Сохранение профиля
+        async function saveProfile() {
+            const user = window.auth.currentUser;
+            if (!user) return;
+
+            const updates = {
+                fullName: document.getElementById('editFullName')?.value || '',
+                phone: document.getElementById('editPhone')?.value || '',
+                education: document.getElementById('editEducation')?.value || ''
+            };
+
+            try {
+                await window.db.collection('users').doc(user.uid).update(updates);
+                currentUserData = { ...currentUserData, ...updates };
+                displayProfileData();
+                showSuccess('✅ Данные успешно обновлены!');
+                currentEditMode = null;
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+                showError('Ошибка сохранения данных');
+            }
+        }
+
+        // Редактирование документов
+        function editDocuments() {
+            currentEditMode = 'documents';
+            const container = document.getElementById('documentsInfo');
+            container.innerHTML = `
+                <div class="form-group">
+                    <label>Номер паспорта</label>
+                    <input type="text" id="editPassportNumber" value="${escapeHtml(currentUserData?.passportNumber || '')}" placeholder="Серия и номер паспорта">
+                </div>
+                <div class="form-group">
+                    <label>Кем выдан паспорт</label>
+                    <input type="text" id="editPassportIssuedBy" value="${escapeHtml(currentUserData?.passportIssuedBy || '')}" placeholder="Кем выдан">
+                </div>
+                <div class="form-group">
+                    <label>Когда выдан паспорт</label>
+                    <input type="date" id="editPassportIssueDate" value="${currentUserData?.passportIssueDate || ''}">
+                </div>
+                <div class="form-group">
+                    <label>СНИЛС</label>
+                    <input type="text" id="editSnils" value="${escapeHtml(currentUserData?.snils || '')}" placeholder="Номер СНИЛС">
+                </div>
+                <div class="form-actions">
+                    <button class="save-btn" onclick="saveDocuments()">💾 Сохранить</button>
+                    <button class="cancel-btn" onclick="cancelEdit()">❌ Отмена</button>
+                </div>
+            `;
+        }
+
+        // Сохранение документов
+        async function saveDocuments() {
+            const user = window.auth.currentUser;
+            if (!user) return;
+
+            const updates = {
+                passportNumber: document.getElementById('editPassportNumber')?.value || '',
+                passportIssuedBy: document.getElementById('editPassportIssuedBy')?.value || '',
+                passportIssueDate: document.getElementById('editPassportIssueDate')?.value || '',
+                snils: document.getElementById('editSnils')?.value || ''
+            };
+
+            try {
+                await window.db.collection('users').doc(user.uid).update(updates);
+                currentUserData = { ...currentUserData, ...updates };
+                displayDocumentsData();
+                showSuccess('✅ Данные успешно обновлены!');
+                currentEditMode = null;
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+                showError('Ошибка сохранения данных');
+            }
+        }
+
+        // Редактирование адресов
+        function editAddress() {
+            currentEditMode = 'address';
+            const container = document.getElementById('addressInfo');
+            container.innerHTML = `
+                <div class="form-group">
+                    <label>Фактический адрес</label>
+                    <input type="text" id="editActualAddress" value="${escapeHtml(currentUserData?.actualAddress || '')}" placeholder="Индекс, город, улица, дом, кв.">
+                </div>
+                <div class="form-group">
+                    <label>Адрес прописки</label>
+                    <input type="text" id="editRegistrationAddress" value="${escapeHtml(currentUserData?.registrationAddress || '')}" placeholder="Индекс, город, улица, дом, кв.">
+                </div>
+                <div class="form-actions">
+                    <button class="save-btn" onclick="saveAddress()">💾 Сохранить</button>
+                    <button class="cancel-btn" onclick="cancelEdit()">❌ Отмена</button>
+                </div>
+            `;
+        }
+
+        // Сохранение адресов
+        async function saveAddress() {
+            const user = window.auth.currentUser;
+            if (!user) return;
+
+            const updates = {
+                actualAddress: document.getElementById('editActualAddress')?.value || '',
+                registrationAddress: document.getElementById('editRegistrationAddress')?.value || ''
+            };
+
+            try {
+                await window.db.collection('users').doc(user.uid).update(updates);
+                currentUserData = { ...currentUserData, ...updates };
+                displayAddressData();
+                showSuccess('✅ Данные успешно обновлены!');
+                currentEditMode = null;
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+                showError('Ошибка сохранения данных');
+            }
+        }
+
+        // Отмена редактирования
+        function cancelEdit() {
+            if (currentEditMode === 'profile') {
+                displayProfileData();
+            } else if (currentEditMode === 'documents') {
+                displayDocumentsData();
+            } else if (currentEditMode === 'address') {
+                displayAddressData();
+            }
+            currentEditMode = null;
+        }
+
+        // Экранирование HTML
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Выход
+        async function logout() {
+            await window.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
+        // Инициализация
+        window.auth.onAuthStateChanged(async (user) => {
+            if (!user || !user.emailVerified) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            await loadUserData();
+            
+            // Загружаем пользовательские поля, если они доступны
+            if (window.loadCustomFields) {
+                setTimeout(() => window.loadCustomFields(), 500);
+            }
+        });
+    </script>
+    
+    <!-- Скрипт для динамических полей слушателя -->
+    <script src="student-fields.js"></script>
 </body>
 </html>
