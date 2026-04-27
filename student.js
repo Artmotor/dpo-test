@@ -1,238 +1,275 @@
-// student.js
+// student.js - скрипт для личного кабинета слушателя
+
 let currentUserData = null;
-let isEditMode = false;
-let allFields = {};
+let currentEditMode = null;
 
-auth.onAuthStateChanged(async (user) => {
-    if (!user) {
-        window.location.href = '/index.html';
-        return;
-    }
-    
-    const userDoc = await db.collection('listeners').doc(user.uid).get();
-    if (!userDoc.exists || userDoc.data().role !== 'listener') {
-        window.location.href = '/dashboard.html';
-        return;
-    }
-    
-    currentUserData = userDoc.data();
-    document.getElementById('userName').textContent = currentUserData.fields?.fullName?.value || 'Слушатель';
-    
-    // Загружаем конфигурацию полей
-    const fieldsDoc = await db.collection('metadata').doc('listenerFields').get();
-    if (fieldsDoc.exists) {
-        allFields = fieldsDoc.data().fields || {};
-    }
-    
-    renderProfile();
-    renderDocuments();
-    updateCourseInfo();
-});
-
-function renderProfile() {
-    const container = document.getElementById('profileFields');
-    let html = '';
-    
-    const fields = currentUserData.fields || {};
-    
-    // Сначала отображаем стандартные поля
-    const standardOrder = [
-        'fullName', 'email', 'phone', 'passportNumber', 'passportIssueDate',
-        'passportIssuedBy', 'passportUnitCode', 'registrationAddress', 'actualAddress'
-    ];
-    
-    standardOrder.forEach(fieldId => {
-        if (fields[fieldId]) {
-            html += createFieldHTML(fieldId, fields[fieldId]);
-        }
-    });
-    
-    // Затем дополнительные поля от методиста
-    Object.entries(fields).forEach(([fieldId, fieldData]) => {
-        if (!standardOrder.includes(fieldId) && fieldId !== 'email') {
-            html += createFieldHTML(fieldId, fieldData);
-        }
-    });
-    
-    container.innerHTML = html;
-}
-
-function createFieldHTML(fieldId, fieldData) {
-    const value = fieldData.value || '';
-    const label = fieldData.label || fieldId;
-    const type = fieldData.type || 'text';
-    
-    if (isEditMode && fieldData.editable !== false) {
-        return `
-            <div class="col-md-6">
-                <div class="form-floating">
-                    <input type="${type}" class="form-control" id="field_${fieldId}" 
-                           value="${value}" placeholder="${label}">
-                    <label>${label}</label>
-                </div>
-            </div>
-        `;
-    } else {
-        return `
-            <div class="col-md-6">
-                <div class="field-display p-3 bg-light rounded-3">
-                    <small class="text-muted d-block">${label}</small>
-                    <strong class="d-block">${value || '<span class="text-muted">Не указано</span>'}</strong>
-                </div>
-            </div>
-        `;
-    }
-}
-
-function toggleEditMode() {
-    isEditMode = !isEditMode;
-    const saveBtn = document.getElementById('saveButton');
-    
-    if (isEditMode) {
-        saveBtn.classList.remove('d-none');
-    } else {
-        saveBtn.classList.add('d-none');
-    }
-    
-    renderProfile();
-}
-
-async function saveProfile() {
-    const updates = {};
-    const fields = currentUserData.fields || {};
-    
-    Object.entries(fields).forEach(([fieldId, fieldData]) => {
-        if (fieldData.editable !== false) {
-            const input = document.getElementById(`field_${fieldId}`);
-            if (input) {
-                updates[`fields.${fieldId}.value`] = input.value;
+// Переключение вкладок
+function switchTab(tabName) {
+    const tabs = ['profile', 'documents', 'address'];
+    tabs.forEach(tab => {
+        const tabElement = document.getElementById(`${tab}Tab`);
+        const btnElement = document.querySelector(`[onclick="switchTab('${tab}')"]`);
+        if (tabElement) {
+            if (tab === tabName) {
+                tabElement.classList.add('active');
+                if (btnElement) btnElement.classList.add('active');
+            } else {
+                tabElement.classList.remove('active');
+                if (btnElement) btnElement.classList.remove('active');
             }
         }
     });
-    
-    updates['updatedAt'] = firebase.firestore.FieldValue.serverTimestamp();
-    
-    await db.collection('listeners').doc(auth.currentUser.uid).update(updates);
-    
-    isEditMode = false;
-    document.getElementById('saveButton').classList.add('d-none');
-    
-    // Обновляем локальные данные
-    const doc = await db.collection('listeners').doc(auth.currentUser.uid).get();
-    currentUserData = doc.data();
-    renderProfile();
-    
-    AuthService.showToast('Данные сохранены!', 'success');
 }
 
-// Документы
-const documentTypes = [
-    { id: 'passportMain', label: 'Паспорт (первая страница)', icon: 'bi-file-earmark-person' },
-    { id: 'passportRegistration', label: 'Паспорт (прописка)', icon: 'bi-file-earmark-text' },
-    { id: 'snils', label: 'СНИЛС', icon: 'bi-file-earmark-medical' },
-    { id: 'inn', label: 'ИНН', icon: 'bi-file-earmark-bar-graph' },
-    { id: 'nameChange', label: 'Документ о смене фамилии', icon: 'bi-file-earmark-diff' },
-    { id: 'diploma', label: 'Диплом об образовании', icon: 'bi-file-earmark-check' }
-];
+// Загрузка данных пользователя
+async function loadUserData() {
+    const user = window.auth.currentUser;
+    if (!user) return;
 
-function renderDocuments() {
-    const container = document.getElementById('documentsGrid');
-    const docs = currentUserData.documents || {};
-    
-    container.innerHTML = documentTypes.map(docType => {
-        const doc = docs[docType.id];
-        return createDocumentCard(docType, doc);
-    }).join('');
+    try {
+        const doc = await window.db.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+            currentUserData = doc.data();
+            displayProfileData();
+            displayDocumentsData();
+            displayAddressData();
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+        showError('errorMessage', 'Ошибка загрузки данных');
+    }
 }
 
-function createDocumentCard(docType, docData) {
-    const isUploaded = docData && docData.status;
-    const statusColors = {
-        'pending': 'warning',
-        'verified': 'success',
-        'rejected': 'danger'
-    };
-    
-    return `
-        <div class="col-md-4 col-lg-3">
-            <div class="card h-100 border-0 shadow-sm rounded-4">
-                <div class="card-body text-center p-4">
-                    <i class="bi ${docType.icon} display-3 text-primary mb-3"></i>
-                    <h6 class="fw-bold">${docType.label}</h6>
-                    
-                    ${isUploaded ? `
-                        <div class="mt-3">
-                            <img src="${docData.thumbnail}" class="img-thumbnail rounded-3 mb-2" 
-                                 style="max-height: 150px; cursor: pointer;" 
-                                 onclick="viewDocument('${docType.id}')">
-                            <span class="badge bg-${statusColors[docData.status]} rounded-pill">
-                                ${docData.status === 'pending' ? 'На проверке' : 
-                                  docData.status === 'verified' ? 'Проверено' : 'Отклонено'}
-                            </span>
-                            <button class="btn btn-sm btn-outline-danger rounded-pill mt-2 d-block w-100" 
-                                    onclick="deleteDocument('${docType.id}')">
-                                <i class="bi bi-trash me-1"></i>Удалить
-                            </button>
-                        </div>
-                    ` : `
-                        <div class="mt-3">
-                            <label class="btn btn-outline-primary rounded-pill">
-                                <i class="bi bi-cloud-upload me-1"></i>Загрузить
-                                <input type="file" class="d-none" accept="image/*,.pdf" 
-                                       onchange="uploadDocument('${docType.id}', this)">
-                            </label>
-                        </div>
-                    `}
-                </div>
-            </div>
+// Отображение данных профиля
+function displayProfileData() {
+    const container = document.getElementById('profileInfo');
+    container.innerHTML = `
+        <div class="info-row">
+            <span class="info-label">ФИО:</span>
+            <span class="info-value">${currentUserData.fullName || 'Не указано'}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Email:</span>
+            <span class="info-value">${currentUserData.email || 'Не указан'}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Телефон:</span>
+            <span class="info-value">${currentUserData.phone || 'Не указан'}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Образование:</span>
+            <span class="info-value">${currentUserData.education || 'Не указано'}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Дата регистрации:</span>
+            <span class="info-value">${formatDate(currentUserData.createdAt)}</span>
         </div>
     `;
 }
 
-async function uploadDocument(docTypeId, input) {
-    const file = input.files[0];
-    if (!file) return;
-    
-    if (file.size > 5 * 1024 * 1024) {
-        AuthService.showToast('Файл слишком большой. Максимум 5 МБ', 'danger');
-        return;
+// Отображение паспортных данных
+function displayDocumentsData() {
+    const container = document.getElementById('documentsInfo');
+    container.innerHTML = `
+        <div class="info-row">
+            <span class="info-label">Номер паспорта:</span>
+            <span class="info-value">${currentUserData.passportNumber || 'Не указан'}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Кем выдан:</span>
+            <span class="info-value">${currentUserData.passportIssuedBy || 'Не указано'}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Когда выдан:</span>
+            <span class="info-value">${currentUserData.passportIssueDate || 'Не указано'}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">СНИЛС:</span>
+            <span class="info-value">${currentUserData.snils || 'Не указан'}</span>
+        </div>
+    `;
+}
+
+// Отображение адресов
+function displayAddressData() {
+    const container = document.getElementById('addressInfo');
+    container.innerHTML = `
+        <div class="info-row">
+            <span class="info-label">Фактический адрес:</span>
+            <span class="info-value">${currentUserData.actualAddress || 'Не указан'}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Адрес прописки:</span>
+            <span class="info-value">${currentUserData.registrationAddress || 'Не указан'}</span>
+        </div>
+    `;
+}
+
+// Редактирование профиля
+function editProfile() {
+    currentEditMode = 'profile';
+    const container = document.getElementById('profileInfo');
+    container.innerHTML = `
+        <div class="form-group">
+            <label>ФИО</label>
+            <input type="text" id="editFullName" value="${currentUserData.fullName || ''}">
+        </div>
+        <div class="form-group">
+            <label>Телефон</label>
+            <input type="tel" id="editPhone" value="${currentUserData.phone || ''}">
+        </div>
+        <div class="form-group">
+            <label>Образование</label>
+            <select id="editEducation">
+                <option value="высшее" ${currentUserData.education === 'высшее' ? 'selected' : ''}>Высшее</option>
+                <option value="среднее-специальное" ${currentUserData.education === 'среднее-специальное' ? 'selected' : ''}>Среднее специальное</option>
+                <option value="среднее" ${currentUserData.education === 'среднее' ? 'selected' : ''}>Среднее</option>
+            </select>
+        </div>
+        <div class="form-actions">
+            <button class="save-btn" onclick="saveProfile()">Сохранить</button>
+            <button class="cancel-btn" onclick="cancelEdit()">Отмена</button>
+        </div>
+    `;
+}
+
+// Сохранение профиля
+async function saveProfile() {
+    const user = window.auth.currentUser;
+    if (!user) return;
+
+    const updates = {
+        fullName: document.getElementById('editFullName').value,
+        phone: document.getElementById('editPhone').value,
+        education: document.getElementById('editEducation').value
+    };
+
+    try {
+        await window.db.collection('users').doc(user.uid).update(updates);
+        currentUserData = { ...currentUserData, ...updates };
+        displayProfileData();
+        showSuccess('Данные успешно обновлены!', 'successMessage');
+        currentEditMode = null;
+    } catch (error) {
+        console.error('Ошибка сохранения:', error);
+        showError('errorMessage', 'Ошибка сохранения данных');
     }
-    
-    const user = auth.currentUser;
-    const result = await DocumentService.uploadDocument(user.uid, file, docTypeId);
-    
-    if (result.success) {
-        AuthService.showToast('Документ загружен и отправлен на проверку', 'success');
-        const doc = await db.collection('listeners').doc(user.uid).get();
-        currentUserData = doc.data();
-        renderDocuments();
+}
+
+// Редактирование документов
+function editDocuments() {
+    currentEditMode = 'documents';
+    const container = document.getElementById('documentsInfo');
+    container.innerHTML = `
+        <div class="form-group">
+            <label>Номер паспорта</label>
+            <input type="text" id="editPassportNumber" value="${currentUserData.passportNumber || ''}" placeholder="Серия и номер паспорта">
+        </div>
+        <div class="form-group">
+            <label>Кем выдан паспорт</label>
+            <input type="text" id="editPassportIssuedBy" value="${currentUserData.passportIssuedBy || ''}" placeholder="Кем выдан">
+        </div>
+        <div class="form-group">
+            <label>Когда выдан паспорт</label>
+            <input type="date" id="editPassportIssueDate" value="${currentUserData.passportIssueDate || ''}">
+        </div>
+        <div class="form-group">
+            <label>СНИЛС</label>
+            <input type="text" id="editSnils" value="${currentUserData.snils || ''}" placeholder="Номер СНИЛС">
+        </div>
+        <div class="form-actions">
+            <button class="save-btn" onclick="saveDocuments()">Сохранить</button>
+            <button class="cancel-btn" onclick="cancelEdit()">Отмена</button>
+        </div>
+    `;
+}
+
+// Сохранение документов
+async function saveDocuments() {
+    const user = window.auth.currentUser;
+    if (!user) return;
+
+    const updates = {
+        passportNumber: document.getElementById('editPassportNumber').value,
+        passportIssuedBy: document.getElementById('editPassportIssuedBy').value,
+        passportIssueDate: document.getElementById('editPassportIssueDate').value,
+        snils: document.getElementById('editSnils').value
+    };
+
+    try {
+        await window.db.collection('users').doc(user.uid).update(updates);
+        currentUserData = { ...currentUserData, ...updates };
+        displayDocumentsData();
+        showSuccess('Данные успешно обновлены!', 'successMessage');
+        currentEditMode = null;
+    } catch (error) {
+        console.error('Ошибка сохранения:', error);
+        showError('errorMessage', 'Ошибка сохранения данных');
+    }
+}
+
+// Редактирование адресов
+function editAddress() {
+    currentEditMode = 'address';
+    const container = document.getElementById('addressInfo');
+    container.innerHTML = `
+        <div class="form-group">
+            <label>Фактический адрес</label>
+            <input type="text" id="editActualAddress" value="${currentUserData.actualAddress || ''}" placeholder="Индекс, город, улица, дом, кв.">
+        </div>
+        <div class="form-group">
+            <label>Адрес прописки</label>
+            <input type="text" id="editRegistrationAddress" value="${currentUserData.registrationAddress || ''}" placeholder="Индекс, город, улица, дом, кв.">
+        </div>
+        <div class="form-actions">
+            <button class="save-btn" onclick="saveAddress()">Сохранить</button>
+            <button class="cancel-btn" onclick="cancelEdit()">Отмена</button>
+        </div>
+    `;
+}
+
+// Сохранение адресов
+async function saveAddress() {
+    const user = window.auth.currentUser;
+    if (!user) return;
+
+    const updates = {
+        actualAddress: document.getElementById('editActualAddress').value,
+        registrationAddress: document.getElementById('editRegistrationAddress').value
+    };
+
+    try {
+        await window.db.collection('users').doc(user.uid).update(updates);
+        currentUserData = { ...currentUserData, ...updates };
+        displayAddressData();
+        showSuccess('Данные успешно обновлены!', 'successMessage');
+        currentEditMode = null;
+    } catch (error) {
+        console.error('Ошибка сохранения:', error);
+        showError('errorMessage', 'Ошибка сохранения данных');
+    }
+}
+
+// Отмена редактирования
+function cancelEdit() {
+    if (currentEditMode === 'profile') {
+        displayProfileData();
+    } else if (currentEditMode === 'documents') {
+        displayDocumentsData();
+    } else if (currentEditMode === 'address') {
+        displayAddressData();
+    }
+    currentEditMode = null;
+}
+
+// Инициализация
+window.auth.onAuthStateChanged(async (user) => {
+    if (user && user.emailVerified) {
+        await loadUserData();
+    } else if (user && !user.emailVerified) {
+        alert('Пожалуйста, подтвердите email');
+        window.location.href = 'index.html';
     } else {
-        AuthService.showToast('Ошибка загрузки документа', 'danger');
+        window.location.href = 'index.html';
     }
-}
-
-async function viewDocument(docTypeId) {
-    const user = auth.currentUser;
-    const url = await DocumentService.getDocumentUrl(user.uid, docTypeId);
-    if (url) {
-        window.open(url, '_blank');
-    }
-}
-
-async function deleteDocument(docTypeId) {
-    if (!confirm('Удалить документ?')) return;
-    
-    const user = auth.currentUser;
-    await DocumentService.deleteDocument(user.uid, docTypeId);
-    
-    const doc = await db.collection('listeners').doc(user.uid).get();
-    currentUserData = doc.data();
-    renderDocuments();
-    AuthService.showToast('Документ удален', 'info');
-}
-
-function updateCourseInfo() {
-    const course = currentUserData.course;
-    document.getElementById('currentCourse').textContent = course || 'Не назначен';
-    document.getElementById('courseStatus').textContent = course ? 'Вы зачислены на курс' : '';
-}
+});
