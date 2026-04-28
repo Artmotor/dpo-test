@@ -1,8 +1,129 @@
-// student-fields.js - Отображение полей в кабинете слушателя
-// Подключается после основного student.js
+// student-fields.js - исправленная версия
 
 let customFieldsData = [];
 let customFieldsValues = {};
+
+// Рендер поля в зависимости от типа (ИСПРАВЛЕНАЯ ВЕРСИЯ)
+function renderCustomFieldInput(field, value) {
+    const fieldId = `field_${field.id}`;
+    const isRequired = field.isRequired ? 'required' : '';
+    
+    switch (field.type) {
+        case 'radio':
+            if (!field.options || !field.options.length) {
+                return '<p style="color: red; font-size: 12px;">Ошибка: нет вариантов для выбора</p>';
+            }
+            
+            let radioHtml = `<div class="radio-group" data-field-id="${field.id}">`;
+            field.options.forEach((opt, idx) => {
+                const checked = (value === opt) ? 'checked' : '';
+                const radioId = `${fieldId}_${idx}`;
+                radioHtml += `
+                    <label style="display: inline-flex; align-items: center; margin-right: 20px; cursor: pointer;">
+                        <input type="radio" 
+                               name="${fieldId}" 
+                               id="${radioId}"
+                               value="${escapeHtml(opt)}" 
+                               ${checked} 
+                               ${isRequired}>
+                        <span style="margin-left: 8px;">${escapeHtml(opt)}</span>
+                    </label>
+                `;
+            });
+            radioHtml += `</div>`;
+            return radioHtml;
+            
+        case 'select':
+            if (!field.options || !field.options.length) {
+                return '<p style="color: red; font-size: 12px;">Ошибка: нет вариантов для выбора</p>';
+            }
+            
+            let selectHtml = `<select id="${fieldId}" data-field-id="${field.id}" ${isRequired} style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">`;
+            selectHtml += `<option value="">-- Выберите --</option>`;
+            field.options.forEach(opt => {
+                const selected = (value === opt) ? 'selected' : '';
+                selectHtml += `<option value="${escapeHtml(opt)}" ${selected}>${escapeHtml(opt)}</option>`;
+            });
+            selectHtml += `</select>`;
+            return selectHtml;
+            
+        case 'textarea':
+            return `<textarea id="${fieldId}" placeholder="${field.placeholder || ''}" data-field-id="${field.id}" rows="3" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">${escapeHtml(value)}</textarea>`;
+            
+        case 'date':
+            return `<input type="date" id="${fieldId}" value="${escapeHtml(value)}" data-field-id="${field.id}" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">`;
+            
+        case 'number':
+            return `<input type="number" id="${fieldId}" placeholder="${field.placeholder || ''}" value="${escapeHtml(value)}" data-field-id="${field.id}" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">`;
+            
+        case 'email':
+            return `<input type="email" id="${fieldId}" placeholder="${field.placeholder || ''}" value="${escapeHtml(value)}" data-field-id="${field.id}" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">`;
+            
+        case 'tel':
+            return `<input type="tel" id="${fieldId}" placeholder="${field.placeholder || ''}" value="${escapeHtml(value)}" data-field-id="${field.id}" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">`;
+            
+        default:
+            return `<input type="text" id="${fieldId}" placeholder="${field.placeholder || ''}" value="${escapeHtml(value)}" data-field-id="${field.id}" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">`;
+    }
+}
+
+// Сохранение пользовательских полей (ИСПРАВЛЕНАЯ ВЕРСИЯ)
+async function saveCustomFields() {
+    const userId = window.auth.currentUser?.uid;
+    if (!userId) return;
+    
+    const values = {};
+    
+    for (const field of customFieldsData) {
+        if (field.type === 'radio') {
+            // Для radio - ищем выбранный option
+            const selected = document.querySelector(`input[name="field_${field.id}"]:checked`);
+            values[field.id] = selected ? selected.value : '';
+            console.log(`Radio поле ${field.id}:`, values[field.id]);
+        } else {
+            const element = document.getElementById(`field_${field.id}`);
+            if (element) {
+                values[field.id] = element.value;
+                console.log(`Поле ${field.id}:`, values[field.id]);
+            }
+        }
+    }
+    
+    // Показываем индикатор загрузки
+    const btn = document.querySelector('.save-fields-btn');
+    const originalText = btn?.textContent;
+    if (btn) {
+        btn.textContent = '⏳ Сохранение...';
+        btn.disabled = true;
+    }
+    
+    try {
+        await window.fieldsManager.saveFieldValues(userId, values);
+        customFieldsValues = { ...customFieldsValues, ...values };
+        
+        showSuccessMessage('✅ Дополнительная информация сохранена!');
+        
+        // Обновляем отображение (убираем предупреждения)
+        displayCustomFields();
+        
+        // Проверяем обязательные поля
+        const check = await window.fieldsManager.checkRequiredFields(userId);
+        if (!check.allFilled) {
+            showMissingFieldsWarning(check.missingFields);
+        } else {
+            hideMissingFieldsWarning();
+        }
+        
+    } catch (error) {
+        console.error('Ошибка сохранения:', error);
+        showErrorMessage('Ошибка сохранения данных: ' + error.message);
+    } finally {
+        if (btn) {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
+    }
+}
 
 // Загрузка пользовательских полей
 async function loadCustomFields() {
@@ -10,13 +131,18 @@ async function loadCustomFields() {
         const userId = window.auth.currentUser?.uid;
         if (!userId) return;
         
+        console.log('Загрузка полей для пользователя:', userId);
+        
         // Получаем активные поля
         customFieldsData = await window.fieldsManager.getActiveFields();
+        console.log('Найдено полей:', customFieldsData.length);
+        console.log('Поля:', customFieldsData);
         
         // Получаем сохраненные значения
         customFieldsValues = await window.fieldsManager.getFieldValues(userId);
+        console.log('Сохраненные значения:', customFieldsValues);
         
-        // Отображаем поля в личном кабинете
+        // Отображаем поля
         displayCustomFields();
         
         // Проверяем незаполненные обязательные поля
@@ -26,133 +152,63 @@ async function loadCustomFields() {
         }
         
     } catch (error) {
-        console.error('Ошибка загрузки пользовательских полей:', error);
+        console.error('Ошибка загрузки полей:', error);
+        showErrorMessage('Ошибка загрузки дополнительных полей');
     }
 }
 
 // Отображение полей в интерфейсе
 function displayCustomFields() {
     const container = document.getElementById('customFieldsContainer');
-    if (!container || customFieldsData.length === 0) {
-        if (container && customFieldsData.length === 0) {
-            container.innerHTML = '<p style="color: #999; text-align: center;">Нет дополнительных полей для заполнения</p>';
-        }
+    if (!container) return;
+    
+    if (customFieldsData.length === 0) {
+        container.innerHTML = '<p style="color: #999; text-align: center; padding: 40px;">📭 Нет дополнительных полей для заполнения</p>';
         return;
     }
     
-    let html = '<h3 style="margin-top: 20px;">📋 Дополнительная информация</h3>';
+    let html = '<div style="margin-bottom: 20px;"><h4 style="color: var(--primary);">📋 Дополнительная информация</h4><p style="color: #666; font-size: 13px;">Поля, отмеченные <span style="color: #dc3545;">*</span>, обязательны для заполнения</p></div>';
     
     customFieldsData.forEach(field => {
         const value = customFieldsValues[field.id] || '';
         const isFilled = value && value.trim() !== '';
-        const warningClass = !isFilled && field.isRequired ? 'required-missing' : '';
+        const warningClass = (!isFilled && field.isRequired) ? 'required-missing' : '';
         
         html += `
-            <div class="custom-field ${warningClass}" data-field-id="${field.id}" data-required="${field.isRequired}">
-                <label>
-                    ${field.label}
-                    ${field.isRequired ? '<span class="required-star">*</span>' : ''}
-                    ${!isFilled && field.isRequired ? '<span class="missing-badge">Не заполнено</span>' : ''}
+            <div class="custom-field ${warningClass}" data-field-id="${field.id}" style="margin-bottom: 20px; padding: 15px; border: 1px solid #e0e0e0; border-radius: 10px; background: ${warningClass ? '#fff8e1' : '#fafafa'};">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #333;">
+                    ${escapeHtml(field.label)}
+                    ${field.isRequired ? '<span style="color: #dc3545; margin-left: 4px;">*</span>' : ''}
+                    ${(!isFilled && field.isRequired) ? '<span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">Не заполнено</span>' : ''}
                 </label>
                 
-                ${field.type === 'textarea' ? `
-                    <textarea id="field_${field.id}" 
-                              placeholder="${field.placeholder || ''}"
-                              data-field-id="${field.id}"
-                              data-semantics="${field.semantics || ''}">${escapeHtml(value)}</textarea>
-                ` : `
-                    <input type="${field.type || 'text'}" 
-                           id="field_${field.id}"
-                           value="${escapeHtml(value)}"
-                           placeholder="${field.placeholder || ''}"
-                           data-field-id="${field.id}"
-                           data-semantics="${field.semantics || ''}">
-                `}
+                ${renderCustomFieldInput(field, value)}
                 
                 ${field.semantics ? `
-                    <small class="field-semantics">
-                        🔗 Семантика: <a href="${field.semantics}" target="_blank">${field.semantics}</a>
+                    <small style="display: block; margin-top: 8px; color: #667eea; font-size: 11px;">
+                        🔗 Семантика: <a href="${escapeHtml(field.semantics)}" target="_blank" style="color: #667eea;">${escapeHtml(field.semantics)}</a>
                     </small>
                 ` : ''}
                 
-                ${!isFilled && field.isRequired ? `
-                    <small class="field-warning">⚠️ Это поле обязательно для заполнения</small>
+                ${(!isFilled && field.isRequired) ? `
+                    <small style="display: block; margin-top: 8px; color: #ff9800; font-size: 11px;">
+                        ⚠️ Это поле обязательно для заполнения
+                    </small>
                 ` : ''}
             </div>
         `;
     });
     
     html += `
-        <div class="form-actions" style="margin-top: 20px;">
-            <button class="save-fields-btn" onclick="saveCustomFields()">💾 Сохранить дополнительную информацию</button>
+        <div style="margin-top: 20px;">
+            <button class="save-fields-btn" onclick="saveCustomFields()" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">💾 Сохранить дополнительную информацию</button>
         </div>
     `;
     
     container.innerHTML = html;
 }
 
-// Сохранение пользовательских полей
-async function saveCustomFields() {
-    const userId = window.auth.currentUser?.uid;
-    if (!userId) return;
-    
-    const values = {};
-    
-    customFieldsData.forEach(field => {
-        const element = document.getElementById(`field_${field.id}`);
-        if (element) {
-            values[field.id] = element.value;
-        }
-    });
-    
-    try {
-        await window.fieldsManager.saveFieldValues(userId, values);
-        customFieldsValues = { ...customFieldsValues, ...values };
-        
-        showSuccess('✅ Дополнительная информация сохранена!', 'successMessage');
-        
-        // Обновляем отображение
-        displayCustomFields();
-        
-    } catch (error) {
-        console.error('Ошибка сохранения:', error);
-        showError('errorMessage', 'Ошибка сохранения данных');
-    }
-}
-
-// Предупреждение о незаполненных полях
-function showMissingFieldsWarning(missingFields) {
-    const warningContainer = document.getElementById('missingFieldsWarning');
-    if (!warningContainer) return;
-    
-    const fieldNames = missingFields.map(f => f.label).join(', ');
-    
-    warningContainer.innerHTML = `
-        <div class="warning-banner">
-            ⚠️ Внимание! У вас есть незаполненные обязательные поля: ${fieldNames}
-            <button onclick="scrollToCustomFields()" class="warning-btn">Заполнить сейчас</button>
-        </div>
-    `;
-    warningContainer.style.display = 'block';
-}
-
-// Прокрутка к полям
-function scrollToCustomFields() {
-    const container = document.getElementById('customFieldsContainer');
-    if (container) {
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        // Подсвечиваем незаполненные поля
-        document.querySelectorAll('.required-missing').forEach(field => {
-            field.style.transition = 'background 0.5s';
-            field.style.background = '#fff3cd';
-            setTimeout(() => {
-                field.style.background = '';
-            }, 2000);
-        });
-    }
-}
-
-// Экранирование HTML
+// Вспомогательные функции
 function escapeHtml(str) {
     if (!str) return '';
     return str
@@ -163,17 +219,85 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-// Добавляем стили для новых элементов
+function showSuccessMessage(message) {
+    const el = document.getElementById('successMessage');
+    if (el) {
+        el.textContent = message;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 3000);
+    }
+}
+
+function showErrorMessage(message) {
+    const el = document.getElementById('errorMessage');
+    if (el) {
+        el.textContent = message;
+        el.style.display = 'block';
+        setTimeout(() => el.style.display = 'none', 5000);
+    }
+}
+
+function showMissingFieldsWarning(missingFields) {
+    const warningContainer = document.getElementById('missingFieldsWarning');
+    if (!warningContainer) return;
+    
+    const fieldNames = missingFields.map(f => f.label).join(', ');
+    
+    warningContainer.innerHTML = `
+        <div style="background: #fff3cd; border: 1px solid #ffc107; color: #856404; padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <span>⚠️ Внимание! У вас есть незаполненные обязательные поля: ${fieldNames}</span>
+            <button onclick="scrollToCustomFields()" style="background: #ffc107; color: #856404; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer;">Заполнить сейчас</button>
+        </div>
+    `;
+    warningContainer.style.display = 'block';
+}
+
+function hideMissingFieldsWarning() {
+    const warningContainer = document.getElementById('missingFieldsWarning');
+    if (warningContainer) {
+        warningContainer.style.display = 'none';
+    }
+}
+
+function scrollToCustomFields() {
+    const container = document.getElementById('customFieldsContainer');
+    if (container) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.querySelectorAll('.required-missing').forEach(field => {
+            field.style.transition = 'background 0.5s';
+            field.style.background = '#fff3cd';
+            setTimeout(() => {
+                field.style.background = '';
+            }, 2000);
+        });
+    }
+}
+
+// Добавляем стили
 function addCustomStyles() {
     const style = document.createElement('style');
     style.textContent = `
-        .custom-field {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background: #fafafa;
-            transition: all 0.3s;
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 10px 0;
+        }
+        
+        .radio-group label {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: normal;
+            margin-bottom: 0;
+        }
+        
+        .radio-group input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            cursor: pointer;
+            accent-color: var(--primary, #2c5f2d);
         }
         
         .custom-field.required-missing {
@@ -181,115 +305,24 @@ function addCustomStyles() {
             background: #fff8e1;
         }
         
-        .required-star {
-            color: #e74c3c;
-            margin-left: 5px;
+        select, input, textarea {
+            font-family: inherit;
         }
         
-        .missing-badge {
-            background: #ff9800;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            margin-left: 10px;
-        }
-        
-        .field-warning {
-            color: #ff9800;
-            font-size: 11px;
-            display: block;
-            margin-top: 5px;
-        }
-        
-        .field-semantics {
-            font-size: 11px;
-            color: #667eea;
-            display: block;
-            margin-top: 5px;
-        }
-        
-        .field-semantics a {
-            color: #667eea;
-            text-decoration: none;
-        }
-        
-        .field-semantics a:hover {
-            text-decoration: underline;
-        }
-        
-        .warning-banner {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            color: #856404;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .warning-btn {
-            background: #ffc107;
-            color: #856404;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: auto;
-        }
-        
-        .save-fields-btn {
-            background: #28a745;
-            width: auto;
-            padding: 10px 20px;
-        }
-        
-        .fields-editor {
-            margin-top: 30px;
-            border-top: 2px solid #e0e0e0;
-            padding-top: 20px;
-        }
-        
-        .field-item {
-            background: #f8f9fa;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            border-left: 3px solid #667eea;
-        }
-        
-        .field-actions {
-            margin-top: 10px;
-            display: flex;
-            gap: 10px;
-        }
-        
-        .field-actions button {
-            width: auto;
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-        
-        .add-field-btn {
-            background: #28a745;
-            margin-bottom: 20px;
-            width: auto;
-            padding: 10px 20px;
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary, #2c5f2d);
+            box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
         }
     `;
     document.head.appendChild(style);
 }
 
-// Инициализация при загрузке страницы слушателя
+// Инициализация
 if (document.getElementById('customFieldsContainer')) {
     addCustomStyles();
-    
-    // Ждем загрузку основного скрипта
-    setTimeout(() => {
-        loadCustomFields();
-    }, 500);
+    // Ждем загрузку страницы
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => loadCustomFields(), 500);
+    });
 }
