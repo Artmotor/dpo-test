@@ -786,6 +786,27 @@
                 .replace(/'/g, '&#39;');
         }
 
+        function switchTab(tabName) {
+    const tabs = ['profile', 'documents', 'address', 'additionalFields'];
+    tabs.forEach(tab => {
+        const tabElement = document.getElementById(`${tab}Tab`);
+        const btnElement = document.querySelector(`[onclick="switchTab('${tab}')"]`);
+        if (tabElement) {
+            if (tab === tabName) {
+                tabElement.classList.add('active');
+                if (btnElement) btnElement.classList.add('active');
+            } else {
+                tabElement.classList.remove('active');
+                if (btnElement) btnElement.classList.remove('active');
+            }
+        }
+    });
+    
+    if (tabName === 'additionalFields' && window.loadCustomFields) {
+        setTimeout(() => window.loadCustomFields(), 100);
+    }
+}
+        
         // Выход
         async function logout() {
             await window.auth.signOut();
