@@ -760,40 +760,80 @@
 
         // Создание методиста
         async function createMetodist() {
-            const fullName = document.getElementById('metodistFullName').value.trim();
-            const email = document.getElementById('metodistEmail').value.trim();
-            const phone = document.getElementById('metodistPhone').value.trim();
-            const password = document.getElementById('metodistPassword').value;
+    const fullName = document.getElementById('metodistFullName').value.trim();
+    const email = document.getElementById('metodistEmail').value.trim();
+    const phone = document.getElementById('metodistPhone').value.trim();
+    const password = document.getElementById('metodistPassword').value;
 
-            if (!fullName || !email || !password) { showToast('Заполните ФИО, Email и пароль', 'warning'); return; }
-            if (password.length < 6) { showToast('Пароль должен быть не менее 6 символов', 'warning'); return; }
+    // Валидация
+    if (!fullName || !email || !password) {
+        showToast('Заполните ФИО, Email и пароль', 'warning');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showToast('Пароль должен быть не менее 6 символов', 'warning');
+        return;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showToast('Введите корректный email', 'warning');
+        return;
+    }
 
-            try {
-                const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-                await user.sendEmailVerification();
-                await window.db.collection('users').doc(user.uid).set({
-                    fullName, email, phone, role: 'metodist', emailVerified: false,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    createdBy: window.auth.currentUser?.uid
-                });
-                showToast(`Методист ${fullName} создан! На email отправлено письмо для подтверждения`, 'success');
-                document.getElementById('metodistFullName').value = '';
-                document.getElementById('metodistEmail').value = '';
-                document.getElementById('metodistPhone').value = '';
-                document.getElementById('metodistPassword').value = '';
-                loadMetodists();
-            } catch (e) { showToast('Ошибка: ' + e.message, 'error'); }
+    // Показываем индикатор загрузки
+    const btn = document.querySelector('#metodistsTab .btn-primary');
+    const originalText = btn.textContent;
+    btn.textContent = '⏳ Создание...';
+    btn.disabled = true;
+
+    try {
+        // Создаем пользователя в Authentication
+        const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        
+        // Отправляем письмо для подтверждения
+        await user.sendEmailVerification();
+        
+        // Сохраняем данные в Firestore
+        await window.db.collection('users').doc(user.uid).set({
+            fullName: fullName,
+            email: email,
+            phone: phone || '',
+            role: 'metodist',
+            emailVerified: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdBy: window.auth.currentUser?.uid || 'admin'
+        });
+        
+        showToast(`✅ Методист ${fullName} создан! На email отправлено письмо для подтверждения`, 'success');
+        
+        // Очищаем форму
+        document.getElementById('metodistFullName').value = '';
+        document.getElementById('metodistEmail').value = '';
+        document.getElementById('metodistPhone').value = '';
+        document.getElementById('metodistPassword').value = '';
+        
+        // Перезагружаем список методистов
+        await loadMetodists();
+        
+    } catch (error) {
+        console.error('Ошибка создания методиста:', error);
+        let errorMsg = error.message;
+        if (errorMsg.includes('email-already-in-use')) {
+            errorMsg = 'Пользователь с таким email уже существует';
+        } else if (errorMsg.includes('weak-password')) {
+            errorMsg = 'Пароль слишком слабый (минимум 6 символов)';
+        } else if (errorMsg.includes('network')) {
+            errorMsg = 'Ошибка сети. Проверьте подключение';
         }
-
-        async function deleteMetodist(id) {
-            if (!confirm('Удалить методиста? Он потеряет доступ.')) return;
-            try {
-                await window.db.collection('users').doc(id).delete();
-                showToast('Методист удален', 'success');
-                loadMetodists();
-            } catch (e) { showToast('Ошибка удаления', 'error'); }
-        }
+        showToast('❌ ' + errorMsg, 'error');
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
 
         // Загрузка слушателей
         async function loadStudents() {
