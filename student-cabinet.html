@@ -2,8 +2,10 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Институт ДПО - Личный кабинет слушателя</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
     <style>
         * {
             margin: 0;
@@ -11,43 +13,102 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #2c5f2d;
+            --primary-dark: #1e3a1f;
+            --primary-light: #4a7c4b;
+            --secondary: #ffc107;
+            --secondary-dark: #e0a800;
+            --accent: #97233f;
+            --gray-light: #f5f5f5;
+            --gray: #ddd;
+            --dark: #333;
+            --white: #fff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ff9800;
+            --info: #17a2b8;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-hover: 0 10px 20px rgba(0,0,0,0.15);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f5f5f5;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             min-height: 100vh;
+            color: var(--dark);
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
             padding: 20px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 36px;
+            background: var(--secondary);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
         }
 
         .header h1 {
-            font-size: 24px;
+            font-size: clamp(18px, 5vw, 24px);
+            font-weight: 500;
         }
 
-        .logout-btn {
-            background: #e74c3c;
-            color: white;
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .user-name {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .btn-logout {
+            background: var(--danger);
+            color: var(--white);
             border: none;
-            padding: 10px 25px;
-            border-radius: 8px;
+            padding: 10px 24px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s;
-            width: auto;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
-        .logout-btn:hover {
-            background: #c0392b;
+        .btn-logout:hover {
+            background: #c82333;
             transform: translateY(-2px);
+            box-shadow: var(--shadow);
         }
 
         .container {
@@ -61,43 +122,44 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
-            background: white;
+            background: var(--white);
             padding: 10px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
             flex-wrap: wrap;
         }
 
         .tab-btn {
             flex: 1;
             padding: 12px 20px;
-            background: #f0f0f0;
+            background: var(--gray-light);
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             font-size: 14px;
             font-weight: 500;
+            color: var(--dark);
         }
 
         .tab-btn:hover {
-            background: #e0e0e0;
+            background: var(--gray);
             transform: translateY(-2px);
         }
 
         .tab-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
         }
 
         /* Контент вкладок */
         .tab-content {
             display: none;
-            background: white;
+            background: var(--white);
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            animation: fadeIn 0.3s;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.3s ease;
         }
 
         .tab-content.active {
@@ -111,23 +173,24 @@
 
         /* Карточки информации */
         .info-card {
-            background: #f8f9fa;
-            border-radius: 12px;
+            background: var(--gray-light);
+            border-radius: var(--radius);
             padding: 20px;
         }
 
         .info-card h3 {
-            color: #667eea;
+            color: var(--primary);
             margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 2px solid var(--gray);
+            font-weight: 500;
         }
 
         .info-row {
             margin-bottom: 12px;
             padding: 10px;
-            background: white;
-            border-radius: 8px;
+            background: var(--white);
+            border-radius: var(--radius-sm);
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
@@ -141,24 +204,24 @@
         }
 
         .info-value {
-            color: #333;
+            color: var(--dark);
             flex: 1;
         }
 
         .edit-btn {
-            background: #28a745;
-            color: white;
+            background: var(--primary);
+            color: var(--white);
             border: none;
             padding: 8px 20px;
-            border-radius: 6px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             margin-top: 15px;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             width: auto;
         }
 
         .edit-btn:hover {
-            background: #218838;
+            background: var(--primary-dark);
             transform: translateY(-2px);
         }
 
@@ -179,22 +242,19 @@
         .form-group textarea {
             width: 100%;
             padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            border: 2px solid var(--gray);
+            border-radius: var(--radius-sm);
             font-size: 14px;
             transition: all 0.3s;
+            font-family: inherit;
         }
 
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #667eea;
-        }
-
-        .form-group textarea {
-            min-height: 80px;
-            resize: vertical;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
         }
 
         .form-actions {
@@ -204,75 +264,81 @@
         }
 
         .save-btn {
-            background: #28a745;
+            background: var(--success);
             width: auto;
             padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
         }
 
         .cancel-btn {
-            background: #6c757d;
+            background: var(--secondary);
             width: auto;
             padding: 10px 20px;
+            color: var(--dark);
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
         }
 
         /* Сообщения */
-        .success-message, .error-message {
+        .success-message, .error-message, .info-message {
             position: fixed;
             top: 20px;
             right: 20px;
             padding: 15px 20px;
-            border-radius: 10px;
+            border-radius: var(--radius-sm);
             display: none;
             z-index: 1001;
-            animation: slideIn 0.3s;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+            box-shadow: var(--shadow-hover);
+            font-weight: 500;
         }
 
         @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
         .success-message {
-            background: #d4edda;
-            color: #155724;
-            border-left: 4px solid #28a745;
+            background: var(--success);
+            color: white;
         }
 
         .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            border-left: 4px solid #dc3545;
+            background: var(--danger);
+            color: white;
+        }
+
+        .info-message {
+            background: var(--info);
+            color: white;
         }
 
         /* Стили для динамических полей */
         .custom-field {
             margin-bottom: 20px;
             padding: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background: white;
+            border: 1px solid var(--gray);
+            border-radius: var(--radius-sm);
+            background: #fafafa;
             transition: all 0.3s;
         }
 
         .custom-field.required-missing {
-            border-left: 4px solid #ff9800;
+            border-left: 4px solid var(--warning);
             background: #fff8e1;
         }
 
         .required-star {
-            color: #e74c3c;
+            color: var(--danger);
             margin-left: 5px;
         }
 
         .missing-badge {
-            background: #ff9800;
+            background: var(--warning);
             color: white;
             padding: 2px 8px;
             border-radius: 12px;
@@ -281,7 +347,7 @@
         }
 
         .field-warning {
-            color: #ff9800;
+            color: var(--warning);
             font-size: 11px;
             display: block;
             margin-top: 5px;
@@ -307,8 +373,8 @@
             background: #fff3cd;
             border: 1px solid #ffc107;
             color: #856404;
-            padding: 15px;
-            border-radius: 8px;
+            padding: 12px 15px;
+            border-radius: var(--radius-sm);
             margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
@@ -321,21 +387,54 @@
             background: #ffc107;
             color: #856404;
             border: none;
-            padding: 8px 15px;
+            padding: 6px 12px;
             border-radius: 5px;
             cursor: pointer;
             width: auto;
         }
 
-        .warning-btn:hover {
-            background: #e0a800;
-        }
-
         .save-fields-btn {
-            background: #28a745;
+            background: var(--success);
             width: auto;
             padding: 10px 20px;
             margin-top: 10px;
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .save-fields-btn:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+        }
+
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 10px 0;
+        }
+
+        .radio-group label {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: normal;
+            margin-bottom: 0;
+        }
+
+        .radio-group input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        select, input, textarea {
+            font-family: inherit;
         }
 
         .empty-fields {
@@ -346,6 +445,10 @@
 
         /* Адаптивность */
         @media (max-width: 768px) {
+            .header {
+                padding: 15px 20px;
+            }
+            
             .header h1 {
                 font-size: 18px;
             }
@@ -380,18 +483,29 @@
                 flex-direction: column;
                 text-align: center;
             }
+            
+            .tab-content {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>📚 Институт ДПО - Личный кабинет слушателя</h1>
-        <button class="logout-btn" onclick="logout()">🚪 Выйти</button>
+        <div class="logo-area">
+            <div class="logo">🎓</div>
+            <h1>Институт ДПО - Личный кабинет слушателя</h1>
+        </div>
+        <div class="user-info">
+            <span class="user-name" id="userName">Загрузка...</span>
+            <button class="btn-logout" onclick="logout()">🚪 Выйти</button>
+        </div>
     </div>
 
     <div class="container">
         <div id="successMessage" class="success-message"></div>
         <div id="errorMessage" class="error-message"></div>
+        <div id="infoMessage" class="info-message"></div>
 
         <!-- Вкладки -->
         <div class="tabs">
@@ -433,7 +547,9 @@
             <div class="info-card">
                 <h3>📋 Дополнительная информация</h3>
                 <div id="missingFieldsWarning" style="display: none;"></div>
-                <div id="customFieldsContainer"></div>
+                <div id="customFieldsContainer">
+                    <div style="text-align: center; padding: 40px; color: #999;">Загрузка...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -452,12 +568,14 @@
     <!-- Управление полями (ядро) -->
     <script src="fields-manager.js"></script>
     
-    <!-- Основной скрипт слушателя -->
+    <!-- Скрипт для динамических полей слушателя -->
+    <script src="student-fields.js"></script>
+
     <script>
         let currentUserData = null;
         let currentEditMode = null;
 
-        // Переключение вкладок
+        // ========== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ==========
         function switchTab(tabName) {
             const tabs = ['profile', 'documents', 'address', 'additionalFields'];
             tabs.forEach(tab => {
@@ -474,13 +592,20 @@
                 }
             });
             
-            // При переключении на вкладку дополнительных полей обновляем их
-            if (tabName === 'additionalFields' && window.loadCustomFields) {
-                setTimeout(() => window.loadCustomFields(), 100);
+            // При переключении на вкладку дополнительных полей - ПРИНУДИТЕЛЬНО обновляем
+            if (tabName === 'additionalFields') {
+                console.log('🔄 Переключение на вкладку дополнительных полей');
+                setTimeout(() => {
+                    if (typeof refreshCustomFields === 'function') {
+                        refreshCustomFields();
+                    } else if (typeof loadCustomFields === 'function') {
+                        loadCustomFields();
+                    }
+                }, 100);
             }
         }
 
-        // Показ сообщений
+        // ========== СООБЩЕНИЯ ==========
         function showSuccess(message) {
             const el = document.getElementById('successMessage');
             el.textContent = message;
@@ -495,7 +620,14 @@
             setTimeout(() => el.style.display = 'none', 5000);
         }
 
-        // Форматирование даты
+        function showInfo(message) {
+            const el = document.getElementById('infoMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        // ========== ФОРМАТИРОВАНИЕ ==========
         function formatDate(timestamp) {
             if (!timestamp) return 'Не указана';
             try {
@@ -506,7 +638,17 @@
             }
         }
 
-        // Загрузка данных пользователя
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // ========== ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЯ ==========
         async function loadUserData() {
             const user = window.auth.currentUser;
             if (!user) return;
@@ -537,6 +679,8 @@
                     currentUserData = doc.data();
                 }
                 
+                document.getElementById('userName').textContent = currentUserData.fullName || currentUserData.email;
+                
                 displayProfileData();
                 displayDocumentsData();
                 displayAddressData();
@@ -547,7 +691,7 @@
             }
         }
 
-        // Отображение профиля
+        // ========== ОТОБРАЖЕНИЕ ДАННЫХ ==========
         function displayProfileData() {
             const container = document.getElementById('profileInfo');
             if (!container) return;
@@ -555,19 +699,19 @@
             container.innerHTML = `
                 <div class="info-row">
                     <span class="info-label">ФИО:</span>
-                    <span class="info-value">${currentUserData?.fullName || 'Не указано'}</span>
+                    <span class="info-value">${escapeHtml(currentUserData?.fullName || 'Не указано')}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Email:</span>
-                    <span class="info-value">${currentUserData?.email || 'Не указан'}</span>
+                    <span class="info-value">${escapeHtml(currentUserData?.email || 'Не указан')}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Телефон:</span>
-                    <span class="info-value">${currentUserData?.phone || 'Не указан'}</span>
+                    <span class="info-value">${escapeHtml(currentUserData?.phone || 'Не указан')}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Образование:</span>
-                    <span class="info-value">${currentUserData?.education || 'Не указано'}</span>
+                    <span class="info-value">${escapeHtml(currentUserData?.education || 'Не указано')}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Дата регистрации:</span>
@@ -576,7 +720,6 @@
             `;
         }
 
-        // Отображение паспортных данных
         function displayDocumentsData() {
             const container = document.getElementById('documentsInfo');
             if (!container) return;
@@ -584,24 +727,23 @@
             container.innerHTML = `
                 <div class="info-row">
                     <span class="info-label">Номер паспорта:</span>
-                    <span class="info-value">${currentUserData?.passportNumber || 'Не указан'}</span>
+                    <span class="info-value">${escapeHtml(currentUserData?.passportNumber || 'Не указан')}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Кем выдан:</span>
-                    <span class="info-value">${currentUserData?.passportIssuedBy || 'Не указано'}</span>
+                    <span class="info-value">${escapeHtml(currentUserData?.passportIssuedBy || 'Не указано')}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Когда выдан:</span>
-                    <span class="info-value">${currentUserData?.passportIssueDate || 'Не указано'}</span>
+                    <span class="info-value">${escapeHtml(currentUserData?.passportIssueDate || 'Не указано')}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">СНИЛС:</span>
-                    <span class="info-value">${currentUserData?.snils || 'Не указан'}</span>
+                    <span class="info-value">${escapeHtml(currentUserData?.snils || 'Не указан')}</span>
                 </div>
             `;
         }
 
-        // Отображение адресов
         function displayAddressData() {
             const container = document.getElementById('addressInfo');
             if (!container) return;
@@ -609,16 +751,16 @@
             container.innerHTML = `
                 <div class="info-row">
                     <span class="info-label">Фактический адрес:</span>
-                    <span class="info-value">${currentUserData?.actualAddress || 'Не указан'}</span>
+                    <span class="info-value">${escapeHtml(currentUserData?.actualAddress || 'Не указан')}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">Адрес прописки:</span>
-                    <span class="info-value">${currentUserData?.registrationAddress || 'Не указан'}</span>
+                    <span class="info-value">${escapeHtml(currentUserData?.registrationAddress || 'Не указан')}</span>
                 </div>
             `;
         }
 
-        // Редактирование профиля
+        // ========== РЕДАКТИРОВАНИЕ ПРОФИЛЯ ==========
         function editProfile() {
             currentEditMode = 'profile';
             const container = document.getElementById('profileInfo');
@@ -646,7 +788,6 @@
             `;
         }
 
-        // Сохранение профиля
         async function saveProfile() {
             const user = window.auth.currentUser;
             if (!user) return;
@@ -669,7 +810,7 @@
             }
         }
 
-        // Редактирование документов
+        // ========== РЕДАКТИРОВАНИЕ ДОКУМЕНТОВ ==========
         function editDocuments() {
             currentEditMode = 'documents';
             const container = document.getElementById('documentsInfo');
@@ -697,7 +838,6 @@
             `;
         }
 
-        // Сохранение документов
         async function saveDocuments() {
             const user = window.auth.currentUser;
             if (!user) return;
@@ -721,7 +861,7 @@
             }
         }
 
-        // Редактирование адресов
+        // ========== РЕДАКТИРОВАНИЕ АДРЕСОВ ==========
         function editAddress() {
             currentEditMode = 'address';
             const container = document.getElementById('addressInfo');
@@ -741,7 +881,6 @@
             `;
         }
 
-        // Сохранение адресов
         async function saveAddress() {
             const user = window.auth.currentUser;
             if (!user) return;
@@ -763,7 +902,7 @@
             }
         }
 
-        // Отмена редактирования
+        // ========== ОТМЕНА РЕДАКТИРОВАНИЯ ==========
         function cancelEdit() {
             if (currentEditMode === 'profile') {
                 displayProfileData();
@@ -775,45 +914,28 @@
             currentEditMode = null;
         }
 
-        // Экранирование HTML
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
-
-        function switchTab(tabName) {
-    const tabs = ['profile', 'documents', 'address', 'additionalFields'];
-    tabs.forEach(tab => {
-        const tabElement = document.getElementById(`${tab}Tab`);
-        const btnElement = document.querySelector(`[onclick="switchTab('${tab}')"]`);
-        if (tabElement) {
-            if (tab === tabName) {
-                tabElement.classList.add('active');
-                if (btnElement) btnElement.classList.add('active');
-            } else {
-                tabElement.classList.remove('active');
-                if (btnElement) btnElement.classList.remove('active');
-            }
-        }
-    });
-    
-    if (tabName === 'additionalFields' && window.loadCustomFields) {
-        setTimeout(() => window.loadCustomFields(), 100);
-    }
-}
-        
-        // Выход
+        // ========== ВЫХОД ==========
         async function logout() {
             await window.auth.signOut();
             window.location.href = 'index.html';
         }
 
-        // Инициализация
+        // ========== ОБРАБОТЧИК ФОКУСА ОКНА ==========
+        window.addEventListener('focus', () => {
+            const activeTab = document.querySelector('.tab-content.active');
+            if (activeTab && activeTab.id === 'additionalFieldsTab') {
+                console.log('🔄 Фокус на окне, обновляем поля...');
+                setTimeout(() => {
+                    if (typeof refreshCustomFields === 'function') {
+                        refreshCustomFields();
+                    } else if (typeof loadCustomFields === 'function') {
+                        loadCustomFields();
+                    }
+                }, 100);
+            }
+        });
+
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
         window.auth.onAuthStateChanged(async (user) => {
             if (!user || !user.emailVerified) {
                 window.location.href = 'index.html';
@@ -822,30 +944,13 @@
             
             await loadUserData();
             
-            // Загружаем пользовательские поля, если они доступны
-            if (window.loadCustomFields) {
-                setTimeout(() => window.loadCustomFields(), 500);
-            }
-
-            // В student-cabinet.html добавьте в основной скрипт
-window.addEventListener('focus', () => {
-    const activeTab = document.querySelector('.tab-content.active');
-    if (activeTab && activeTab.id === 'additionalFieldsTab') {
-        if (typeof refreshCustomFields === 'function') {
-            refreshCustomFields();
-        }
-    }
-});
+            // Загружаем пользовательские поля после загрузки данных
+            setTimeout(() => {
+                if (typeof loadCustomFields === 'function') {
+                    loadCustomFields();
+                }
+            }, 500);
         });
     </script>
-    
-    <!-- Скрипт для динамических полей слушателя -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="firebase-config.js"></script>
-<script src="common.js"></script>
-<script src="fields-manager.js"></script>
-    <script src="student-fields.js"></script>
 </body>
 </html>
