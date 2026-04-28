@@ -826,6 +826,16 @@
             if (window.loadCustomFields) {
                 setTimeout(() => window.loadCustomFields(), 500);
             }
+
+            // В student-cabinet.html добавьте в основной скрипт
+window.addEventListener('focus', () => {
+    const activeTab = document.querySelector('.tab-content.active');
+    if (activeTab && activeTab.id === 'additionalFieldsTab') {
+        if (typeof refreshCustomFields === 'function') {
+            refreshCustomFields();
+        }
+    }
+});
         });
     </script>
     
