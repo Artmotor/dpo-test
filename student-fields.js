@@ -2,19 +2,28 @@
 
 let customFieldsData = [];
 let customFieldsValues = {};
+let isLoading = false;
 
-// Загрузка пользовательских полей
+// Загрузка пользовательских полей (всегда свежие данные)
 async function loadCustomFields() {
+    if (isLoading) return;
+    
     try {
         const userId = window.auth.currentUser?.uid;
-        if (!userId) return;
+        if (!userId) {
+            console.log('Пользователь не авторизован');
+            return;
+        }
         
+        isLoading = true;
         console.log('🔄 Загрузка дополнительных полей...');
         
+        // Принудительно получаем свежие данные из Firestore
         customFieldsData = await window.fieldsManager.getActiveFields();
         customFieldsValues = await window.fieldsManager.getFieldValues(userId);
         
         console.log(`📋 Загружено полей: ${customFieldsData.length}`);
+        
         displayCustomFields();
         
         const check = await window.fieldsManager.checkRequiredFields(userId);
@@ -23,12 +32,15 @@ async function loadCustomFields() {
         } else {
             hideMissingFieldsWarning();
         }
+        
     } catch (error) {
         console.error('Ошибка загрузки полей:', error);
         const container = document.getElementById('customFieldsContainer');
         if (container) {
             container.innerHTML = '<p style="color: #dc3545; text-align: center; padding: 20px;">❌ Ошибка загрузки дополнительных полей</p>';
         }
+    } finally {
+        isLoading = false;
     }
 }
 
@@ -37,6 +49,7 @@ function displayCustomFields() {
     const container = document.getElementById('customFieldsContainer');
     if (!container) return;
     
+    // Фильтруем только активные поля
     const activeFields = customFieldsData.filter(f => f.isActive !== false);
     
     if (activeFields.length === 0) {
@@ -44,7 +57,12 @@ function displayCustomFields() {
         return;
     }
     
-    let html = '<div style="margin-bottom: 20px;"><h4 style="color: var(--primary, #2c5f2d);">📋 Дополнительная информация</h4><p style="color: #666; font-size: 13px;">Поля, отмеченные <span style="color: #dc3545;">*</span>, обязательны для заполнения</p></div>';
+    let html = `
+        <div style="margin-bottom: 20px;">
+            <h4 style="color: var(--primary, #2c5f2d); margin-bottom: 5px;">📋 Дополнительная информация</h4>
+            <p style="color: #666; font-size: 13px;">Поля, отмеченные <span style="color: #dc3545;">*</span>, обязательны для заполнения</p>
+        </div>
+    `;
     
     for (const field of activeFields) {
         const value = customFieldsValues[field.id] || '';
@@ -68,7 +86,7 @@ function displayCustomFields() {
         `;
     }
     
-    html += `<div style="margin-top: 20px;"><button class="save-fields-btn" onclick="saveCustomFields()" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">💾 Сохранить</button></div>`;
+    html += `<div style="margin-top: 20px;"><button class="save-fields-btn" onclick="saveCustomFields()" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;">💾 Сохранить дополнительную информацию</button></div>`;
     
     container.innerHTML = html;
 }
@@ -114,12 +132,21 @@ function renderFieldInput(field, value) {
         case 'date':
             return `<input type="date" id="${fieldId}" value="${escapeHtml(value)}" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">`;
             
+        case 'number':
+            return `<input type="number" id="${fieldId}" placeholder="${field.placeholder || ''}" value="${escapeHtml(value)}" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">`;
+            
+        case 'email':
+            return `<input type="email" id="${fieldId}" placeholder="${field.placeholder || ''}" value="${escapeHtml(value)}" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">`;
+            
+        case 'tel':
+            return `<input type="tel" id="${fieldId}" placeholder="${field.placeholder || ''}" value="${escapeHtml(value)}" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">`;
+            
         default:
-            return `<input type="${field.type || 'text'}" id="${fieldId}" placeholder="${field.placeholder || ''}" value="${escapeHtml(value)}" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">`;
+            return `<input type="text" id="${fieldId}" placeholder="${field.placeholder || ''}" value="${escapeHtml(value)}" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">`;
     }
 }
 
-// Сохранение полей
+// Сохранение полей (ИСПРАВЛЕНАЯ ВЕРСИЯ)
 async function saveCustomFields() {
     const userId = window.auth.currentUser?.uid;
     if (!userId) return;
@@ -133,7 +160,9 @@ async function saveCustomFields() {
             values[field.id] = selected ? selected.value : '';
         } else {
             const element = document.getElementById(`field_${field.id}`);
-            if (element) values[field.id] = element.value;
+            if (element) {
+                values[field.id] = element.value;
+            }
         }
     }
     
@@ -145,37 +174,49 @@ async function saveCustomFields() {
     }
     
     try {
+        // ВАЖНО: Не используем serverTimestamp в обычных полях
+        // Просто сохраняем значения
         await window.fieldsManager.saveFieldValues(userId, values);
+        
+        // Обновляем локальный кэш значений
         customFieldsValues = { ...customFieldsValues, ...values };
         
-        const successEl = document.getElementById('successMessage');
-        if (successEl) {
-            successEl.textContent = '✅ Данные сохранены!';
-            successEl.style.display = 'block';
-            setTimeout(() => successEl.style.display = 'none', 3000);
-        }
+        showMessage('✅ Данные успешно сохранены!', 'success');
         
+        // Обновляем отображение
         displayCustomFields();
         
+        // Проверяем обязательные поля
         const check = await window.fieldsManager.checkRequiredFields(userId);
         if (!check.allFilled) {
             showMissingFieldsWarning(check.missingFields);
         } else {
             hideMissingFieldsWarning();
         }
+        
     } catch (error) {
         console.error('Ошибка сохранения:', error);
-        const errorEl = document.getElementById('errorMessage');
-        if (errorEl) {
-            errorEl.textContent = '❌ Ошибка сохранения: ' + error.message;
-            errorEl.style.display = 'block';
-            setTimeout(() => errorEl.style.display = 'none', 5000);
-        }
+        showMessage('❌ Ошибка сохранения: ' + error.message, 'error');
     } finally {
         if (btn) {
             btn.textContent = originalText;
             btn.disabled = false;
         }
+    }
+}
+
+// Функция для показа сообщений
+function showMessage(message, type) {
+    const elementId = type === 'success' ? 'successMessage' : 'errorMessage';
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.textContent = message;
+        el.style.display = 'block';
+        setTimeout(() => {
+            el.style.display = 'none';
+        }, 3000);
+    } else {
+        alert(message);
     }
 }
 
@@ -186,8 +227,8 @@ function showMissingFieldsWarning(missingFields) {
     const fieldNames = missingFields.map(f => f.label).join(', ');
     container.innerHTML = `
         <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <span>⚠️ Обязательные поля: ${fieldNames}</span>
-            <button onclick="document.getElementById('customFieldsContainer').scrollIntoView({behavior: 'smooth'})" style="background: #ffc107; border: none; padding: 6px 12px; border-radius: 5px;">Заполнить</button>
+            <span>⚠️ Внимание! У вас есть незаполненные обязательные поля: ${fieldNames}</span>
+            <button onclick="document.getElementById('customFieldsContainer').scrollIntoView({behavior: 'smooth'})" style="background: #ffc107; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer;">Заполнить сейчас</button>
         </div>
     `;
     container.style.display = 'block';
@@ -195,11 +236,25 @@ function showMissingFieldsWarning(missingFields) {
 
 function hideMissingFieldsWarning() {
     const container = document.getElementById('missingFieldsWarning');
-    if (container) container.style.display = 'none';
+    if (container) {
+        container.style.display = 'none';
+    }
+}
+
+// Экранирование HTML
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 // Обновление при переключении вкладки
 function refreshCustomFields() {
+    console.log('🔄 Обновление дополнительных полей...');
     loadCustomFields();
 }
 
