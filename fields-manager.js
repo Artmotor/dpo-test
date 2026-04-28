@@ -69,6 +69,8 @@ class FieldsManager {
     // Удалить поле и все его значения у слушателей
     async deleteField(fieldId) {
         try {
+            console.log(`🗑️ Удаление поля: ${fieldId}`);
+            
             // 1. Удаляем значения поля у всех слушателей
             const studentsSnapshot = await window.db.collection('users')
                 .where('role', '==', 'student')
@@ -82,19 +84,19 @@ class FieldsManager {
                     delete updatedCustomFields[fieldId];
                     updatePromises.push(
                         window.db.collection('users').doc(doc.id).update({
-                            customFields: updatedCustomFields,
-                            lastFieldUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                            customFields: updatedCustomFields
                         })
                     );
                 }
             });
             
             await Promise.all(updatePromises);
+            console.log(`✅ Удалены значения у ${updatePromises.length} слушателей`);
             
             // 2. Удаляем само поле
             await window.db.collection(this.collection).doc(fieldId).delete();
             
-            console.log(`✅ Поле удалено. Обновлено ${updatePromises.length} слушателей.`);
+            console.log(`✅ Поле ${fieldId} удалено из коллекции`);
             return true;
         } catch (error) {
             console.error('Ошибка удаления поля:', error);
@@ -117,10 +119,10 @@ class FieldsManager {
             const updatedFields = { ...customFields, ...values };
             
             await userRef.update({
-                customFields: updatedFields,
-                lastFieldUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                customFields: updatedFields
             });
             
+            console.log(`✅ Сохранены значения полей для пользователя ${userId}`);
             return true;
         } catch (error) {
             console.error('Ошибка сохранения полей:', error);
@@ -158,7 +160,63 @@ class FieldsManager {
             missingFields: missingFields
         };
     }
+
+    // Очистить все значения поля у конкретного пользователя
+    async clearFieldValue(userId, fieldId) {
+        try {
+            const userDoc = await window.db.collection('users').doc(userId).get();
+            if (userDoc.exists) {
+                const currentData = userDoc.data();
+                const customFields = currentData.customFields || {};
+                if (customFields[fieldId] !== undefined) {
+                    const updatedCustomFields = { ...customFields };
+                    delete updatedCustomFields[fieldId];
+                    await window.db.collection('users').doc(userId).update({
+                        customFields: updatedCustomFields
+                    });
+                    console.log(`✅ Очищено значение поля ${fieldId} у пользователя ${userId}`);
+                }
+            }
+            return true;
+        } catch (error) {
+            console.error('Ошибка очистки значения поля:', error);
+            throw error;
+        }
+    }
+
+    // Получить статистику по полям
+    async getFieldsStats() {
+        try {
+            const fields = await this.getAllFields();
+            const studentsSnapshot = await window.db.collection('users')
+                .where('role', '==', 'student')
+                .get();
+            
+            const stats = {};
+            for (const field of fields) {
+                let filledCount = 0;
+                studentsSnapshot.forEach(doc => {
+                    const userData = doc.data();
+                    if (userData.customFields && userData.customFields[field.id] && userData.customFields[field.id].trim() !== '') {
+                        filledCount++;
+                    }
+                });
+                stats[field.id] = {
+                    label: field.label,
+                    total: studentsSnapshot.size,
+                    filled: filledCount,
+                    percentage: studentsSnapshot.size > 0 ? Math.round((filledCount / studentsSnapshot.size) * 100) : 0
+                };
+            }
+            return stats;
+        } catch (error) {
+            console.error('Ошибка получения статистики полей:', error);
+            return {};
+        }
+    }
 }
 
 // Создаем глобальный экземпляр
 window.fieldsManager = new FieldsManager();
+
+console.log('✅ fields-manager.js загружен');
