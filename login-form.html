@@ -1,0 +1,35 @@
+<div class="container">
+    <div class="header">
+        <h1>Институт ДПО</h1>
+        <p>Система дистанционного обучения</p>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="window.switchTab('login')">Вход</button>
+        <button class="tab" onclick="window.switchTab('register')">Регистрация</button>
+    </div>
+
+    <div class="form-container">
+        <div id="loginForm" class="form active">
+            <div id="loginSuccess" class="success-message"></div>
+            <div id="loginInfo" class="info-message"></div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="example@mail.ru">
+                <div id="loginEmailError" class="error-message"></div>
+            </div>
+            <div class="form-group">
+                <label>Пароль</label>
+                <div class="password-wrapper">
+                    <input type="password" id="loginPassword" placeholder="Введите пароль">
+                </div>
+                <div id="loginPasswordError" class="error-message"></div>
+            </div>
+            <div class="forgot-password">
+                <a onclick="window.showResetPasswordModal()">Забыли пароль?</a>
+            </div>
+            <button id="loginBtn" onclick="window.login()">Войти</button>
+        </div>
+    </div>
+</div>
