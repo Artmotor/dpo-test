@@ -2,8 +2,10 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Институт ДПО - Вход в систему</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
     <style>
         * {
             margin: 0;
@@ -11,9 +13,30 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #2c5f2d;
+            --primary-dark: #1e3a1f;
+            --primary-light: #4a7c4b;
+            --secondary: #ffc107;
+            --secondary-dark: #e0a800;
+            --accent: #97233f;
+            --gray-light: #f5f5f5;
+            --gray: #ddd;
+            --dark: #333;
+            --white: #fff;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ff9800;
+            --info: #17a2b8;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-hover: 0 10px 20px rgba(0,0,0,0.15);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -22,74 +45,130 @@
         }
 
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-hover);
             overflow: hidden;
             width: 100%;
             max-width: 500px;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            padding: 40px 30px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: "🎓";
+            position: absolute;
+            font-size: 120px;
+            opacity: 0.1;
+            right: -20px;
+            top: -30px;
+            transform: rotate(15deg);
+        }
+
+        .logo-icon {
+            font-size: 64px;
+            margin-bottom: 10px;
+            background: var(--secondary);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: var(--shadow);
         }
 
         .header h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
         }
 
         .header p {
             opacity: 0.9;
             font-size: 14px;
+            font-weight: 400;
         }
 
         .tabs {
             display: flex;
-            border-bottom: 2px solid #f0f0f0;
+            border-bottom: 2px solid var(--gray-light);
+            background: var(--white);
         }
 
         .tab {
             flex: 1;
-            padding: 15px;
+            padding: 16px;
             text-align: center;
             cursor: pointer;
-            background: #f8f9fa;
+            background: var(--white);
             border: none;
             font-size: 16px;
-            transition: all 0.3s;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: var(--dark);
+            font-family: inherit;
+        }
+
+        .tab:hover {
+            background: var(--gray-light);
         }
 
         .tab.active {
-            background: white;
-            color: #667eea;
-            border-bottom: 2px solid #667eea;
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+            background: var(--white);
         }
 
         .form-container {
-            padding: 30px;
+            padding: 35px 30px;
         }
 
         .form {
             display: none;
+            animation: fadeIn 0.3s ease;
         }
 
         .form.active {
             display: block;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
 
         label {
             display: block;
             margin-bottom: 8px;
-            color: #333;
+            color: var(--dark);
             font-weight: 500;
+            font-size: 14px;
         }
 
         .password-wrapper {
@@ -98,12 +177,34 @@
 
         .password-wrapper input {
             width: 100%;
-            padding: 12px;
-            padding-right: 40px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
+            padding: 13px 45px 13px 15px;
+            border: 2px solid var(--gray);
+            border-radius: var(--radius-sm);
             font-size: 14px;
-            transition: border-color 0.3s;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .password-wrapper input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 13px 15px;
+            border: 2px solid var(--gray);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
         }
 
         .toggle-password {
@@ -114,82 +215,87 @@
             cursor: pointer;
             background: none;
             border: none;
-            color: #667eea;
-            font-size: 14px;
+            font-size: 18px;
+            padding: 0;
+            width: auto;
+            color: #999;
+            transition: color 0.3s;
         }
 
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
+        .toggle-password:hover {
+            color: var(--primary);
         }
 
         button {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius-sm);
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
+            font-family: inherit;
         }
 
         button:hover {
             transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         .forgot-password {
             text-align: right;
-            margin-top: 10px;
+            margin-top: 8px;
         }
 
         .forgot-password a {
-            color: #667eea;
+            color: var(--primary);
             text-decoration: none;
-            font-size: 12px;
+            font-size: 13px;
             cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .forgot-password a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
         }
 
         .error-message {
-            color: #e74c3c;
+            color: var(--danger);
             font-size: 12px;
-            margin-top: 5px;
+            margin-top: 6px;
             display: none;
         }
 
         .success-message, .info-message {
-            padding: 10px;
-            border-radius: 8px;
+            padding: 12px 15px;
+            border-radius: var(--radius-sm);
             margin-bottom: 20px;
             display: none;
-            animation: fadeIn 0.5s;
+            animation: fadeIn 0.3s;
+            font-size: 14px;
         }
 
         .success-message {
             background: #d4edda;
             color: #155724;
+            border-left: 4px solid var(--success);
         }
 
         .info-message {
             background: #d1ecf1;
             color: #0c5460;
+            border-left: 4px solid var(--info);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        /* Модальное окно */
         .modal {
             display: none;
             position: fixed;
@@ -199,51 +305,144 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(3px);
+            animation: fadeIn 0.3s;
         }
 
         .modal-content {
-            background-color: white;
+            background-color: var(--white);
             margin: 15% auto;
             padding: 0;
-            border-radius: 10px;
+            border-radius: var(--radius);
             width: 90%;
             max-width: 400px;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .modal-header {
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 10px 10px 0 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            border-radius: var(--radius) var(--radius) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .close {
+            color: var(--white);
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: var(--secondary);
         }
 
         .modal-body {
-            padding: 20px;
+            padding: 25px;
         }
 
         .modal-footer {
             padding: 20px;
             text-align: right;
-            border-top: 1px solid #eee;
-        }
-
-        .close {
-            color: white;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
+            border-top: 1px solid var(--gray);
+            display: flex;
+            gap: 10px;
         }
 
         .btn-secondary {
             background: #6c757d;
-            margin-right: 10px;
+            width: auto;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-primary-modal {
+            background: var(--primary);
+            width: auto;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 22px;
+            }
+            
+            .logo-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 48px;
+            }
+            
+            .form-container {
+                padding: 25px 20px;
+            }
+            
+            .tab {
+                padding: 12px;
+                font-size: 14px;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+            }
+            
+            .modal-footer button {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-group input,
+            .form-group select {
+                padding: 11px 12px;
+            }
+            
+            button {
+                padding: 12px;
+                font-size: 15px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
+            <div class="logo-icon">🎓</div>
             <h1>Институт ДПО</h1>
             <p>Система дистанционного обучения</p>
         </div>
@@ -259,14 +458,14 @@
                 <div id="loginSuccess" class="success-message"></div>
                 <div id="loginInfo" class="info-message"></div>
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="loginEmail" placeholder="example@mail.ru">
+                    <label>Электронная почта</label>
+                    <input type="email" id="loginEmail" placeholder="example@mail.ru" autocomplete="email">
                     <div id="loginEmailError" class="error-message"></div>
                 </div>
                 <div class="form-group">
                     <label>Пароль</label>
                     <div class="password-wrapper">
-                        <input type="password" id="loginPassword" placeholder="Введите пароль">
+                        <input type="password" id="loginPassword" placeholder="Введите пароль" autocomplete="current-password">
                         <button type="button" class="toggle-password" onclick="togglePassword('loginPassword')">👁️</button>
                     </div>
                     <div id="loginPasswordError" class="error-message"></div>
@@ -274,25 +473,25 @@
                 <div class="forgot-password">
                     <a onclick="showResetPasswordModal()">Забыли пароль?</a>
                 </div>
-                <button onclick="login()">Войти</button>
+                <button onclick="login()">Войти в систему</button>
             </div>
 
             <!-- Форма регистрации -->
             <div id="registerForm" class="form">
                 <div id="registerSuccess" class="success-message"></div>
                 <div class="form-group">
-                    <label>ФИО</label>
-                    <input type="text" id="regFullName">
+                    <label>ФИО *</label>
+                    <input type="text" id="regFullName" placeholder="Иванов Иван Иванович">
                     <div id="regFullNameError" class="error-message"></div>
                 </div>
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="regEmail">
+                    <label>Email *</label>
+                    <input type="email" id="regEmail" placeholder="example@mail.ru">
                     <div id="regEmailError" class="error-message"></div>
                 </div>
                 <div class="form-group">
                     <label>Телефон</label>
-                    <input type="tel" id="regPhone">
+                    <input type="tel" id="regPhone" placeholder="+7 (XXX) XXX-XX-XX">
                     <div id="regPhoneError" class="error-message"></div>
                 </div>
                 <div class="form-group">
@@ -306,17 +505,17 @@
                     <div id="regEducationError" class="error-message"></div>
                 </div>
                 <div class="form-group">
-                    <label>Пароль</label>
+                    <label>Пароль *</label>
                     <div class="password-wrapper">
-                        <input type="password" id="regPassword">
+                        <input type="password" id="regPassword" placeholder="Не менее 6 символов">
                         <button type="button" class="toggle-password" onclick="togglePassword('regPassword')">👁️</button>
                     </div>
                     <div id="regPasswordError" class="error-message"></div>
                 </div>
                 <div class="form-group">
-                    <label>Подтверждение пароля</label>
+                    <label>Подтверждение пароля *</label>
                     <div class="password-wrapper">
-                        <input type="password" id="regConfirmPassword">
+                        <input type="password" id="regConfirmPassword" placeholder="Повторите пароль">
                         <button type="button" class="toggle-password" onclick="togglePassword('regConfirmPassword')">👁️</button>
                     </div>
                     <div id="regConfirmError" class="error-message"></div>
@@ -330,20 +529,21 @@
     <div id="resetModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="close" onclick="closeResetModal()">&times;</span>
                 <h3>Сброс пароля</h3>
+                <span class="close" onclick="closeResetModal()">&times;</span>
             </div>
             <div class="modal-body">
                 <div id="resetMessage" class="success-message"></div>
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" id="resetEmail">
+                    <input type="email" id="resetEmail" placeholder="example@mail.ru">
                     <div id="resetEmailError" class="error-message"></div>
                 </div>
+                <p style="font-size: 12px; color: #666; margin-top: 10px;">На указанный email будет отправлена ссылка для восстановления пароля</p>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeResetModal()">Отмена</button>
-                <button onclick="resetPassword()">Отправить</button>
+                <button class="btn-primary-modal" onclick="resetPassword()">Отправить</button>
             </div>
         </div>
     </div>
@@ -352,11 +552,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="firebase-config.js"></script>
-    <script src="common.js"></script>
     
     <script>
-        let currentUser = null;
-
+        // Переключение между вкладками
         function switchTab(tab) {
             const loginForm = document.getElementById('loginForm');
             const registerForm = document.getElementById('registerForm');
@@ -375,6 +573,35 @@
             }
         }
 
+        // Переключение видимости пароля
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+            }
+        }
+
+        // Показ сообщений
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.textContent = message;
+                el.style.display = 'block';
+                setTimeout(() => { el.style.display = 'none'; }, 5000);
+            }
+        }
+
+        function showSuccess(elementId, message) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.textContent = message;
+                el.style.display = 'block';
+                setTimeout(() => { el.style.display = 'none'; }, 5000);
+            }
+        }
+
+        // Функция регистрации
         async function register() {
             const fullName = document.getElementById('regFullName').value.trim();
             const email = document.getElementById('regEmail').value.trim();
@@ -383,37 +610,45 @@
             const password = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('regConfirmPassword').value;
             
-            if (!fullName || !email || !phone || !education || !password) {
-                alert('Заполните все поля');
+            // Валидация
+            if (!fullName || !email || !password) {
+                showError('regFullNameError', 'Заполните все обязательные поля');
                 return;
             }
             
             if (password !== confirmPassword) {
-                alert('Пароли не совпадают');
+                showError('regConfirmError', 'Пароли не совпадают');
                 return;
             }
             
             if (password.length < 6) {
-                alert('Пароль должен быть не менее 6 символов');
+                showError('regPasswordError', 'Пароль должен быть не менее 6 символов');
+                return;
+            }
+            
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError('regEmailError', 'Введите корректный email');
                 return;
             }
             
             try {
+                // Создаем пользователя в Auth
                 const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
                 
+                // Отправляем письмо для подтверждения email
                 await user.sendEmailVerification();
                 
                 // Сохраняем пользователя с ролью "student"
                 await window.db.collection('users').doc(user.uid).set({
                     fullName: fullName,
                     email: email,
-                    phone: phone,
-                    education: education,
+                    phone: phone || '',
+                    education: education || '',
                     role: 'student',
                     emailVerified: false,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    // Дополнительные поля для слушателя
                     actualAddress: '',
                     registrationAddress: '',
                     passportNumber: '',
@@ -422,22 +657,44 @@
                     snils: ''
                 });
                 
+                // Выходим из системы
                 await window.auth.signOut();
-                alert('Регистрация успешна! Подтвердите email и войдите в систему.');
-                switchTab('login');
-                document.getElementById('loginEmail').value = email;
+                
+                showSuccess('registerSuccess', '✅ Регистрация успешна! Подтвердите email и войдите в систему.');
+                
+                // Очищаем форму
+                document.getElementById('regFullName').value = '';
+                document.getElementById('regEmail').value = '';
+                document.getElementById('regPhone').value = '';
+                document.getElementById('regEducation').value = '';
+                document.getElementById('regPassword').value = '';
+                document.getElementById('regConfirmPassword').value = '';
+                
+                // Переключаемся на форму входа
+                setTimeout(() => {
+                    switchTab('login');
+                    document.getElementById('loginEmail').value = email;
+                }, 2000);
                 
             } catch (error) {
-                alert('Ошибка: ' + error.message);
+                console.error('Ошибка регистрации:', error);
+                let errorMsg = error.message;
+                if (errorMsg.includes('email-already-in-use')) {
+                    errorMsg = 'Пользователь с таким email уже существует';
+                } else if (errorMsg.includes('weak-password')) {
+                    errorMsg = 'Пароль слишком слабый';
+                }
+                showError('regEmailError', errorMsg);
             }
         }
 
+        // Функция входа
         async function login() {
             const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
             
             if (!email || !password) {
-                alert('Введите email и пароль');
+                showError('loginEmailError', 'Введите email и пароль');
                 return;
             }
             
@@ -445,30 +702,56 @@
                 const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
                 const user = userCredential.user;
                 
+                // Проверяем подтверждение email
                 if (!user.emailVerified) {
                     await window.auth.signOut();
-                    alert('Подтвердите email перед входом');
+                    showError('loginEmailError', 'Подтвердите email перед входом. Проверьте почту');
                     return;
                 }
                 
+                // Получаем данные пользователя
                 const userDoc = await window.db.collection('users').doc(user.uid).get();
                 const userData = userDoc.data();
                 
-                if (userData.role === 'student') {
-                    window.location.href = 'student-cabinet.html';
+                if (!userData) {
+                    await window.auth.signOut();
+                    showError('loginEmailError', 'Ошибка: данные пользователя не найдены');
+                    return;
+                }
+                
+                // Обновляем время последнего входа
+                await window.db.collection('users').doc(user.uid).update({
+                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Перенаправление по роли
+                if (userData.role === 'admin') {
+                    window.location.href = 'admin-cabinet.html';
                 } else if (userData.role === 'metodist') {
                     window.location.href = 'metodist-cabinet.html';
+                } else if (userData.role === 'student') {
+                    window.location.href = 'student-cabinet.html';
                 } else {
-                    alert('Неизвестная роль пользователя');
+                    await window.auth.signOut();
+                    showError('loginEmailError', 'Неизвестная роль пользователя');
                 }
                 
             } catch (error) {
-                alert('Ошибка входа: ' + error.message);
+                console.error('Ошибка входа:', error);
+                let errorMsg = error.message;
+                if (errorMsg.includes('user-not-found') || errorMsg.includes('wrong-password')) {
+                    errorMsg = 'Неверный email или пароль';
+                } else if (errorMsg.includes('too-many-requests')) {
+                    errorMsg = 'Слишком много попыток. Попробуйте позже';
+                }
+                showError('loginEmailError', errorMsg);
             }
         }
 
+        // Модальное окно сброса пароля
         function showResetPasswordModal() {
             document.getElementById('resetModal').style.display = 'block';
+            document.getElementById('resetEmail').value = '';
         }
 
         function closeResetModal() {
@@ -478,25 +761,101 @@
         async function resetPassword() {
             const email = document.getElementById('resetEmail').value.trim();
             if (!email) {
-                alert('Введите email');
+                showError('resetEmailError', 'Введите email');
+                return;
+            }
+            
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError('resetEmailError', 'Введите корректный email');
                 return;
             }
             
             try {
                 await window.auth.sendPasswordResetEmail(email);
-                alert('Ссылка для сброса пароля отправлена на email');
-                closeResetModal();
+                showSuccess('resetMessage', '✅ Ссылка для сброса пароля отправлена на email');
+                setTimeout(() => {
+                    closeResetModal();
+                }, 2000);
             } catch (error) {
-                alert('Ошибка: ' + error.message);
+                console.error('Ошибка сброса:', error);
+                let errorMsg = error.message;
+                if (errorMsg.includes('user-not-found')) {
+                    errorMsg = 'Пользователь с таким email не найден';
+                }
+                showError('resetEmailError', errorMsg);
             }
         }
 
+        // Закрытие модального окна при клике вне его
         window.onclick = function(event) {
             const modal = document.getElementById('resetModal');
             if (event.target === modal) {
                 closeResetModal();
             }
         }
+
+        // Функция для создания первого администратора (вызвать через консоль)
+        window.createFirstAdmin = async function() {
+            const adminEmail = "admin@vgau.edu37.ru";
+            const adminPassword = "Admin123456";
+            const adminFullName = "Главный администратор";
+            
+            try {
+                // Проверяем, существует ли уже администратор
+                const existingQuery = await window.db.collection('users').where('role', '==', 'admin').get();
+                if (!existingQuery.empty) {
+                    console.log("Администратор уже существует!");
+                    alert("Администратор уже создан в системе");
+                    return;
+                }
+                
+                const userCredential = await window.auth.createUserWithEmailAndPassword(adminEmail, adminPassword);
+                const user = userCredential.user;
+                await user.sendEmailVerification();
+                await window.db.collection('users').doc(user.uid).set({
+                    fullName: adminFullName,
+                    email: adminEmail,
+                    phone: "",
+                    role: 'admin',
+                    emailVerified: false,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                await window.auth.signOut();
+                console.log("✅ Администратор создан!");
+                console.log("📧 Email:", adminEmail);
+                console.log("🔑 Пароль:", adminPassword);
+                console.log("⚠️ Не забудьте подтвердить email перед входом!");
+                alert("Администратор создан!\n\nEmail: " + adminEmail + "\nПароль: " + adminPassword + "\n\nПодтвердите email перед входом");
+            } catch(e) {
+                console.error("Ошибка создания администратора:", e);
+                alert("Ошибка: " + e.message);
+            }
+        };
+        
+        console.log("%c🎓 Институт ДПО - Система готова к работе", "color: #2c5f2d; font-size: 16px; font-weight: bold;");
+        console.log("%cДля создания первого администратора выполните в консоли: window.createFirstAdmin()", "color: #ffc107; font-size: 12px;");
+        
+        // Автоматическая проверка, не залогинен ли уже пользователь
+        window.auth.onAuthStateChanged(async (user) => {
+            if (user && user.emailVerified) {
+                try {
+                    const userDoc = await window.db.collection('users').doc(user.uid).get();
+                    const userData = userDoc.data();
+                    if (userData) {
+                        if (userData.role === 'admin') {
+                            window.location.href = 'admin-cabinet.html';
+                        } else if (userData.role === 'metodist') {
+                            window.location.href = 'metodist-cabinet.html';
+                        } else if (userData.role === 'student') {
+                            window.location.href = 'student-cabinet.html';
+                        }
+                    }
+                } catch(e) {
+                    console.error('Ошибка проверки роли:', e);
+                }
+            }
+        });
     </script>
 </body>
 </html>
