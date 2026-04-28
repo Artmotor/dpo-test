@@ -16,17 +16,30 @@ if (typeof firebase !== 'undefined') {
         console.log('Firebase инициализирован');
     }
     
+    // Сервисы
     window.auth = firebase.auth();
     window.db = firebase.firestore();
-    window.storage = firebase.storage();
     
-    // Настройки Firestore
-    window.db.settings({ merge: true });
+    // Storage - проверяем, загружен ли SDK
+    if (typeof firebase.storage === 'function') {
+        window.storage = firebase.storage();
+        console.log('Firebase Storage инициализирован');
+    } else {
+        console.warn('Firebase Storage SDK не загружен. Убедитесь, что подключен firebase-storage.js');
+        window.storage = null;
+    }
     
-    // Добавляем глобальные переменные для ролей
-    window.ROLES = {
-        ADMIN: 'admin',
-        METODIST: 'metodist',
-        STUDENT: 'student'
-    };
+    // Настройка Firestore
+    try {
+        window.db.settings({
+            merge: true
+        });
+        console.log('Firestore settings применены');
+    } catch (e) {
+        console.log('Firestore settings не требуются');
+    }
+    
+    console.log('Firebase готов к работе');
+} else {
+    console.error('Firebase SDK не загружен!');
 }
