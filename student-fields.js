@@ -4,7 +4,15 @@ let customFieldsData = [];
 let customFieldsValues = {};
 let isLoading = false;
 
-// Загрузка пользовательских полей (всегда свежие данные)
+// Принудительная перезагрузка полей (очищаем кэш)
+async function forceReloadFields() {
+    console.log('🔄 Принудительная перезагрузка полей...');
+    customFieldsData = [];
+    customFieldsValues = {};
+    await loadCustomFields();
+}
+
+// Загрузка пользовательских полей (всегда свежие данные из Firestore)
 async function loadCustomFields() {
     if (isLoading) return;
     
@@ -16,13 +24,21 @@ async function loadCustomFields() {
         }
         
         isLoading = true;
-        console.log('🔄 Загрузка дополнительных полей...');
+        console.log('🔄 Загрузка дополнительных полей из Firestore...');
         
-        // Принудительно получаем свежие данные из Firestore
-        customFieldsData = await window.fieldsManager.getActiveFields();
+        // ОЧЕНЬ ВАЖНО: Получаем свежие данные напрямую из Firestore, минуя кэш
+        // Используем метод getAllFields() который делает прямой запрос
+        const allFields = await window.fieldsManager.getAllFields();
+        
+        // Фильтруем только активные поля
+        customFieldsData = allFields.filter(field => field.isActive !== false);
+        
+        // Получаем сохраненные значения пользователя
         customFieldsValues = await window.fieldsManager.getFieldValues(userId);
         
         console.log(`📋 Загружено полей: ${customFieldsData.length}`);
+        console.log('Активные поля:', customFieldsData.map(f => ({ id: f.id, label: f.label, isActive: f.isActive })));
+        console.log('Значения пользователя:', customFieldsValues);
         
         displayCustomFields();
         
@@ -49,11 +65,17 @@ function displayCustomFields() {
     const container = document.getElementById('customFieldsContainer');
     if (!container) return;
     
-    // Фильтруем только активные поля
+    // Показываем только активные поля
     const activeFields = customFieldsData.filter(f => f.isActive !== false);
     
     if (activeFields.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">📭 Нет дополнительных полей для заполнения</div>';
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: #999;">
+                <div style="font-size: 48px; margin-bottom: 10px;">📭</div>
+                <p>Нет дополнительных полей для заполнения</p>
+            </div>
+        `;
+        hideMissingFieldsWarning();
         return;
     }
     
@@ -146,7 +168,7 @@ function renderFieldInput(field, value) {
     }
 }
 
-// Сохранение полей (ИСПРАВЛЕНАЯ ВЕРСИЯ)
+// Сохранение полей
 async function saveCustomFields() {
     const userId = window.auth.currentUser?.uid;
     if (!userId) return;
@@ -174,19 +196,12 @@ async function saveCustomFields() {
     }
     
     try {
-        // ВАЖНО: Не используем serverTimestamp в обычных полях
-        // Просто сохраняем значения
         await window.fieldsManager.saveFieldValues(userId, values);
-        
-        // Обновляем локальный кэш значений
         customFieldsValues = { ...customFieldsValues, ...values };
         
         showMessage('✅ Данные успешно сохранены!', 'success');
-        
-        // Обновляем отображение
         displayCustomFields();
         
-        // Проверяем обязательные поля
         const check = await window.fieldsManager.checkRequiredFields(userId);
         if (!check.allFilled) {
             showMissingFieldsWarning(check.missingFields);
@@ -215,8 +230,6 @@ function showMessage(message, type) {
         setTimeout(() => {
             el.style.display = 'none';
         }, 3000);
-    } else {
-        alert(message);
     }
 }
 
@@ -252,11 +265,26 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-// Обновление при переключении вкладки
+// Обновление при переключении вкладки (полная перезагрузка)
 function refreshCustomFields() {
-    console.log('🔄 Обновление дополнительных полей...');
+    console.log('🔄 Обновление дополнительных полей по запросу...');
+    // Очищаем кэш и загружаем заново
+    customFieldsData = [];
+    customFieldsValues = [];
     loadCustomFields();
 }
+
+// Слушаем событие возврата на страницу (активация вкладки браузера)
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        // Проверяем, открыта ли вкладка с дополнительными полями
+        const activeTab = document.querySelector('.tab-content.active');
+        if (activeTab && activeTab.id === 'additionalFieldsTab') {
+            console.log('🔄 Возврат на страницу, обновляем поля...');
+            refreshCustomFields();
+        }
+    }
+});
 
 // Инициализация
 if (document.getElementById('customFieldsContainer')) {
