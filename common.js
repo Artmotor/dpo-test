@@ -29,7 +29,7 @@ function showSuccess(message, elementId = 'successMessage') {
         successElement.style.display = 'block';
         setTimeout(() => {
             successElement.style.display = 'none';
-        }, 5000);
+        }, 3000);
     }
 }
 
@@ -57,6 +57,17 @@ function formatDateTime(timestamp) {
     if (!timestamp) return 'Не указано';
     const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     return date.toLocaleString('ru-RU');
+}
+
+// Экранирование HTML
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 // Выход из системы
