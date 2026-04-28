@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Институт ДПО - Вход в систему</title>
     <style>
         * {
@@ -106,6 +106,11 @@
             transition: border-color 0.3s;
         }
 
+        .password-wrapper input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
         .toggle-password {
             position: absolute;
             right: 12px;
@@ -114,8 +119,8 @@
             cursor: pointer;
             background: none;
             border: none;
-            color: #667eea;
             font-size: 18px;
+            padding: 0;
         }
 
         input, select {
@@ -124,7 +129,6 @@
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 14px;
-            transition: border-color 0.3s;
         }
 
         input:focus, select:focus {
@@ -141,11 +145,17 @@
             border-radius: 8px;
             font-size: 16px;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s, opacity 0.2s;
         }
 
         button:hover {
             transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .forgot-password {
@@ -171,66 +181,89 @@
             display: none;
         }
 
-        .success-message, .info-message {
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-            animation: fadeIn 0.5s;
-        }
-
         .success-message {
             background: #d4edda;
             color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
         }
 
         .info-message {
             background: #d1ecf1;
             color: #0c5460;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .warning-message {
+            background: #fff3cd;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
+            z-index: 1001;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            animation: fadeIn 0.3s;
+            background: rgba(0,0,0,0.5);
         }
 
         .modal-content {
-            background-color: white;
+            background: white;
             margin: 15% auto;
             padding: 0;
             border-radius: 10px;
             width: 90%;
             max-width: 400px;
-            animation: slideDown 0.3s;
-        }
-
-        @keyframes slideDown {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
         }
 
         .modal-header {
@@ -243,10 +276,6 @@
             align-items: center;
         }
 
-        .modal-header h3 {
-            margin: 0;
-        }
-
         .modal-body {
             padding: 20px;
         }
@@ -255,6 +284,9 @@
             padding: 20px;
             text-align: right;
             border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
         }
 
         .close {
@@ -264,183 +296,245 @@
             cursor: pointer;
         }
 
-        .close:hover {
-            color: #ccc;
-        }
-
         .btn-secondary {
             background: #6c757d;
-            margin-right: 10px;
             width: auto;
             padding: 10px 20px;
         }
 
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 10px;
-            color: #667eea;
-            font-weight: bold;
-        }
-
-        @media (max-width: 768px) {
+        @media (max-width: 480px) {
             .container {
-                margin: 10px;
+                border-radius: 15px;
             }
             .form-container {
                 padding: 20px;
-            }
-            .tab {
-                padding: 10px;
-                font-size: 14px;
-            }
-            button {
-                padding: 12px;
-                font-size: 14px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📚 Институт ДПО</h1>
-            <p>Система дистанционного обучения</p>
-        </div>
-
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('login')">🔐 Вход</button>
-            <button class="tab" onclick="switchTab('register')">📝 Регистрация</button>
-        </div>
-
-        <div class="form-container">
-            <div id="loadingIndicator" class="loading">⏳ Загрузка...</div>
-            
-            <!-- Форма входа -->
-            <div id="loginForm" class="form active">
-                <div id="loginSuccess" class="success-message"></div>
-                <div id="loginInfo" class="info-message"></div>
-                
-                <div class="form-group">
-                    <label>📧 Email</label>
-                    <input type="email" id="loginEmail" placeholder="example@mail.ru">
-                    <div id="loginEmailError" class="error-message"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label>🔒 Пароль</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="loginPassword" placeholder="Введите пароль">
-                        <button type="button" class="toggle-password" onclick="togglePassword('loginPassword')">👁️</button>
-                    </div>
-                    <div id="loginPasswordError" class="error-message"></div>
-                </div>
-                
-                <div class="forgot-password">
-                    <a onclick="showResetPasswordModal()">❓ Забыли пароль?</a>
-                </div>
-                
-                <button onclick="login()">🚪 Войти</button>
-            </div>
-
-            <!-- Форма регистрации -->
-            <div id="registerForm" class="form">
-                <div id="registerSuccess" class="success-message"></div>
-                
-                <div class="form-group">
-                    <label>👤 ФИО</label>
-                    <input type="text" id="regFullName" placeholder="Иванов Иван Иванович">
-                    <div id="regFullNameError" class="error-message"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label>📧 Email</label>
-                    <input type="email" id="regEmail" placeholder="example@mail.ru">
-                    <div id="regEmailError" class="error-message"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label>📱 Телефон</label>
-                    <input type="tel" id="regPhone" placeholder="+7 (999) 123-45-67">
-                    <div id="regPhoneError" class="error-message"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label>🎓 Образование</label>
-                    <select id="regEducation">
-                        <option value="">Выберите образование</option>
-                        <option value="высшее">Высшее</option>
-                        <option value="среднее-специальное">Среднее специальное</option>
-                        <option value="среднее">Среднее</option>
-                    </select>
-                    <div id="regEducationError" class="error-message"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label>🔒 Пароль</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="regPassword" placeholder="Минимум 6 символов">
-                        <button type="button" class="toggle-password" onclick="togglePassword('regPassword')">👁️</button>
-                    </div>
-                    <div id="regPasswordError" class="error-message"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label>🔒 Подтверждение пароля</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="regConfirmPassword" placeholder="Повторите пароль">
-                        <button type="button" class="toggle-password" onclick="togglePassword('regConfirmPassword')">👁️</button>
-                    </div>
-                    <div id="regConfirmError" class="error-message"></div>
-                </div>
-                
-                <button onclick="register()">✅ Зарегистрироваться</button>
-            </div>
+    <div class="container" id="app">
+        <div class="loading-spinner" style="margin: 50px auto; text-align: center;">
+            <div class="spinner"></div>
+            <p>Загрузка системы...</p>
         </div>
     </div>
 
-    <!-- Модальное окно сброса пароля -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Пожалуйста, подождите...</p>
+        </div>
+    </div>
+
     <div id="resetModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>🔄 Сброс пароля</h3>
+                <h3>Сброс пароля</h3>
                 <span class="close" onclick="closeResetModal()">&times;</span>
             </div>
             <div class="modal-body">
                 <div id="resetMessage" class="success-message"></div>
                 <div class="form-group">
-                    <label>📧 Введите ваш email</label>
+                    <label>Введите ваш email</label>
                     <input type="email" id="resetEmail" placeholder="example@mail.ru">
                     <div id="resetEmailError" class="error-message"></div>
                 </div>
-                <p style="font-size: 12px; color: #666; margin-top: 10px;">
-                    На указанный email будет отправлена ссылка для сброса пароля
-                </p>
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeResetModal()">Отмена</button>
-                <button onclick="resetPassword()">Отправить</button>
+                <button onclick="resetPassword()">Отправить ссылку</button>
             </div>
         </div>
     </div>
 
+    <!-- Подключаем Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="firebase-config.js"></script>
-    
+
     <script>
-        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+        // Конфигурация Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyC9Gp359H5gVRE6DpDUp1md9o2uu1c5A7k",
+            authDomain: "vgau-lk.firebaseapp.com",
+            projectId: "vgau-lk",
+            storageBucket: "vgau-lk.firebasestorage.app",
+            messagingSenderId: "832671757947",
+            appId: "1:832671757947:web:07a01204dffefc30b2d4de",
+            measurementId: "G-7JKFLK0SSS"
+        };
+
+        // Глобальные переменные
+        let auth = null;
+        let db = null;
+        let loginAttempts = 0;
+        let lockoutTimer = null;
         
-        function togglePassword(inputId) {
-            const input = document.getElementById(inputId);
-            if (input) {
-                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-                input.setAttribute('type', type);
+        // Функция показа загрузки
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+        
+        // Функция показа сообщений
+        function showMessage(type, message, formType = 'login') {
+            const element = document.getElementById(`${formType}${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            if (element) {
+                element.textContent = message;
+                element.style.display = 'block';
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, 5000);
             }
         }
-
-        function switchTab(tab) {
+        
+        function showError(fieldId, message) {
+            const errorElement = document.getElementById(fieldId);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        // Инициализация Firebase
+        async function initFirebase() {
+            return new Promise((resolve, reject) => {
+                try {
+                    // Проверка загрузки SDK
+                    if (typeof firebase === 'undefined') {
+                        throw new Error('Firebase SDK не загружен. Проверьте интернет-соединение.');
+                    }
+                    
+                    // Инициализация
+                    if (!firebase.apps.length) {
+                        console.log('Инициализация Firebase...');
+                        firebase.initializeApp(firebaseConfig);
+                        console.log('Firebase инициализирован');
+                    } else {
+                        console.log('Firebase уже инициализирован');
+                    }
+                    
+                    // Получение сервисов
+                    auth = firebase.auth();
+                    db = firebase.firestore();
+                    
+                    // Настройка Firestore
+                    try {
+                        db.settings({ timestampsInSnapshots: true });
+                    } catch(e) {
+                        console.log('Firestore already configured');
+                    }
+                    
+                    // Сохраняем в глобальный объект
+                    window.auth = auth;
+                    window.db = db;
+                    
+                    console.log('Firebase готов к работе');
+                    resolve();
+                    
+                } catch (error) {
+                    console.error('Ошибка инициализации Firebase:', error);
+                    reject(error);
+                }
+            });
+        }
+        
+        // Загрузка HTML формы
+        async function loadFormHTML() {
+            const container = document.getElementById('app');
+            container.innerHTML = `
+                <div class="header">
+                    <h1>📚 Институт ДПО</h1>
+                    <p>Система дистанционного обучения</p>
+                </div>
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('login')">Вход</button>
+                    <button class="tab" onclick="switchTab('register')">Регистрация</button>
+                </div>
+                <div class="form-container">
+                    <!-- Форма входа -->
+                    <div id="loginForm" class="form active">
+                        <div id="loginSuccess" class="success-message"></div>
+                        <div id="loginInfo" class="info-message"></div>
+                        <div id="loginWarning" class="warning-message"></div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="loginEmail" placeholder="example@mail.ru">
+                            <div id="loginEmailError" class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Пароль</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="loginPassword" placeholder="Введите пароль">
+                                <button type="button" class="toggle-password" onclick="togglePassword('loginPassword')">👁️</button>
+                            </div>
+                            <div id="loginPasswordError" class="error-message"></div>
+                        </div>
+                        <div class="forgot-password">
+                            <a onclick="openResetModal()">Забыли пароль?</a>
+                        </div>
+                        <button id="loginBtn" onclick="login()">Войти</button>
+                    </div>
+                    
+                    <!-- Форма регистрации -->
+                    <div id="registerForm" class="form">
+                        <div id="registerSuccess" class="success-message"></div>
+                        <div class="form-group">
+                            <label>ФИО</label>
+                            <input type="text" id="regFullName" placeholder="Иванов Иван Иванович">
+                            <div id="regFullNameError" class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="regEmail" placeholder="example@mail.ru">
+                            <div id="regEmailError" class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Телефон</label>
+                            <input type="tel" id="regPhone" placeholder="+7 (999) 123-45-67">
+                            <div id="regPhoneError" class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Образование</label>
+                            <select id="regEducation">
+                                <option value="">Выберите образование</option>
+                                <option value="высшее">Высшее</option>
+                                <option value="среднее-специальное">Среднее специальное</option>
+                                <option value="среднее">Среднее</option>
+                            </select>
+                            <div id="regEducationError" class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Пароль</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="regPassword" placeholder="Минимум 6 символов">
+                                <button type="button" class="toggle-password" onclick="togglePassword('regPassword')">👁️</button>
+                            </div>
+                            <div id="regPasswordError" class="error-message"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Подтверждение пароля</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="regConfirmPassword" placeholder="Повторите пароль">
+                                <button type="button" class="toggle-password" onclick="togglePassword('regConfirmPassword')">👁️</button>
+                            </div>
+                            <div id="regConfirmError" class="error-message"></div>
+                        </div>
+                        <button id="registerBtn" onclick="register()">Зарегистрироваться</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Переключение вкладок
+        window.switchTab = function(tab) {
             const loginForm = document.getElementById('loginForm');
             const registerForm = document.getElementById('registerForm');
             const tabs = document.querySelectorAll('.tab');
@@ -456,84 +550,169 @@
                 tabs[0].classList.remove('active');
                 tabs[1].classList.add('active');
             }
-            clearErrors();
-        }
-
-        function clearErrors() {
-            const errors = document.querySelectorAll('.error-message');
-            errors.forEach(error => error.style.display = 'none');
-        }
-
-        function showError(elementId, message) {
-            const errorElement = document.getElementById(elementId);
-            if (errorElement) {
-                errorElement.textContent = message;
-                errorElement.style.display = 'block';
-                setTimeout(() => {
-                    errorElement.style.display = 'none';
-                }, 5000);
-            }
-        }
-
-        function showSuccess(message, elementId) {
-            const successElement = document.getElementById(elementId);
-            if (successElement) {
-                successElement.textContent = message;
-                successElement.style.display = 'block';
-                setTimeout(() => {
-                    successElement.style.display = 'none';
-                }, 5000);
-            }
-        }
-
-        // ========== РЕГИСТРАЦИЯ ==========
+        };
         
-        async function register() {
+        // Показать/скрыть пароль
+        window.togglePassword = function(inputId) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+            } else {
+                input.type = 'password';
+            }
+        };
+        
+        // Функция входа
+        window.login = async function() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (!email) {
+                showError('loginEmailError', 'Введите email');
+                return;
+            }
+            
+            if (!password) {
+                showError('loginPasswordError', 'Введите пароль');
+                return;
+            }
+            
+            // Проверка на блокировку
+            if (loginAttempts >= 5) {
+                showMessage('warning', 'Слишком много неудачных попыток. Подождите 5 минут перед следующей попыткой.', 'login');
+                loginBtn.disabled = true;
+                setTimeout(() => {
+                    loginAttempts = 0;
+                    loginBtn.disabled = false;
+                }, 300000);
+                return;
+            }
+            
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Вход...';
+            
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+                
+                console.log('Вход выполнен:', user.email);
+                
+                if (!user.emailVerified) {
+                    await auth.signOut();
+                    showError('loginEmailError', 'Пожалуйста, подтвердите email. Проверьте вашу почту.');
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'Войти';
+                    return;
+                }
+                
+                // Получение данных пользователя
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                const userData = userDoc.data();
+                
+                if (!userData) {
+                    throw new Error('Данные пользователя не найдены');
+                }
+                
+                loginAttempts = 0;
+                showMessage('success', 'Вход выполнен успешно! Перенаправление...', 'login');
+                
+                setTimeout(() => {
+                    if (userData.role === 'student') {
+                        window.location.href = 'student/personal.html';
+                    } else if (userData.role === 'metodist') {
+                        window.location.href = 'metodist/dashboard.html';
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Ошибка входа:', error);
+                loginAttempts++;
+                
+                switch(error.code) {
+                    case 'auth/user-not-found':
+                        showError('loginEmailError', 'Пользователь с таким email не найден');
+                        break;
+                    case 'auth/wrong-password':
+                        showError('loginPasswordError', 'Неверный пароль');
+                        break;
+                    case 'auth/too-many-requests':
+                        showError('loginEmailError', 'Слишком много попыток. Попробуйте позже');
+                        loginBtn.disabled = true;
+                        setTimeout(() => {
+                            loginBtn.disabled = false;
+                        }, 900000);
+                        break;
+                    case 'auth/invalid-email':
+                        showError('loginEmailError', 'Неверный формат email');
+                        break;
+                    case 'auth/network-request-failed':
+                        showError('loginEmailError', 'Ошибка сети. Проверьте интернет-соединение');
+                        break;
+                    default:
+                        showError('loginEmailError', 'Ошибка: ' + error.message);
+                }
+                
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Войти';
+            }
+        };
+        
+        // Функция регистрации
+        window.register = async function() {
             const fullName = document.getElementById('regFullName').value.trim();
             const email = document.getElementById('regEmail').value.trim();
             const phone = document.getElementById('regPhone').value.trim();
             const education = document.getElementById('regEducation').value;
             const password = document.getElementById('regPassword').value;
             const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const registerBtn = document.getElementById('registerBtn');
             
             // Валидация
             if (!fullName) {
                 showError('regFullNameError', 'Введите ФИО');
                 return;
             }
-            if (!email || !email.includes('@')) {
-                showError('regEmailError', 'Введите корректный email');
+            
+            if (!email) {
+                showError('regEmailError', 'Введите email');
                 return;
             }
+            
             if (!phone) {
-                showError('regPhoneError', 'Введите номер телефона');
+                showError('regPhoneError', 'Введите телефон');
                 return;
             }
+            
             if (!education) {
                 showError('regEducationError', 'Выберите образование');
                 return;
             }
+            
             if (!password || password.length < 6) {
                 showError('regPasswordError', 'Пароль должен быть не менее 6 символов');
                 return;
             }
+            
             if (password !== confirmPassword) {
                 showError('regConfirmError', 'Пароли не совпадают');
                 return;
             }
             
-            document.getElementById('loadingIndicator').style.display = 'block';
+            registerBtn.disabled = true;
+            registerBtn.textContent = 'Регистрация...';
             
             try {
-                // Создаем пользователя в Auth
-                const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
                 
-                // Отправляем письмо для подтверждения
+                // Отправка письма для подтверждения
                 await user.sendEmailVerification();
                 
-                // Создаем документ в Firestore
-                await window.db.collection('users').doc(user.uid).set({
+                // Сохранение данных в Firestore
+                await db.collection('users').doc(user.uid).set({
                     fullName: fullName,
                     email: email,
                     phone: phone,
@@ -541,7 +720,6 @@
                     role: 'student',
                     emailVerified: false,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    lastLogin: null,
                     actualAddress: '',
                     registrationAddress: '',
                     passportNumber: '',
@@ -550,135 +728,56 @@
                     snils: ''
                 });
                 
-                // Выходим из системы
-                await window.auth.signOut();
+                await auth.signOut();
                 
-                showSuccess('✅ Регистрация успешна! На ваш email отправлено письмо для подтверждения.', 'registerSuccess');
+                showMessage('success', 'Регистрация успешна! На ваш email отправлено письмо с подтверждением.', 'register');
                 
                 setTimeout(() => {
-                    switchTab('login');
+                    window.switchTab('login');
                     document.getElementById('loginEmail').value = email;
-                    showSuccess('📧 Подтвердите email и войдите в систему', 'loginSuccess');
+                    showMessage('info', 'Подтвердите email, перейдя по ссылке в письме, затем войдите в систему.', 'login');
                 }, 2000);
                 
             } catch (error) {
                 console.error('Ошибка регистрации:', error);
-                if (error.code === 'auth/email-already-in-use') {
-                    showError('regEmailError', 'Этот email уже зарегистрирован');
-                } else {
-                    showError('regEmailError', 'Ошибка: ' + error.message);
+                
+                switch(error.code) {
+                    case 'auth/email-already-in-use':
+                        showError('regEmailError', 'Этот email уже зарегистрирован');
+                        break;
+                    case 'auth/weak-password':
+                        showError('regPasswordError', 'Пароль слишком слабый');
+                        break;
+                    case 'auth/invalid-email':
+                        showError('regEmailError', 'Неверный формат email');
+                        break;
+                    case 'auth/network-request-failed':
+                        showError('regEmailError', 'Ошибка сети. Проверьте интернет-соединение');
+                        break;
+                    default:
+                        showError('regEmailError', 'Ошибка: ' + error.message);
                 }
             } finally {
-                document.getElementById('loadingIndicator').style.display = 'none';
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'Зарегистрироваться';
             }
-        }
-
-        // ========== ВХОД С ПЕРЕНАПРАВЛЕНИЕМ ПО РОЛИ ==========
+        };
         
-        async function login() {
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            
-            if (!email || !password) {
-                showError('loginEmailError', 'Введите email и пароль');
-                return;
-            }
-            
-            document.getElementById('loadingIndicator').style.display = 'block';
-            
-            try {
-                // Вход в систему
-                const userCredential = await window.auth.signInWithEmailAndPassword(email, password);
-                const user = userCredential.user;
-                
-                console.log('Авторизован пользователь:', user.email);
-                
-                // Проверка подтверждения email
-                if (!user.emailVerified) {
-                    await window.auth.signOut();
-                    showError('loginEmailError', '⚠️ Пожалуйста, подтвердите email. Проверьте вашу почту.');
-                    return;
-                }
-                
-                // Получаем документ пользователя
-                const userDoc = await window.db.collection('users').doc(user.uid).get();
-                
-                let role = 'student';
-                
-                if (!userDoc.exists) {
-                    // Создаем документ если его нет
-                    console.log('Документ не найден, создаем...');
-                    const defaultData = {
-                        fullName: email.split('@')[0],
-                        email: email,
-                        phone: '',
-                        education: '',
-                        role: 'student',
-                        emailVerified: true,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-                        actualAddress: '',
-                        registrationAddress: '',
-                        passportNumber: '',
-                        passportIssuedBy: '',
-                        passportIssueDate: '',
-                        snils: ''
-                    };
-                    await window.db.collection('users').doc(user.uid).set(defaultData);
-                    role = 'student';
-                } else {
-                    role = userDoc.data().role || 'student';
-                }
-                
-                // Обновляем время последнего входа
-                await window.db.collection('users').doc(user.uid).update({
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                console.log('Роль пользователя:', role);
-                
-                // Показываем сообщение о перенаправлении
-                showSuccess(`🔄 Перенаправление в ${role === 'metodist' ? 'панель методиста' : 'личный кабинет слушателя'}...`, 'loginSuccess');
-                
-                // Задержка перед перенаправлением для отображения сообщения
-                setTimeout(() => {
-                    if (role === 'metodist') {
-                        console.log('Перенаправление на metodist-cabinet.html');
-                        window.location.href = 'metodist-cabinet.html';
-                    } else {
-                        console.log('Перенаправление на student-cabinet.html');
-                        window.location.href = 'student-cabinet.html';
-                    }
-                }, 1000);
-                
-            } catch (error) {
-                console.error('Ошибка входа:', error);
-                if (error.code === 'auth/user-not-found') {
-                    showError('loginEmailError', 'Пользователь не найден');
-                } else if (error.code === 'auth/wrong-password') {
-                    showError('loginPasswordError', 'Неверный пароль');
-                } else if (error.code === 'auth/too-many-requests') {
-                    showError('loginEmailError', 'Слишком много попыток. Попробуйте позже');
-                } else {
-                    showError('loginEmailError', 'Ошибка: ' + error.message);
-                }
-                document.getElementById('loadingIndicator').style.display = 'none';
-            }
-        }
-
-        // ========== СБРОС ПАРОЛЯ ==========
-        
-        function showResetPasswordModal() {
+        // Открытие модального окна сброса пароля
+        window.openResetModal = function() {
             document.getElementById('resetModal').style.display = 'block';
             document.getElementById('resetEmail').value = '';
             document.getElementById('resetMessage').style.display = 'none';
-        }
-
-        function closeResetModal() {
+            document.getElementById('resetEmailError').style.display = 'none';
+        };
+        
+        // Закрытие модального окна
+        window.closeResetModal = function() {
             document.getElementById('resetModal').style.display = 'none';
-        }
-
-        async function resetPassword() {
+        };
+        
+        // Сброс пароля
+        window.resetPassword = async function() {
             const email = document.getElementById('resetEmail').value.trim();
             
             if (!email) {
@@ -686,61 +785,88 @@
                 return;
             }
             
+            const resetBtn = event.target;
+            resetBtn.disabled = true;
+            resetBtn.textContent = 'Отправка...';
+            
             try {
-                await window.auth.sendPasswordResetEmail(email);
+                await auth.sendPasswordResetEmail(email);
                 const messageElement = document.getElementById('resetMessage');
-                messageElement.textContent = `✅ Ссылка для сброса пароля отправлена на ${email}`;
+                messageElement.textContent = `Ссылка для сброса пароля отправлена на ${email}`;
                 messageElement.style.display = 'block';
+                messageElement.style.background = '#d4edda';
+                messageElement.style.color = '#155724';
                 
                 setTimeout(() => {
-                    closeResetModal();
+                    window.closeResetModal();
                 }, 3000);
                 
             } catch (error) {
                 console.error('Ошибка сброса пароля:', error);
                 if (error.code === 'auth/user-not-found') {
                     showError('resetEmailError', 'Пользователь с таким email не найден');
+                } else if (error.code === 'auth/too-many-requests') {
+                    showError('resetEmailError', 'Слишком много запросов. Попробуйте позже');
                 } else {
                     showError('resetEmailError', 'Ошибка: ' + error.message);
                 }
+            } finally {
+                resetBtn.disabled = false;
+                resetBtn.textContent = 'Отправить ссылку';
             }
-        }
-
-        // ========== ПРОВЕРКА УЖЕ АВТОРИЗОВАННОГО ПОЛЬЗОВАТЕЛЯ ==========
+        };
         
-        window.auth.onAuthStateChanged(async (user) => {
-            console.log('Auth state changed:', user ? user.email : 'нет пользователя');
-            
-            if (user && user.emailVerified) {
-                // Если пользователь уже авторизован, перенаправляем его
-                try {
-                    const userDoc = await window.db.collection('users').doc(user.uid).get();
-                    let role = 'student';
-                    
-                    if (userDoc.exists) {
-                        role = userDoc.data().role || 'student';
-                    }
-                    
-                    console.log('Автоматическое перенаправление, роль:', role);
-                    
-                    if (role === 'metodist') {
-                        window.location.href = 'metodist-cabinet.html';
-                    } else {
-                        window.location.href = 'student-cabinet.html';
-                    }
-                } catch (error) {
-                    console.error('Ошибка при авто-перенаправлении:', error);
-                }
-            }
-        });
-
         // Закрытие модального окна при клике вне его
         window.onclick = function(event) {
             const modal = document.getElementById('resetModal');
             if (event.target === modal) {
-                closeResetModal();
+                window.closeResetModal();
+            }
+        };
+        
+        // Инициализация приложения
+        async function init() {
+            try {
+                await initFirebase();
+                await loadFormHTML();
+                
+                // Проверка уже авторизованного пользователя
+                auth.onAuthStateChanged(async (user) => {
+                    if (user && user.emailVerified) {
+                        try {
+                            const userDoc = await db.collection('users').doc(user.uid).get();
+                            const userData = userDoc.data();
+                            
+                            if (userData && userData.role === 'student') {
+                                window.location.href = 'student/personal.html';
+                            } else if (userData && userData.role === 'metodist') {
+                                window.location.href = 'metodist/dashboard.html';
+                            }
+                        } catch (error) {
+                            console.error('Ошибка проверки пользователя:', error);
+                        }
+                    }
+                });
+                
+                console.log('Приложение успешно загружено');
+                
+            } catch (error) {
+                console.error('Ошибка инициализации:', error);
+                document.getElementById('app').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <h2 style="color: #e74c3c;">Ошибка подключения</h2>
+                        <p style="margin-top: 20px; color: #666;">Не удалось подключиться к серверу. Пожалуйста, проверьте интернет-соединение и обновите страницу.</p>
+                        <p style="margin-top: 10px; font-size: 12px; color: #999;">Детали: ${error.message}</p>
+                        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Обновить страницу
+                        </button>
+                    </div>
+                `;
             }
         }
+        
+        // Запуск приложения после загрузки DOM
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
