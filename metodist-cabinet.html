@@ -774,33 +774,95 @@
             openFieldEditor(id);
         }
 
-        async function deleteField(id) {
-            const field = allFields.find(f => f.id === id);
-            if (!confirm(`Удалить поле "${field?.label}"?\n\nВсе данные слушателей для этого поля будут потеряны!`)) return;
-            
-            try {
-                await window.db.collection('custom_fields').doc(id).delete();
+       async function deleteField(id) {
+    const field = allFields.find(f => f.id === id);
+    if (!field) {
+        showToast('Поле не найдено', 'error');
+        return;
+    }
+    
+    // Подтверждение удаления
+    const confirmed = confirm(
+        `⚠️ УДАЛЕНИЕ ПОЛЯ: "${field.label}"\n\n` +
+        `Вы уверены, что хотите удалить это поле?\n\n` +
+        `❌ Поле исчезнет из списка\n` +
+        `❌ Все данные слушателей для этого поля будут удалены\n` +
+        `❌ Восстановить данные будет невозможно\n\n` +
+        `Нажмите "ОК" для подтверждения`
+    );
+    
+    if (!confirmed) return;
+    
+    // Показываем индикатор загрузки
+    const btns = document.querySelectorAll(`[onclick="deleteField('${id}')"]`);
+    btns.forEach(btn => {
+        btn.textContent = '⏳ Удаление...';
+        btn.disabled = true;
+    });
+    
+    try {
+        // 1. Сначала удаляем значения поля у всех слушателей
+        console.log('1. Удаляем значения поля у слушателей...');
+        const studentsSnapshot = await window.db.collection('users')
+            .where('role', '==', 'student')
+            .get();
+        
+        let updatedCount = 0;
+        const updatePromises = [];
+        
+        for (const doc of studentsSnapshot.docs) {
+            const userData = doc.data();
+            if (userData.customFields && userData.customFields[id] !== undefined) {
+                const updatedCustomFields = { ...userData.customFields };
+                delete updatedCustomFields[id];
                 
-                const students = await window.db.collection('users').where('role', '==', 'student').get();
-                const updates = [];
-                students.forEach(doc => {
-                    const data = doc.data();
-                    if (data.customFields && data.customFields[id]) {
-                        const newCustom = { ...data.customFields };
-                        delete newCustom[id];
-                        updates.push(window.db.collection('users').doc(doc.id).update({ customFields: newCustom }));
-                    }
-                });
-                await Promise.all(updates);
-                
-                showToast(`✅ Поле "${field?.label}" удалено`, 'success');
-                await loadFields();
-            } catch (error) {
-                console.error('Ошибка удаления:', error);
-                showToast('❌ Ошибка удаления поля', 'error');
+                updatePromises.push(
+                    window.db.collection('users').doc(doc.id).update({
+                        customFields: updatedCustomFields,
+                        lastFieldUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                    })
+                );
+                updatedCount++;
             }
         }
-
+        
+        // Ждем завершения всех обновлений
+        await Promise.all(updatePromises);
+        console.log(`✅ Удалено поле у ${updatedCount} слушателей`);
+        
+        // 2. Удаляем само поле из коллекции custom_fields
+        console.log('2. Удаляем поле из коллекции...');
+        await window.db.collection('custom_fields').doc(id).delete();
+        console.log('✅ Поле удалено из коллекции');
+        
+        // 3. Обновляем локальный массив
+        allFields = allFields.filter(f => f.id !== id);
+        
+        // 4. Обновляем отображение списка полей
+        displayFieldsList();
+        
+        // 5. Если открыта вкладка с динамическими полями у слушателя, обновляем их
+        const editModal = document.getElementById('editModal');
+        if (editModal && editModal.style.display === 'block' && currentEditStudentId) {
+            const student = allStudents.find(s => s.id === currentEditStudentId);
+            if (student) {
+                await loadDynamicFields(student.customFields || {});
+            }
+        }
+        
+        showToast(`✅ Поле "${field.label}" успешно удалено! Удалено у ${updatedCount} слушателей.`, 'success');
+        
+    } catch (error) {
+        console.error('Ошибка удаления поля:', error);
+        showToast(`❌ Ошибка удаления поля: ${error.message}`, 'error');
+    } finally {
+        // Восстанавливаем кнопки
+        btns.forEach(btn => {
+            btn.textContent = '🗑️ Удалить';
+            btn.disabled = false;
+        });
+    }
+}
         // ========== ВЫХОД ==========
         async function logout() {
             await window.auth.signOut();
