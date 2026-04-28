@@ -1,4 +1,4 @@
-// fields-manager.js - работает без индексов
+// fields-manager.js - с поддержкой radio и select
 
 class FieldsManager {
     constructor() {
@@ -8,7 +8,6 @@ class FieldsManager {
     // Получить все поля (без сортировки в запросе)
     async getAllFields() {
         try {
-            // Убираем .orderBy() - не требует индекса
             const snapshot = await window.db.collection(this.collection).get();
             
             const fields = [];
@@ -19,7 +18,6 @@ class FieldsManager {
                 });
             });
             
-            // Сортируем в JavaScript (очень быстро для небольшого количества полей)
             return fields.sort((a, b) => (a.order || 0) - (b.order || 0));
             
         } catch (error) {
