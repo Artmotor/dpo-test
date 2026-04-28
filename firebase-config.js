@@ -13,33 +13,25 @@ const firebaseConfig = {
 if (typeof firebase !== 'undefined') {
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
-        console.log('Firebase инициализирован');
+        console.log('✅ Firebase инициализирован');
     }
     
-    // Сервисы
     window.auth = firebase.auth();
     window.db = firebase.firestore();
+    window.storage = firebase.storage();
     
-    // Storage - проверяем, загружен ли SDK
-    if (typeof firebase.storage === 'function') {
-        window.storage = firebase.storage();
-        console.log('Firebase Storage инициализирован');
-    } else {
-        console.warn('Firebase Storage SDK не загружен. Убедитесь, что подключен firebase-storage.js');
-        window.storage = null;
-    }
+    // Настройки Firestore для устранения ошибок индексов
+    window.db.settings({ 
+        ignoreUndefinedProperties: true,
+        merge: true
+    });
     
-    // Настройка Firestore
-    try {
-        window.db.settings({
-            merge: true
-        });
-        console.log('Firestore settings применены');
-    } catch (e) {
-        console.log('Firestore settings не требуются');
-    }
+    // Проверка подключения к Firestore
+    window.db.collection('users').limit(1).get()
+        .then(() => console.log('✅ Firestore подключен и доступен'))
+        .catch(err => console.error('❌ Ошибка Firestore:', err.message));
     
-    console.log('Firebase готов к работе');
+    console.log('🔥 Firebase готов к работе');
 } else {
-    console.error('Firebase SDK не загружен!');
+    console.error('❌ Firebase SDK не загружен! Проверьте подключение скриптов');
 }
