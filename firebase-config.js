@@ -1,4 +1,4 @@
-// firebase-config.js - ФИНАЛЬНАЯ версия
+// firebase-config.js
 const firebaseConfig = {
     apiKey: "AIzaSyC9Gp359H5gVRE6DpDUp1md9o2uu1c5A7k",
     authDomain: "vgau-lk.firebaseapp.com",
@@ -14,26 +14,19 @@ if (typeof firebase !== 'undefined') {
     if (!firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
         console.log('Firebase инициализирован');
-    } else {
-        console.log('Firebase уже инициализирован');
     }
     
-    // Сервисы
     window.auth = firebase.auth();
     window.db = firebase.firestore();
     window.storage = firebase.storage();
     
-    // Настройка Firestore
-    try {
-        window.db.settings({
-            merge: true
-        });
-        console.log('Firestore settings применены');
-    } catch (e) {
-        console.log('Firestore settings не требуются');
-    }
+    // Настройки Firestore
+    window.db.settings({ merge: true });
     
-    console.log('Firebase готов к работе');
-} else {
-    console.error('Firebase SDK не загружен!');
+    // Добавляем глобальные переменные для ролей
+    window.ROLES = {
+        ADMIN: 'admin',
+        METODIST: 'metodist',
+        STUDENT: 'student'
+    };
 }
