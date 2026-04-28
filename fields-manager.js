@@ -1,4 +1,4 @@
-// fields-manager.js - с поддержкой radio и select
+// fields-manager.js - с улучшенной обработкой ошибок
 
 class FieldsManager {
     constructor() {
@@ -22,6 +22,10 @@ class FieldsManager {
             
         } catch (error) {
             console.error('Ошибка загрузки полей:', error);
+            if (error.code === 'permission-denied') {
+                console.warn('Нет прав доступа к коллекции custom_fields. Проверьте правила Firestore.');
+                throw new Error('Нет прав доступа. Обратитесь к администратору.');
+            }
             return [];
         }
     }
@@ -35,6 +39,10 @@ class FieldsManager {
     // Добавить поле
     async addField(fieldData) {
         try {
+            // Проверяем права перед добавлением
+            const testQuery = await window.db.collection(this.collection).limit(1).get()
+                .catch(e => { throw e; });
+            
             const fields = await this.getAllFields();
             const newOrder = fields.length;
             
@@ -50,6 +58,9 @@ class FieldsManager {
             return { id: docRef.id, ...newField };
         } catch (error) {
             console.error('Ошибка добавления поля:', error);
+            if (error.code === 'permission-denied') {
+                throw new Error('Нет прав для создания полей. Убедитесь, что вы вошли как методист или администратор.');
+            }
             throw error;
         }
     }
@@ -65,6 +76,9 @@ class FieldsManager {
             return true;
         } catch (error) {
             console.error('Ошибка обновления поля:', error);
+            if (error.code === 'permission-denied') {
+                throw new Error('Нет прав для редактирования полей');
+            }
             throw error;
         }
     }
@@ -76,6 +90,9 @@ class FieldsManager {
             return true;
         } catch (error) {
             console.error('Ошибка удаления поля:', error);
+            if (error.code === 'permission-denied') {
+                throw new Error('Нет прав для удаления полей');
+            }
             throw error;
         }
     }
