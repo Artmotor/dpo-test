@@ -1,15 +1,14 @@
-// fields-manager.js - с улучшенной обработкой ошибок
+// fields-manager.js - управление динамическими полями
 
 class FieldsManager {
     constructor() {
         this.collection = 'custom_fields';
     }
 
-    // Получить все поля (без сортировки в запросе)
+    // Получить все поля
     async getAllFields() {
         try {
             const snapshot = await window.db.collection(this.collection).get();
-            
             const fields = [];
             snapshot.forEach(doc => {
                 fields.push({
@@ -17,15 +16,9 @@ class FieldsManager {
                     ...doc.data()
                 });
             });
-            
             return fields.sort((a, b) => (a.order || 0) - (b.order || 0));
-            
         } catch (error) {
             console.error('Ошибка загрузки полей:', error);
-            if (error.code === 'permission-denied') {
-                console.warn('Нет прав доступа к коллекции custom_fields. Проверьте правила Firestore.');
-                throw new Error('Нет прав доступа. Обратитесь к администратору.');
-            }
             return [];
         }
     }
@@ -39,10 +32,6 @@ class FieldsManager {
     // Добавить поле
     async addField(fieldData) {
         try {
-            // Проверяем права перед добавлением
-            const testQuery = await window.db.collection(this.collection).limit(1).get()
-                .catch(e => { throw e; });
-            
             const fields = await this.getAllFields();
             const newOrder = fields.length;
             
@@ -54,13 +43,10 @@ class FieldsManager {
                 createdBy: window.auth.currentUser?.uid
             };
             
-            const docRef = await window.db.collection(this.collection).add(newField);
-            return { id: docRef.id, ...newField };
+            await window.db.collection(this.collection).doc(fieldData.id).set(newField);
+            return { id: fieldData.id, ...newField };
         } catch (error) {
             console.error('Ошибка добавления поля:', error);
-            if (error.code === 'permission-denied') {
-                throw new Error('Нет прав для создания полей. Убедитесь, что вы вошли как методист или администратор.');
-            }
             throw error;
         }
     }
@@ -76,23 +62,42 @@ class FieldsManager {
             return true;
         } catch (error) {
             console.error('Ошибка обновления поля:', error);
-            if (error.code === 'permission-denied') {
-                throw new Error('Нет прав для редактирования полей');
-            }
             throw error;
         }
     }
 
-    // Удалить поле
+    // Удалить поле и все его значения у слушателей
     async deleteField(fieldId) {
         try {
+            // 1. Удаляем значения поля у всех слушателей
+            const studentsSnapshot = await window.db.collection('users')
+                .where('role', '==', 'student')
+                .get();
+            
+            const updatePromises = [];
+            studentsSnapshot.forEach(doc => {
+                const userData = doc.data();
+                if (userData.customFields && userData.customFields[fieldId] !== undefined) {
+                    const updatedCustomFields = { ...userData.customFields };
+                    delete updatedCustomFields[fieldId];
+                    updatePromises.push(
+                        window.db.collection('users').doc(doc.id).update({
+                            customFields: updatedCustomFields,
+                            lastFieldUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                        })
+                    );
+                }
+            });
+            
+            await Promise.all(updatePromises);
+            
+            // 2. Удаляем само поле
             await window.db.collection(this.collection).doc(fieldId).delete();
+            
+            console.log(`✅ Поле удалено. Обновлено ${updatePromises.length} слушателей.`);
             return true;
         } catch (error) {
             console.error('Ошибка удаления поля:', error);
-            if (error.code === 'permission-denied') {
-                throw new Error('Нет прав для удаления полей');
-            }
             throw error;
         }
     }
@@ -109,7 +114,6 @@ class FieldsManager {
             
             const currentData = userDoc.data();
             const customFields = currentData.customFields || {};
-            
             const updatedFields = { ...customFields, ...values };
             
             await userRef.update({
