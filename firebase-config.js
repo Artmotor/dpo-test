@@ -18,20 +18,27 @@ if (typeof firebase !== 'undefined') {
     
     window.auth = firebase.auth();
     window.db = firebase.firestore();
-    window.storage = firebase.storage();
     
-    // Настройки Firestore для устранения ошибок индексов
-    window.db.settings({ 
-        ignoreUndefinedProperties: true,
-        merge: true
-    });
+    // Убираем storage - он не нужен и вызывает ошибку
+    // window.storage = firebase.storage();
     
-    // Проверка подключения к Firestore
+    // Настройки Firestore
+    try {
+        window.db.settings({ 
+            ignoreUndefinedProperties: true,
+            merge: true
+        });
+        console.log('✅ Firestore настроен');
+    } catch (e) {
+        console.log('⚠️ Firestore settings не требуются');
+    }
+    
+    // Проверка подключения
     window.db.collection('users').limit(1).get()
-        .then(() => console.log('✅ Firestore подключен и доступен'))
+        .then(() => console.log('✅ Firestore доступен'))
         .catch(err => console.error('❌ Ошибка Firestore:', err.message));
     
     console.log('🔥 Firebase готов к работе');
 } else {
-    console.error('❌ Firebase SDK не загружен! Проверьте подключение скриптов');
+    console.error('❌ Firebase SDK не загружен!');
 }
