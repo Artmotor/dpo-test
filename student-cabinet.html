@@ -7,12 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #2c5f2d;
             --primary-dark: #1e3a1f;
@@ -33,14 +28,12 @@
             --radius: 16px;
             --radius-sm: 10px;
         }
-
         body {
             font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             min-height: 100vh;
             color: var(--dark);
         }
-
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: var(--white);
@@ -55,68 +48,14 @@
             top: 0;
             z-index: 100;
         }
-
-        .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logo {
-            font-size: 36px;
-            background: var(--secondary);
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: var(--shadow);
-        }
-
-        .header h1 {
-            font-size: clamp(18px, 5vw, 24px);
-            font-weight: 500;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .user-name {
-            background: rgba(255,255,255,0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 14px;
-        }
-
-        .btn-logout {
-            background: var(--danger);
-            color: var(--white);
-            border: none;
-            padding: 10px 24px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .btn-logout:hover {
-            background: #c82333;
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        .logo { font-size: 36px; background: var(--secondary); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); }
+        .header h1 { font-size: clamp(18px, 5vw, 24px); font-weight: 500; }
+        .user-info { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .user-name { background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 14px; }
+        .btn-logout { background: var(--danger); color: var(--white); border: none; padding: 10px 24px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s ease; }
+        .btn-logout:hover { background: #c82333; transform: translateY(-2px); box-shadow: var(--shadow); }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         .tabs {
             display: flex;
             gap: 10px;
@@ -127,7 +66,6 @@
             box-shadow: var(--shadow);
             flex-wrap: wrap;
         }
-
         .tab-btn {
             flex: 1;
             padding: 12px 20px;
@@ -140,17 +78,8 @@
             font-weight: 500;
             color: var(--dark);
         }
-
-        .tab-btn:hover {
-            background: var(--gray);
-            transform: translateY(-2px);
-        }
-
-        .tab-btn.active {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: var(--white);
-        }
-
+        .tab-btn:hover { background: var(--gray); transform: translateY(-2px); }
+        .tab-btn.active { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: var(--white); }
         .tab-content {
             display: none;
             background: var(--white);
@@ -159,22 +88,13 @@
             box-shadow: var(--shadow);
             animation: fadeIn 0.3s ease;
         }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .info-card {
             background: var(--gray-light);
             border-radius: var(--radius);
             padding: 20px;
         }
-
         .info-card h3 {
             color: var(--primary);
             margin-bottom: 20px;
@@ -182,7 +102,6 @@
             border-bottom: 2px solid var(--gray);
             font-weight: 500;
         }
-
         .info-row {
             margin-bottom: 12px;
             padding: 10px;
@@ -193,18 +112,8 @@
             justify-content: space-between;
             align-items: center;
         }
-
-        .info-label {
-            font-weight: bold;
-            color: #555;
-            min-width: 180px;
-        }
-
-        .info-value {
-            color: var(--dark);
-            flex: 1;
-        }
-
+        .info-label { font-weight: bold; color: #555; min-width: 180px; }
+        .info-value { color: var(--dark); flex: 1; }
         .edit-btn {
             background: var(--primary);
             color: var(--white);
@@ -216,26 +125,10 @@
             transition: all 0.3s ease;
             width: auto;
         }
-
-        .edit-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #555;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
+        .edit-btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #555; }
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 10px;
             border: 2px solid var(--gray);
@@ -244,41 +137,14 @@
             transition: all 0.3s;
             font-family: inherit;
         }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
         }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .save-btn {
-            background: var(--success);
-            width: auto;
-            padding: 10px 20px;
-            color: white;
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-        }
-
-        .cancel-btn {
-            background: var(--secondary);
-            width: auto;
-            padding: 10px 20px;
-            color: var(--dark);
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-        }
-
+        .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .save-btn { background: var(--success); width: auto; padding: 10px 20px; color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; }
+        .cancel-btn { background: var(--secondary); width: auto; padding: 10px 20px; color: var(--dark); border: none; border-radius: var(--radius-sm); cursor: pointer; }
         .success-message, .error-message, .info-message {
             position: fixed;
             top: 20px;
@@ -291,27 +157,10 @@
             box-shadow: var(--shadow-hover);
             font-weight: 500;
         }
-
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        .success-message {
-            background: var(--success);
-            color: white;
-        }
-
-        .error-message {
-            background: var(--danger);
-            color: white;
-        }
-
-        .info-message {
-            background: var(--info);
-            color: white;
-        }
-
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .success-message { background: var(--success); color: white; }
+        .error-message { background: var(--danger); color: white; }
+        .info-message { background: var(--info); color: white; }
         .custom-field {
             margin-bottom: 20px;
             padding: 15px;
@@ -320,35 +169,10 @@
             background: #fafafa;
             transition: all 0.3s;
         }
-
-        .custom-field.required-missing {
-            border-left: 4px solid var(--warning);
-            background: #fff8e1;
-        }
-
-        .radio-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            padding: 10px 0;
-        }
-
-        .radio-group label {
-            display: inline-flex;
-            align-items: center;
-            cursor: pointer;
-            font-weight: normal;
-            margin-bottom: 0;
-        }
-
-        .radio-group input[type="radio"] {
-            width: 18px;
-            height: 18px;
-            margin-right: 8px;
-            cursor: pointer;
-            accent-color: var(--primary);
-        }
-
+        .custom-field.required-missing { border-left: 4px solid var(--warning); background: #fff8e1; }
+        .radio-group { display: flex; flex-wrap: wrap; gap: 20px; padding: 10px 0; }
+        .radio-group label { display: inline-flex; align-items: center; cursor: pointer; font-weight: normal; margin-bottom: 0; }
+        .radio-group input[type="radio"] { width: 18px; height: 18px; margin-right: 8px; cursor: pointer; accent-color: var(--primary); }
         .warning-banner {
             background: #fff3cd;
             border: 1px solid #ffc107;
@@ -362,7 +186,6 @@
             flex-wrap: wrap;
             gap: 10px;
         }
-
         .warning-btn {
             background: #ffc107;
             color: #856404;
@@ -372,7 +195,6 @@
             cursor: pointer;
             width: auto;
         }
-
         .save-fields-btn {
             background: var(--success);
             width: auto;
@@ -384,52 +206,19 @@
             cursor: pointer;
             font-weight: 500;
         }
-
-        .save-fields-btn:hover {
-            background: #1e7e34;
-            transform: translateY(-2px);
-        }
-
-        .save-fields-btn:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-        }
-
+        .save-fields-btn:hover { background: #1e7e34; transform: translateY(-2px); }
+        .save-fields-btn:disabled { background: #6c757d; cursor: not-allowed; transform: none; }
         @media (max-width: 768px) {
-            .header {
-                padding: 15px 20px;
-            }
-            .header h1 {
-                font-size: 18px;
-            }
-            .tabs {
-                flex-direction: column;
-            }
-            .tab-btn {
-                width: 100%;
-            }
-            .info-row {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 5px;
-            }
-            .info-label {
-                min-width: auto;
-            }
-            .form-actions {
-                flex-direction: column;
-            }
-            .form-actions button {
-                width: 100%;
-            }
-            .warning-banner {
-                flex-direction: column;
-                text-align: center;
-            }
-            .tab-content {
-                padding: 20px;
-            }
+            .header { padding: 15px 20px; }
+            .header h1 { font-size: 18px; }
+            .tabs { flex-direction: column; }
+            .tab-btn { width: 100%; }
+            .info-row { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .info-label { min-width: auto; }
+            .form-actions { flex-direction: column; }
+            .form-actions button { width: 100%; }
+            .warning-banner { flex-direction: column; text-align: center; }
+            .tab-content { padding: 20px; }
         }
     </style>
 </head>
@@ -506,8 +295,8 @@
         const CACHE_TTL = 5000;
         let fieldsCollectionListener = null;
         let userDataListener = null;
+        let lastFieldsVersion = 0;
 
-        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>]/g, function(m) {
@@ -609,7 +398,6 @@
                 displayDocumentsData();
                 displayAddressData();
                 
-                // Запускаем слушатель изменений данных пользователя в реальном времени
                 listenToUserDataChanges(user.uid);
                 
             } catch (error) {
@@ -618,33 +406,20 @@
             }
         }
 
-        // Слушатель изменений данных пользователя в реальном времени
         function listenToUserDataChanges(userId) {
-            if (userDataListener) {
-                userDataListener();
-            }
+            if (userDataListener) userDataListener();
             
             userDataListener = window.db.collection('users').doc(userId).onSnapshot((doc) => {
                 if (doc.exists) {
                     const newData = doc.data();
-                    // Проверяем, изменились ли кастомные поля
                     const oldCustomFields = JSON.stringify(currentUserData?.customFields || {});
                     const newCustomFields = JSON.stringify(newData.customFields || {});
                     
                     currentUserData = newData;
                     
-                    // Если изменились кастомные поля и вкладка полей активна - обновляем
                     if (oldCustomFields !== newCustomFields) {
-                        console.log('🔄 Обнаружены изменения в customFields, обновляем...');
-                        const activeTab = document.querySelector('.tab-content.active');
-                        if (activeTab && activeTab.id === 'additionalFieldsTab') {
-                            forceReloadFields();
-                        } else {
-                            // Очищаем кэш, чтобы при переключении загрузились свежие данные
-                            cachedFields = null;
-                            cachedValues = null;
-                            lastLoadTime = 0;
-                        }
+                        console.log('🔄 Обнаружены изменения в customFields пользователя, обновляем...');
+                        forceReloadFields();
                     }
                 }
             }, (error) => {
@@ -790,7 +565,6 @@
 
         // ========== ДОПОЛНИТЕЛЬНЫЕ ПОЛЯ ==========
         
-        // Принудительная перезагрузка полей
         function forceReloadFields() {
             console.log('🔄 Принудительная перезагрузка полей');
             cachedFields = null;
@@ -799,7 +573,6 @@
             return loadCustomFields(true);
         }
 
-        // Загрузка пользовательских полей
         async function loadCustomFields(force = false) {
             try {
                 const userId = window.auth.currentUser?.uid;
@@ -810,7 +583,6 @@
                 
                 const now = Date.now();
                 
-                // Если не форсируем и кэш свежий - используем его
                 if (!force && cachedFields && (now - lastLoadTime) < CACHE_TTL) {
                     console.log('📦 Используем кэшированные поля');
                     displayCustomFields(cachedFields, cachedValues);
@@ -819,7 +591,6 @@
                 
                 console.log('🔄 Загрузка свежих данных из Firestore...');
                 
-                // Получаем все поля из Firestore
                 const snapshot = await window.db.collection('custom_fields').get();
                 const allFields = [];
                 snapshot.forEach(doc => {
@@ -829,15 +600,12 @@
                     });
                 });
                 
-                // Фильтруем активные поля
                 const activeFields = allFields.filter(field => field.isActive !== false);
                 activeFields.sort((a, b) => (a.order || 0) - (b.order || 0));
                 
-                // Получаем значения пользователя
                 const userDoc = await window.db.collection('users').doc(userId).get();
                 const userValues = userDoc.exists ? (userDoc.data().customFields || {}) : {};
                 
-                // ОЧИЩАЕМ значения для полей, которых больше нет в activeFields
                 const cleanedValues = {};
                 const activeFieldIds = new Set(activeFields.map(f => f.id));
                 let needsUpdate = false;
@@ -846,12 +614,11 @@
                     if (activeFieldIds.has(key)) {
                         cleanedValues[key] = value;
                     } else {
-                        console.log(`🗑️ Очищаем значение удалённого поля: ${key} = "${value}"`);
+                        console.log(`🗑️ Очищаем значение удалённого поля: ${key}`);
                         needsUpdate = true;
                     }
                 }
                 
-                // Если были удалены поля, обновляем данные пользователя
                 if (needsUpdate) {
                     console.log('🔄 Обновляем customFields пользователя (удаляем несуществующие поля)');
                     await window.db.collection('users').doc(userId).update({
@@ -860,17 +627,15 @@
                     showInfo('🔄 Данные полей обновлены после изменений методиста');
                 }
                 
-                // Сохраняем в кэш
                 cachedFields = activeFields;
                 cachedValues = cleanedValues;
                 lastLoadTime = now;
                 
                 console.log(`📋 Загружено полей: ${activeFields.length}`);
-                console.log('📋 Список полей:', activeFields.map(f => f.id).join(', '));
+                console.log('📋 ID полей:', activeFields.map(f => f.id).join(', '));
                 
                 displayCustomFields(activeFields, cleanedValues);
                 
-                // Проверяем обязательные поля
                 const missingFields = activeFields.filter(f => f.isRequired && (!cleanedValues[f.id] || cleanedValues[f.id].trim() === ''));
                 if (missingFields.length > 0) {
                     showMissingFieldsWarning(missingFields);
@@ -1013,39 +778,53 @@
             if (container) container.style.display = 'none';
         }
 
-        // ========== СЛУШАТЕЛЬ ИЗМЕНЕНИЙ КОЛЛЕКЦИИ custom_fields ==========
+        // ========== КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: СЛУШАТЕЛЬ УДАЛЕНИЯ ПОЛЕЙ ==========
         function listenToCustomFieldsChanges() {
             // Подписываемся на изменения в коллекции custom_fields
             fieldsCollectionListener = window.db.collection('custom_fields').onSnapshot((snapshot) => {
                 console.log('📢 Обнаружены изменения в коллекции custom_fields!');
                 
-                // Проверяем, какие поля были удалены
-                const currentFieldIds = new Set(cachedFields?.map(f => f.id) || []);
-                const newFieldIds = new Set();
-                
-                snapshot.docChanges().forEach(change => {
-                    if (change.type === 'removed') {
-                        console.log(`🗑️ Поле удалено: ${change.doc.id}`);
-                    } else if (change.type === 'added') {
-                        console.log(`➕ Поле добавлено: ${change.doc.id}`);
-                    } else if (change.type === 'modified') {
-                        console.log(`✏️ Поле изменено: ${change.doc.id}`);
-                    }
-                    newFieldIds.add(change.doc.id);
+                // Получаем текущие ID полей из Firestore
+                const currentFieldIds = new Set();
+                snapshot.forEach(doc => {
+                    currentFieldIds.add(doc.id);
                 });
                 
-                // Очищаем кэш и перезагружаем поля
-                console.log('🔄 Очищаем кэш и перезагружаем поля...');
-                cachedFields = null;
-                cachedValues = null;
-                lastLoadTime = 0;
+                // Получаем ID полей из кэша (если есть)
+                const cachedFieldIds = new Set(cachedFields?.map(f => f.id) || []);
                 
-                const activeTab = document.querySelector('.tab-content.active');
-                if (activeTab && activeTab.id === 'additionalFieldsTab') {
+                // Проверяем, какие поля были удалены
+                const deletedFields = [];
+                for (const fieldId of cachedFieldIds) {
+                    if (!currentFieldIds.has(fieldId)) {
+                        deletedFields.push(fieldId);
+                        console.log(`🗑️ ОБНАРУЖЕНО УДАЛЕНИЕ ПОЛЯ: ${fieldId}`);
+                    }
+                }
+                
+                if (deletedFields.length > 0) {
+                    console.log(`⚠️ Удалено полей: ${deletedFields.length}. Принудительная перезагрузка...`);
+                    // Очищаем кэш и перезагружаем
+                    cachedFields = null;
+                    cachedValues = null;
+                    lastLoadTime = 0;
+                    
+                    // Показываем уведомление пользователю
+                    showInfo(`📋 Дополнительные поля были обновлены методистом (удалено ${deletedFields.length} полей)`);
+                    
+                    // Перезагружаем поля
                     loadCustomFields(true);
                 } else {
-                    // Всё равно перезагружаем в фоне
-                    loadCustomFields(true);
+                    // Даже если нет удалений, проверяем изменения
+                    const newFieldsVersion = Date.now();
+                    if (newFieldsVersion - lastFieldsVersion > 2000) {
+                        lastFieldsVersion = newFieldsVersion;
+                        console.log('🔄 Проверяем изменения полей...');
+                        cachedFields = null;
+                        cachedValues = null;
+                        lastLoadTime = 0;
+                        loadCustomFields(true);
+                    }
                 }
             }, (error) => {
                 console.error('❌ Ошибка слушателя custom_fields:', error);
@@ -1056,7 +835,6 @@
 
         // ========== ОБРАБОТЧИКИ СОБЫТИЙ ==========
         
-        // Слушаем событие localStorage от методиста (дополнительный канал)
         window.addEventListener('storage', function(event) {
             if (event.key === 'fields_updated') {
                 console.log('📢 ПОЛУЧЕНО УВЕДОМЛЕНИЕ ОБ ОБНОВЛЕНИИ ПОЛЕЙ (localStorage)');
@@ -1064,7 +842,6 @@
             }
         });
 
-        // Обработчик фокуса окна
         window.addEventListener('focus', () => {
             const activeTab = document.querySelector('.tab-content.active');
             if (activeTab && activeTab.id === 'additionalFieldsTab') {
@@ -1073,7 +850,6 @@
             }
         });
 
-        // Обработчик видимости страницы
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 const activeTab = document.querySelector('.tab-content.active');
@@ -1086,7 +862,6 @@
 
         // ========== ВЫХОД ==========
         async function logout() {
-            // Отключаем слушатели перед выходом
             if (fieldsCollectionListener) {
                 fieldsCollectionListener();
                 fieldsCollectionListener = null;
@@ -1112,17 +887,36 @@
             // Активируем слушатель изменений коллекции custom_fields
             listenToCustomFieldsChanges();
             
-            // Периодическая проверка каждые 30 секунд (резервный канал)
+            // Периодическая проверка каждые 10 секунд (более частая для теста)
             setInterval(async () => {
                 const activeTab = document.querySelector('.tab-content.active');
                 if (activeTab && activeTab.id === 'additionalFieldsTab') {
                     console.log('🔄 Периодическая проверка полей...');
                     await loadCustomFields(true);
+                } else {
+                    // Даже если вкладка не активна, проверяем и очищаем кэш при необходимости
+                    const snapshot = await window.db.collection('custom_fields').get();
+                    const currentFieldIds = new Set();
+                    snapshot.forEach(doc => currentFieldIds.add(doc.id));
+                    
+                    const cachedFieldIds = new Set(cachedFields?.map(f => f.id) || []);
+                    let hasDeleted = false;
+                    for (const fieldId of cachedFieldIds) {
+                        if (!currentFieldIds.has(fieldId)) {
+                            hasDeleted = true;
+                            break;
+                        }
+                    }
+                    if (hasDeleted) {
+                        console.log('🔄 Обнаружены удалённые поля в фоне, очищаем кэш');
+                        cachedFields = null;
+                        cachedValues = null;
+                        lastLoadTime = 0;
+                    }
                 }
-            }, 30000);
+            }, 10000);
         });
         
-        // Экспортируем функции для консоли
         window.forceReloadFields = forceReloadFields;
         window.refreshCustomFields = forceReloadFields;
     </script>
