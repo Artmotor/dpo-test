@@ -504,7 +504,8 @@
         let cachedValues = null;
         let lastLoadTime = 0;
         const CACHE_TTL = 5000;
-        let fieldsUpdateListener = null;
+        let fieldsCollectionListener = null;
+        let userDataListener = null;
 
         // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
         function escapeHtml(str) {
@@ -567,10 +568,7 @@
             
             if (tabName === 'additionalFields') {
                 console.log('🔄 Переключение на вкладку дополнительных полей, принудительная загрузка...');
-                cachedFields = null;
-                cachedValues = null;
-                lastLoadTime = 0;
-                setTimeout(() => loadCustomFields(true), 100);
+                forceReloadFields();
             }
         }
 
@@ -611,10 +609,47 @@
                 displayDocumentsData();
                 displayAddressData();
                 
+                // Запускаем слушатель изменений данных пользователя в реальном времени
+                listenToUserDataChanges(user.uid);
+                
             } catch (error) {
                 console.error('Ошибка загрузки данных:', error);
                 showError('Ошибка загрузки данных');
             }
+        }
+
+        // Слушатель изменений данных пользователя в реальном времени
+        function listenToUserDataChanges(userId) {
+            if (userDataListener) {
+                userDataListener();
+            }
+            
+            userDataListener = window.db.collection('users').doc(userId).onSnapshot((doc) => {
+                if (doc.exists) {
+                    const newData = doc.data();
+                    // Проверяем, изменились ли кастомные поля
+                    const oldCustomFields = JSON.stringify(currentUserData?.customFields || {});
+                    const newCustomFields = JSON.stringify(newData.customFields || {});
+                    
+                    currentUserData = newData;
+                    
+                    // Если изменились кастомные поля и вкладка полей активна - обновляем
+                    if (oldCustomFields !== newCustomFields) {
+                        console.log('🔄 Обнаружены изменения в customFields, обновляем...');
+                        const activeTab = document.querySelector('.tab-content.active');
+                        if (activeTab && activeTab.id === 'additionalFieldsTab') {
+                            forceReloadFields();
+                        } else {
+                            // Очищаем кэш, чтобы при переключении загрузились свежие данные
+                            cachedFields = null;
+                            cachedValues = null;
+                            lastLoadTime = 0;
+                        }
+                    }
+                }
+            }, (error) => {
+                console.error('Ошибка слушателя пользователя:', error);
+            });
         }
 
         function displayProfileData() {
@@ -978,38 +1013,45 @@
             if (container) container.style.display = 'none';
         }
 
-        // ========== СЛУШАТЕЛЬ УВЕДОМЛЕНИЙ ОТ МЕТОДИСТА ЧЕРЕЗ FIRESTORE ==========
-        function listenForFieldsUpdates() {
-            // Создаём коллекцию для уведомлений, если её нет
-            const notificationRef = window.db.collection('system_notifications').doc('last_fields_update');
-            
-            // Подписываемся на изменения документа
-            fieldsUpdateListener = notificationRef.onSnapshot((doc) => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    console.log('📢 ПОЛУЧЕНО УВЕДОМЛЕНИЕ ОБ ИЗМЕНЕНИИ ПОЛЕЙ ОТ МЕТОДИСТА!', data);
-                    
-                    // Очищаем кэш
-                    cachedFields = null;
-                    cachedValues = null;
-                    lastLoadTime = 0;
-                    
-                    // Проверяем, открыта ли вкладка дополнительных полей
-                    const activeTab = document.querySelector('.tab-content.active');
-                    if (activeTab && activeTab.id === 'additionalFieldsTab') {
-                        console.log('📋 Вкладка полей активна, обновляем содержимое...');
-                        loadCustomFields(true);
-                    } else {
-                        console.log('📋 Вкладка полей не активна, данные будут загружены при переключении');
-                        // Всё равно перезагружаем в фоне, чтобы кэш был свежим
-                        loadCustomFields(true);
+        // ========== СЛУШАТЕЛЬ ИЗМЕНЕНИЙ КОЛЛЕКЦИИ custom_fields ==========
+        function listenToCustomFieldsChanges() {
+            // Подписываемся на изменения в коллекции custom_fields
+            fieldsCollectionListener = window.db.collection('custom_fields').onSnapshot((snapshot) => {
+                console.log('📢 Обнаружены изменения в коллекции custom_fields!');
+                
+                // Проверяем, какие поля были удалены
+                const currentFieldIds = new Set(cachedFields?.map(f => f.id) || []);
+                const newFieldIds = new Set();
+                
+                snapshot.docChanges().forEach(change => {
+                    if (change.type === 'removed') {
+                        console.log(`🗑️ Поле удалено: ${change.doc.id}`);
+                    } else if (change.type === 'added') {
+                        console.log(`➕ Поле добавлено: ${change.doc.id}`);
+                    } else if (change.type === 'modified') {
+                        console.log(`✏️ Поле изменено: ${change.doc.id}`);
                     }
+                    newFieldIds.add(change.doc.id);
+                });
+                
+                // Очищаем кэш и перезагружаем поля
+                console.log('🔄 Очищаем кэш и перезагружаем поля...');
+                cachedFields = null;
+                cachedValues = null;
+                lastLoadTime = 0;
+                
+                const activeTab = document.querySelector('.tab-content.active');
+                if (activeTab && activeTab.id === 'additionalFieldsTab') {
+                    loadCustomFields(true);
+                } else {
+                    // Всё равно перезагружаем в фоне
+                    loadCustomFields(true);
                 }
             }, (error) => {
-                console.error('❌ Ошибка слушателя уведомлений:', error);
+                console.error('❌ Ошибка слушателя custom_fields:', error);
             });
             
-            console.log('✅ Слушатель уведомлений от методиста активирован');
+            console.log('✅ Слушатель изменений custom_fields активирован');
         }
 
         // ========== ОБРАБОТЧИКИ СОБЫТИЙ ==========
@@ -1018,14 +1060,7 @@
         window.addEventListener('storage', function(event) {
             if (event.key === 'fields_updated') {
                 console.log('📢 ПОЛУЧЕНО УВЕДОМЛЕНИЕ ОБ ОБНОВЛЕНИИ ПОЛЕЙ (localStorage)');
-                cachedFields = null;
-                cachedValues = null;
-                lastLoadTime = 0;
-                
-                const activeTab = document.querySelector('.tab-content.active');
-                if (activeTab && activeTab.id === 'additionalFieldsTab') {
-                    loadCustomFields(true);
-                }
+                forceReloadFields();
             }
         });
 
@@ -1034,10 +1069,7 @@
             const activeTab = document.querySelector('.tab-content.active');
             if (activeTab && activeTab.id === 'additionalFieldsTab') {
                 console.log('🔄 Фокус на окне, обновляем поля...');
-                cachedFields = null;
-                cachedValues = null;
-                lastLoadTime = 0;
-                loadCustomFields(true);
+                forceReloadFields();
             }
         });
 
@@ -1047,20 +1079,21 @@
                 const activeTab = document.querySelector('.tab-content.active');
                 if (activeTab && activeTab.id === 'additionalFieldsTab') {
                     console.log('🔄 Возврат на страницу, обновляем поля...');
-                    cachedFields = null;
-                    cachedValues = null;
-                    lastLoadTime = 0;
-                    loadCustomFields(true);
+                    forceReloadFields();
                 }
             }
         });
 
         // ========== ВЫХОД ==========
         async function logout() {
-            // Отключаем слушатель перед выходом
-            if (fieldsUpdateListener) {
-                fieldsUpdateListener();
-                fieldsUpdateListener = null;
+            // Отключаем слушатели перед выходом
+            if (fieldsCollectionListener) {
+                fieldsCollectionListener();
+                fieldsCollectionListener = null;
+            }
+            if (userDataListener) {
+                userDataListener();
+                userDataListener = null;
             }
             await window.auth.signOut();
             window.location.href = 'index.html';
@@ -1076,8 +1109,8 @@
             await loadUserData();
             await loadCustomFields(true);
             
-            // Активируем слушатель уведомлений от методиста
-            listenForFieldsUpdates();
+            // Активируем слушатель изменений коллекции custom_fields
+            listenToCustomFieldsChanges();
             
             // Периодическая проверка каждые 30 секунд (резервный канал)
             setInterval(async () => {
@@ -1090,8 +1123,8 @@
         });
         
         // Экспортируем функции для консоли
-        window.forceReloadFields = () => loadCustomFields(true);
-        window.refreshCustomFields = () => loadCustomFields(true);
+        window.forceReloadFields = forceReloadFields;
+        window.refreshCustomFields = forceReloadFields;
     </script>
 </body>
 </html>
