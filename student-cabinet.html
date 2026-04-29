@@ -504,6 +504,7 @@
         let cachedValues = null;
         let lastLoadTime = 0;
         const CACHE_TTL = 5000;
+        let fieldsUpdateListener = null;
 
         // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
         function escapeHtml(str) {
@@ -540,6 +541,13 @@
             setTimeout(() => el.style.display = 'none', 5000);
         }
 
+        function showInfo(message) {
+            const el = document.getElementById('infoMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
         // ========== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ==========
         function switchTab(tabName) {
             const tabs = ['profile', 'documents', 'address', 'additionalFields'];
@@ -559,7 +567,6 @@
             
             if (tabName === 'additionalFields') {
                 console.log('🔄 Переключение на вкладку дополнительных полей, принудительная загрузка...');
-                // Очищаем кэш и загружаем свежие данные
                 cachedFields = null;
                 cachedValues = null;
                 lastLoadTime = 0;
@@ -748,6 +755,15 @@
 
         // ========== ДОПОЛНИТЕЛЬНЫЕ ПОЛЯ ==========
         
+        // Принудительная перезагрузка полей
+        function forceReloadFields() {
+            console.log('🔄 Принудительная перезагрузка полей');
+            cachedFields = null;
+            cachedValues = null;
+            lastLoadTime = 0;
+            return loadCustomFields(true);
+        }
+
         // Загрузка пользовательских полей
         async function loadCustomFields(force = false) {
             try {
@@ -806,7 +822,7 @@
                     await window.db.collection('users').doc(userId).update({
                         customFields: cleanedValues
                     });
-                    showSuccess('🔄 Данные полей обновлены после изменений методиста');
+                    showInfo('🔄 Данные полей обновлены после изменений методиста');
                 }
                 
                 // Сохраняем в кэш
@@ -962,30 +978,58 @@
             if (container) container.style.display = 'none';
         }
 
-        // ========== УВЕДОМЛЕНИЕ ОБ ОБНОВЛЕНИИ ПОЛЕЙ ОТ МЕТОДИСТА ==========
-        // Слушаем событие localStorage от методиста
+        // ========== СЛУШАТЕЛЬ УВЕДОМЛЕНИЙ ОТ МЕТОДИСТА ЧЕРЕЗ FIRESTORE ==========
+        function listenForFieldsUpdates() {
+            // Создаём коллекцию для уведомлений, если её нет
+            const notificationRef = window.db.collection('system_notifications').doc('last_fields_update');
+            
+            // Подписываемся на изменения документа
+            fieldsUpdateListener = notificationRef.onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    console.log('📢 ПОЛУЧЕНО УВЕДОМЛЕНИЕ ОБ ИЗМЕНЕНИИ ПОЛЕЙ ОТ МЕТОДИСТА!', data);
+                    
+                    // Очищаем кэш
+                    cachedFields = null;
+                    cachedValues = null;
+                    lastLoadTime = 0;
+                    
+                    // Проверяем, открыта ли вкладка дополнительных полей
+                    const activeTab = document.querySelector('.tab-content.active');
+                    if (activeTab && activeTab.id === 'additionalFieldsTab') {
+                        console.log('📋 Вкладка полей активна, обновляем содержимое...');
+                        loadCustomFields(true);
+                    } else {
+                        console.log('📋 Вкладка полей не активна, данные будут загружены при переключении');
+                        // Всё равно перезагружаем в фоне, чтобы кэш был свежим
+                        loadCustomFields(true);
+                    }
+                }
+            }, (error) => {
+                console.error('❌ Ошибка слушателя уведомлений:', error);
+            });
+            
+            console.log('✅ Слушатель уведомлений от методиста активирован');
+        }
+
+        // ========== ОБРАБОТЧИКИ СОБЫТИЙ ==========
+        
+        // Слушаем событие localStorage от методиста (дополнительный канал)
         window.addEventListener('storage', function(event) {
             if (event.key === 'fields_updated') {
-                console.log('📢 ПОЛУЧЕНО УВЕДОМЛЕНИЕ ОБ ОБНОВЛЕНИИ ПОЛЕЙ ОТ МЕТОДИСТА!');
-                console.log('🔄 Очищаем кэш и перезагружаем поля...');
-                
-                // Очищаем кэш
+                console.log('📢 ПОЛУЧЕНО УВЕДОМЛЕНИЕ ОБ ОБНОВЛЕНИИ ПОЛЕЙ (localStorage)');
                 cachedFields = null;
                 cachedValues = null;
                 lastLoadTime = 0;
                 
-                // Проверяем, открыта ли вкладка дополнительных полей
                 const activeTab = document.querySelector('.tab-content.active');
                 if (activeTab && activeTab.id === 'additionalFieldsTab') {
-                    console.log('📋 Вкладка полей активна, обновляем содержимое...');
                     loadCustomFields(true);
-                } else {
-                    console.log('📋 Вкладка полей не активна, данные будут загружены при переключении');
                 }
             }
         });
 
-        // Обработчик фокуса окна - перезагружаем поля если вкладка активна
+        // Обработчик фокуса окна
         window.addEventListener('focus', () => {
             const activeTab = document.querySelector('.tab-content.active');
             if (activeTab && activeTab.id === 'additionalFieldsTab') {
@@ -1013,11 +1057,16 @@
 
         // ========== ВЫХОД ==========
         async function logout() {
+            // Отключаем слушатель перед выходом
+            if (fieldsUpdateListener) {
+                fieldsUpdateListener();
+                fieldsUpdateListener = null;
+            }
             await window.auth.signOut();
             window.location.href = 'index.html';
         }
 
-        // ========== ИНИЦИАЛИЗАЦИЯ С ПЕРИОДИЧЕСКОЙ ПРОВЕРКОЙ ==========
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
         window.auth.onAuthStateChanged(async (user) => {
             if (!user || !user.emailVerified) {
                 window.location.href = 'index.html';
@@ -1027,7 +1076,10 @@
             await loadUserData();
             await loadCustomFields(true);
             
-            // Дополнительная периодическая проверка каждые 30 секунд (на случай, если уведомление не дошло)
+            // Активируем слушатель уведомлений от методиста
+            listenForFieldsUpdates();
+            
+            // Периодическая проверка каждые 30 секунд (резервный канал)
             setInterval(async () => {
                 const activeTab = document.querySelector('.tab-content.active');
                 if (activeTab && activeTab.id === 'additionalFieldsTab') {
@@ -1039,6 +1091,7 @@
         
         // Экспортируем функции для консоли
         window.forceReloadFields = () => loadCustomFields(true);
+        window.refreshCustomFields = () => loadCustomFields(true);
     </script>
 </body>
 </html>
