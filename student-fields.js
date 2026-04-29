@@ -1,4 +1,4 @@
-// student-fields.js - отображение полей в кабинете слушателя
+// student-fields.js - исправленная версия
 
 let cachedFields = null;
 let cachedValues = null;
@@ -11,7 +11,7 @@ function forceReloadFields() {
     cachedFields = null;
     cachedValues = null;
     lastLoadTime = 0;
-    return loadCustomFields();
+    return loadCustomFields(true);
 }
 
 // Загрузка пользовательских полей (всегда свежие данные)
@@ -52,18 +52,37 @@ async function loadCustomFields(force = false) {
         const userDoc = await window.db.collection('users').doc(userId).get();
         const userValues = userDoc.exists ? (userDoc.data().customFields || {}) : {};
         
+        // ОЧИЩАЕМ значения для полей, которых больше нет в activeFields
+        const cleanedValues = {};
+        const activeFieldIds = new Set(activeFields.map(f => f.id));
+        for (const [key, value] of Object.entries(userValues)) {
+            if (activeFieldIds.has(key)) {
+                cleanedValues[key] = value;
+            } else {
+                console.log(`🗑️ Очищаем значение удалённого поля: ${key}`);
+            }
+        }
+        
+        // Если были удалены поля, обновляем данные пользователя
+        if (Object.keys(cleanedValues).length !== Object.keys(userValues).length) {
+            console.log('🔄 Обновляем customFields пользователя (удаляем несуществующие поля)');
+            await window.db.collection('users').doc(userId).update({
+                customFields: cleanedValues
+            });
+        }
+        
         // Сохраняем в кэш
         cachedFields = activeFields;
-        cachedValues = userValues;
+        cachedValues = cleanedValues;
         lastLoadTime = now;
         
         console.log(`📋 Загружено полей: ${activeFields.length}`);
         console.log('Поля:', activeFields.map(f => ({ id: f.id, label: f.label, type: f.type, isActive: f.isActive })));
         
-        displayCustomFields(activeFields, userValues);
+        displayCustomFields(activeFields, cleanedValues);
         
         // Проверяем обязательные поля
-        const missingFields = activeFields.filter(f => f.isRequired && (!userValues[f.id] || userValues[f.id].trim() === ''));
+        const missingFields = activeFields.filter(f => f.isRequired && (!cleanedValues[f.id] || cleanedValues[f.id].trim() === ''));
         if (missingFields.length > 0) {
             showMissingFieldsWarning(missingFields);
         } else {
@@ -310,6 +329,17 @@ document.addEventListener('visibilitychange', function() {
         }
     }
 });
+
+// Слушаем событие от методиста о том, что поле было удалено
+window.addEventListener('storage', function(event) {
+    if (event.key === 'fields_updated') {
+        console.log('🔄 Получено уведомление об обновлении полей');
+        refreshCustomFields();
+    }
+});
+
+// Экспортируем функцию для вызова из других скриптов
+window.refreshStudentFields = refreshCustomFields;
 
 // Инициализация
 if (document.getElementById('customFieldsContainer')) {
