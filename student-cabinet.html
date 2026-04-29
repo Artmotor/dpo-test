@@ -208,6 +208,38 @@
         }
         .save-fields-btn:hover { background: #1e7e34; transform: translateY(-2px); }
         .save-fields-btn:disabled { background: #6c757d; cursor: not-allowed; transform: none; }
+        
+        /* Стиль для уведомления о перезагрузке */
+        .reload-notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: var(--shadow-hover);
+            z-index: 1002;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        .reload-btn {
+            background: var(--secondary);
+            color: var(--dark);
+            border: none;
+            padding: 6px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
         @media (max-width: 768px) {
             .header { padding: 15px 20px; }
             .header h1 { font-size: 18px; }
@@ -291,10 +323,9 @@
         let currentEditMode = null;
         let cachedFields = null;
         let cachedValues = null;
-        let lastLoadTime = 0;
-        const CACHE_TTL = 5000;
         let fieldsCollectionListener = null;
         let userDataListener = null;
+        let lastFieldIdsHash = '';
 
         function escapeHtml(str) {
             if (!str) return '';
@@ -355,7 +386,7 @@
             
             if (tabName === 'additionalFields') {
                 console.log('🔄 Переключение на вкладку дополнительных полей');
-                setTimeout(() => refreshFieldsUI(), 100);
+                setTimeout(() => loadCustomFields(true), 100);
             }
         }
 
@@ -413,10 +444,9 @@
                     currentUserData = newData;
                     console.log('🔄 Данные пользователя обновлены');
                     
-                    // Если вкладка полей активна, обновляем UI
                     const activeTab = document.querySelector('.tab-content.active');
                     if (activeTab && activeTab.id === 'additionalFieldsTab') {
-                        refreshFieldsUI();
+                        loadCustomFields(true);
                     }
                 }
             }, (error) => {
@@ -560,12 +590,15 @@
             currentEditMode = null;
         }
 
-        // ========== ОСНОВНАЯ ЛОГИКА ДОПОЛНИТЕЛЬНЫХ ПОЛЕЙ ==========
+        // ========== ДОПОЛНИТЕЛЬНЫЕ ПОЛЯ ==========
         
-        // Обновление UI полей - главная функция, которая перерисовывает поля
-        async function refreshFieldsUI() {
-            console.log('🔄 Обновление UI дополнительных полей...');
-            
+        // Функция для вычисления хэша списка полей
+        function getFieldsHash(fields) {
+            if (!fields || fields.length === 0) return '';
+            return fields.map(f => `${f.id}:${f.isActive}:${f.isRequired}`).join('|');
+        }
+        
+        async function loadCustomFields(force = false) {
             try {
                 const userId = window.auth.currentUser?.uid;
                 if (!userId) {
@@ -573,13 +606,12 @@
                     return;
                 }
                 
-                // Загружаем свежие данные из Firestore (игнорируем кэш)
                 console.log('🔄 Загрузка свежих данных из Firestore...');
                 
                 // Получаем все поля из Firestore
-                const fieldsSnapshot = await window.db.collection('custom_fields').get();
+                const snapshot = await window.db.collection('custom_fields').get();
                 const allFields = [];
-                fieldsSnapshot.forEach(doc => {
+                snapshot.forEach(doc => {
                     allFields.push({
                         id: doc.id,
                         ...doc.data()
@@ -622,10 +654,9 @@
                 // Обновляем кэш
                 cachedFields = activeFields;
                 cachedValues = cleanedValues;
-                lastLoadTime = Date.now();
                 
                 // Отрисовываем поля
-                renderFieldsToUI(activeFields, cleanedValues);
+                displayCustomFields(activeFields, cleanedValues);
                 
                 // Проверяем обязательные поля
                 const missingFields = activeFields.filter(f => f.isRequired && (!cleanedValues[f.id] || cleanedValues[f.id].trim() === ''));
@@ -636,16 +667,15 @@
                 }
                 
             } catch (error) {
-                console.error('❌ Ошибка обновления полей:', error);
+                console.error('❌ Ошибка загрузки полей:', error);
                 const container = document.getElementById('customFieldsContainer');
                 if (container) {
                     container.innerHTML = '<p style="color: #dc3545; text-align: center; padding: 20px;">❌ Ошибка загрузки дополнительных полей</p>';
                 }
             }
         }
-        
-        // Отрисовка полей в контейнере
-        function renderFieldsToUI(fields, values) {
+
+        function displayCustomFields(fields, values) {
             const container = document.getElementById('customFieldsContainer');
             if (!container) return;
             
@@ -668,17 +698,17 @@
                             ${field.isRequired ? '<span style="color: #dc3545;">*</span>' : ''}
                             ${!isFilled && field.isRequired ? '<span style="background: #ff9800; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 8px;">Не заполнено</span>' : ''}
                         </label>
-                        ${renderFieldForm(field, value)}
+                        ${renderFieldInput(field, value)}
                         ${field.semantics ? `<small style="display: block; margin-top: 8px; color: #667eea;">🔗 Семантика: <a href="${escapeHtml(field.semantics)}" target="_blank">${escapeHtml(field.semantics)}</a></small>` : ''}
                     </div>
                 `;
             }
             
-            html += `<div style="margin-top: 20px;"><button class="save-fields-btn" onclick="saveCustomFieldsToDB()">💾 Сохранить дополнительную информацию</button></div>`;
+            html += `<div style="margin-top: 20px;"><button class="save-fields-btn" onclick="saveCustomFields()">💾 Сохранить дополнительную информацию</button></div>`;
             container.innerHTML = html;
         }
-        
-        function renderFieldForm(field, value) {
+
+        function renderFieldInput(field, value) {
             const fieldId = `field_${field.id}`;
             
             switch (field.type) {
@@ -708,13 +738,13 @@
                     return `<input type="${field.type || 'text'}" id="${fieldId}" placeholder="${field.placeholder || ''}" value="${escapeHtml(value)}">`;
             }
         }
-        
-        async function saveCustomFieldsToDB() {
+
+        async function saveCustomFields() {
             const userId = window.auth.currentUser?.uid;
             if (!userId) return;
             
             if (!cachedFields) {
-                await refreshFieldsUI();
+                await loadCustomFields(true);
             }
             
             const values = {};
@@ -739,7 +769,7 @@
                 await window.db.collection('users').doc(userId).update({ customFields: values });
                 cachedValues = values;
                 showSuccess('✅ Данные успешно сохранены!');
-                renderFieldsToUI(cachedFields, cachedValues);
+                displayCustomFields(cachedFields, cachedValues);
                 
                 const missingFields = cachedFields.filter(f => f.isRequired && (!values[f.id] || values[f.id].trim() === ''));
                 if (missingFields.length > 0) showMissingFieldsWarning(missingFields);
@@ -773,69 +803,79 @@
             if (container) container.style.display = 'none';
         }
 
-        // ========== КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: СЛУШАТЕЛЬ ИЗМЕНЕНИЙ ==========
+        // ========== КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: ПРЯМАЯ ПЕРЕЗАГРУЗКА ==========
+        function showReloadNotification() {
+            // Удаляем старое уведомление, если есть
+            const oldNotify = document.querySelector('.reload-notification');
+            if (oldNotify) oldNotify.remove();
+            
+            // Создаём новое уведомление
+            const notification = document.createElement('div');
+            notification.className = 'reload-notification';
+            notification.innerHTML = `
+                <span>📢 Методист изменил список полей. Требуется обновление страницы.</span>
+                <button class="reload-btn" onclick="location.reload()">Обновить сейчас</button>
+            `;
+            document.body.appendChild(notification);
+            
+            // Автоматически скрываем через 10 секунд
+            setTimeout(() => {
+                if (notification && notification.remove) notification.remove();
+            }, 10000);
+        }
+        
+        // Слушаем изменения в коллекции custom_fields
         function listenToCustomFieldsChanges() {
-            // Подписываемся на реальные изменения в коллекции custom_fields
             fieldsCollectionListener = window.db.collection('custom_fields').onSnapshot((snapshot) => {
                 console.log('📢 ПОЛУЧЕНО СОБЫТИЕ ON_SNAPSHOT: коллекция custom_fields изменилась!');
                 
-                // Получаем все текущие поля из Firestore
-                const currentFields = [];
+                // Получаем текущие ID полей
+                const currentFieldIds = new Set();
                 snapshot.forEach(doc => {
-                    currentFields.push({
-                        id: doc.id,
-                        ...doc.data()
-                    });
+                    currentFieldIds.add(doc.id);
                 });
                 
-                const currentFieldIds = new Set(currentFields.map(f => f.id));
-                const cachedFieldIds = new Set(cachedFields?.map(f => f.id) || []);
+                // Получаем предыдущие ID полей из кэша
+                const previousFieldIds = new Set(cachedFields?.map(f => f.id) || []);
                 
-                // Проверяем, какие поля были удалены
-                const deletedFieldIds = [];
-                for (const fieldId of cachedFieldIds) {
+                // Проверяем, были ли удалены поля
+                let fieldsWereDeleted = false;
+                for (const fieldId of previousFieldIds) {
                     if (!currentFieldIds.has(fieldId)) {
-                        deletedFieldIds.push(fieldId);
+                        console.log(`🗑️ ОБНАРУЖЕНО УДАЛЕНИЕ ПОЛЯ: ${fieldId}`);
+                        fieldsWereDeleted = true;
                     }
                 }
                 
-                // Проверяем, какие поля были добавлены
-                const addedFieldIds = [];
-                for (const fieldId of currentFieldIds) {
-                    if (!cachedFieldIds.has(fieldId)) {
-                        addedFieldIds.push(fieldId);
-                    }
-                }
-                
-                if (deletedFieldIds.length > 0) {
-                    console.log(`🗑️ ОБНАРУЖЕНО УДАЛЕНИЕ ПОЛЕЙ: ${deletedFieldIds.join(', ')}`);
-                    showInfo(`📋 Поле "${deletedFieldIds.join(', ')}" было удалено методистом`);
+                if (fieldsWereDeleted) {
+                    console.log('⚠️ Были удалены поля! Показываем уведомление о перезагрузке.');
+                    showInfo('📋 Поля были изменены методистом. Пожалуйста, обновите страницу.');
+                    showReloadNotification();
                     
-                    // ПРИНУДИТЕЛЬНО ОБНОВЛЯЕМ UI
-                    refreshFieldsUI();
-                }
-                
-                if (addedFieldIds.length > 0) {
-                    console.log(`➕ ОБНАРУЖЕНО ДОБАВЛЕНИЕ ПОЛЕЙ: ${addedFieldIds.join(', ')}`);
-                    refreshFieldsUI();
-                }
-                
-                if (deletedFieldIds.length === 0 && addedFieldIds.length === 0) {
-                    // Возможно, поля были изменены (например, стали неактивными)
-                    if (cachedFields) {
-                        // Проверяем, изменился ли статус isActive у каких-то полей
-                        let needsRefresh = false;
-                        for (const field of cachedFields) {
-                            const currentField = currentFields.find(f => f.id === field.id);
-                            if (currentField && currentField.isActive !== field.isActive) {
-                                console.log(`✏️ Изменён статус поля ${field.id}: активен=${currentField.isActive}`);
-                                needsRefresh = true;
-                                break;
-                            }
+                    // Очищаем кэш
+                    cachedFields = null;
+                    cachedValues = null;
+                    
+                    // Если вкладка активна, показываем сообщение
+                    const activeTab = document.querySelector('.tab-content.active');
+                    if (activeTab && activeTab.id === 'additionalFieldsTab') {
+                        const container = document.getElementById('customFieldsContainer');
+                        if (container) {
+                            container.innerHTML = `
+                                <div style="text-align: center; padding: 40px;">
+                                    <div style="font-size: 48px; margin-bottom: 10px;">🔄</div>
+                                    <p>Список полей был изменён методистом.</p>
+                                    <button class="edit-btn" onclick="location.reload()" style="margin-top: 15px;">Обновить страницу</button>
+                                </div>
+                            `;
                         }
-                        if (needsRefresh) {
-                            refreshFieldsUI();
-                        }
+                    }
+                } else {
+                    // Проверяем, изменилось ли количество полей
+                    if (previousFieldIds.size !== currentFieldIds.size) {
+                        console.log('⚠️ Изменилось количество полей!');
+                        showInfo('📋 Поля были изменены методистом. Пожалуйста, обновите страницу.');
+                        showReloadNotification();
                     }
                 }
             }, (error) => {
@@ -848,26 +888,18 @@
         // ========== ОБРАБОТЧИКИ СОБЫТИЙ ==========
         window.addEventListener('storage', function(event) {
             if (event.key === 'fields_updated') {
-                console.log('📢 ПОЛУЧЕНО УВЕДОМЛЕНИЕ localStorage, обновляем поля');
-                refreshFieldsUI();
+                console.log('📢 ПОЛУЧЕНО УВЕДОМЛЕНИЕ localStorage, требуется обновление');
+                showInfo('📋 Поля были изменены. Пожалуйста, обновите страницу.');
+                showReloadNotification();
             }
         });
 
         window.addEventListener('focus', () => {
             const activeTab = document.querySelector('.tab-content.active');
             if (activeTab && activeTab.id === 'additionalFieldsTab') {
-                console.log('🔄 Фокус на окне, обновляем поля');
-                refreshFieldsUI();
-            }
-        });
-
-        document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
-                const activeTab = document.querySelector('.tab-content.active');
-                if (activeTab && activeTab.id === 'additionalFieldsTab') {
-                    console.log('🔄 Возврат на страницу, обновляем поля');
-                    refreshFieldsUI();
-                }
+                console.log('🔄 Фокус на окне, проверяем поля');
+                // При фокусе проверяем, нужно ли обновление
+                loadCustomFields(true);
             }
         });
 
@@ -897,21 +929,11 @@
             // Активируем слушатель изменений полей
             listenToCustomFieldsChanges();
             
-            // Первоначальная загрузка полей
-            await refreshFieldsUI();
-            
-            // Периодическая проверка каждые 5 секунд (для надёжности)
-            setInterval(() => {
-                const activeTab = document.querySelector('.tab-content.active');
-                if (activeTab && activeTab.id === 'additionalFieldsTab') {
-                    console.log('🔄 Периодическая проверка полей...');
-                    refreshFieldsUI();
-                }
-            }, 5000);
+            // Загружаем поля
+            await loadCustomFields(true);
         });
         
-        // Экспортируем функцию для вызова из консоли
-        window.refreshFieldsUI = refreshFieldsUI;
+        window.refreshFields = () => loadCustomFields(true);
     </script>
 </body>
 </html>
