@@ -186,8 +186,21 @@
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .toast-success { background: var(--success); color: white; }
         .toast-error { background: var(--danger); color: white; }
+        .toast-warning { background: #ff9800; color: white; }
         .empty-state { text-align: center; padding: 50px; color: #999; }
         .empty-state-icon { font-size: 64px; margin-bottom: 15px; }
+        .field-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+        .field-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
         @media (max-width: 768px) {
             .tabs { flex-direction: column; }
             .tab-btn { width: 100%; text-align: center; }
@@ -211,6 +224,7 @@
     <div class="container">
         <div id="toastSuccess" class="toast-message toast-success"></div>
         <div id="toastError" class="toast-message toast-error"></div>
+        <div id="toastWarning" class="toast-message toast-warning"></div>
 
         <div class="stats-grid">
             <div class="stat-card">
@@ -627,16 +641,20 @@
                 }
                 
                 html += `
-                    <div style="background:#f8f9fa; padding:15px; margin-bottom:15px; border-radius:8px; border-left:3px solid var(--primary);">
-                        <strong>${escapeHtml(f.label)}</strong>
-                        <span style="margin-left:10px; font-size:12px;">${typeIcon} ${typeText}</span>
-                        <span style="margin-left:10px; font-size:12px; background:${f.isRequired ? '#dc3545' : '#28a745'}; color:white; padding:2px 8px; border-radius:12px;">${f.isRequired ? 'Обязательное' : 'Необязательное'}</span>
-                        <div style="margin-top:8px; font-size:13px; color:#666;">
-                            <div>ID: <code>${escapeHtml(f.id)}</code> | Порядок: ${f.order || 0}</div>
-                            ${optionsHtml}
-                            ${f.semantics ? `<div>Семантика: <a href="${escapeHtml(f.semantics)}" target="_blank">${escapeHtml(f.semantics)}</a></div>` : ''}
+                    <div class="field-item">
+                        <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap;">
+                            <div style="flex: 1;">
+                                <strong>${escapeHtml(f.label)}</strong>
+                                <span style="margin-left:10px; font-size:12px;">${typeIcon} ${typeText}</span>
+                                <span style="margin-left:10px; font-size:12px; background:${f.isRequired ? '#dc3545' : '#28a745'}; color:white; padding:2px 8px; border-radius:12px;">${f.isRequired ? 'Обязательное' : 'Необязательное'}</span>
+                                <div style="margin-top:8px; font-size:13px; color:#666;">
+                                    <div>ID: <code>${escapeHtml(f.id)}</code> | Порядок: ${f.order || 0}</div>
+                                    ${optionsHtml}
+                                    ${f.semantics ? `<div>Семантика: <a href="${escapeHtml(f.semantics)}" target="_blank">${escapeHtml(f.semantics)}</a></div>` : ''}
+                                </div>
+                            </div>
                         </div>
-                        <div style="margin-top:12px;">
+                        <div class="field-actions">
                             <button class="edit-btn" onclick="editField('${f.id}')" style="padding:5px 12px;">✏️ Редактировать</button>
                             <button class="edit-btn" onclick="deleteField('${f.id}')" style="padding:5px 12px; background:#dc3545; margin-left:8px;">🗑️ Удалить</button>
                         </div>
@@ -764,6 +782,8 @@
                 }
                 closeFieldEditor();
                 await loadFields();
+                // Уведомляем всех слушателей об изменении полей
+                notifyStudentsFieldsUpdated();
             } catch (error) {
                 console.error('Ошибка:', error);
                 showToast('❌ Ошибка: ' + error.message, 'error');
@@ -774,95 +794,110 @@
             openFieldEditor(id);
         }
 
-       async function deleteField(id) {
-    const field = allFields.find(f => f.id === id);
-    if (!field) {
-        showToast('Поле не найдено', 'error');
-        return;
-    }
-    
-    // Подтверждение удаления
-    const confirmed = confirm(
-        `⚠️ УДАЛЕНИЕ ПОЛЯ: "${field.label}"\n\n` +
-        `Вы уверены, что хотите удалить это поле?\n\n` +
-        `❌ Поле исчезнет из списка\n` +
-        `❌ Все данные слушателей для этого поля будут удалены\n` +
-        `❌ Восстановить данные будет невозможно\n\n` +
-        `Нажмите "ОК" для подтверждения`
-    );
-    
-    if (!confirmed) return;
-    
-    // Показываем индикатор загрузки
-    const btns = document.querySelectorAll(`[onclick="deleteField('${id}')"]`);
-    btns.forEach(btn => {
-        btn.textContent = '⏳ Удаление...';
-        btn.disabled = true;
-    });
-    
-    try {
-        // 1. Сначала удаляем значения поля у всех слушателей
-        console.log('1. Удаляем значения поля у слушателей...');
-        const studentsSnapshot = await window.db.collection('users')
-            .where('role', '==', 'student')
-            .get();
-        
-        let updatedCount = 0;
-        const updatePromises = [];
-        
-        for (const doc of studentsSnapshot.docs) {
-            const userData = doc.data();
-            if (userData.customFields && userData.customFields[id] !== undefined) {
-                const updatedCustomFields = { ...userData.customFields };
-                delete updatedCustomFields[id];
+        // Уведомление слушателей об обновлении полей
+        function notifyStudentsFieldsUpdated() {
+            // Используем localStorage для межвкладкового обмена сообщениями
+            localStorage.setItem('fields_updated', Date.now().toString());
+            setTimeout(() => localStorage.removeItem('fields_updated'), 1000);
+            console.log('📢 Уведомление об обновлении полей отправлено слушателям');
+        }
+
+        async function deleteField(id) {
+            const field = allFields.find(f => f.id === id);
+            if (!field) {
+                showToast('Поле не найдено', 'error');
+                return;
+            }
+            
+            // Подтверждение удаления
+            const confirmed = confirm(
+                `⚠️ УДАЛЕНИЕ ПОЛЯ: "${field.label}"\n\n` +
+                `Вы уверены, что хотите удалить это поле?\n\n` +
+                `❌ Поле исчезнет из списка\n` +
+                `❌ Все данные слушателей для этого поля будут удалены\n` +
+                `❌ Восстановить данные будет невозможно\n\n` +
+                `Нажмите "ОК" для подтверждения`
+            );
+            
+            if (!confirmed) return;
+            
+            // Показываем индикатор загрузки
+            const btns = document.querySelectorAll(`[onclick="deleteField('${id}')"]`);
+            btns.forEach(btn => {
+                btn.textContent = '⏳ Удаление...';
+                btn.disabled = true;
+            });
+            
+            try {
+                // 1. Сначала удаляем значения поля у всех слушателей
+                console.log('1. Удаляем значения поля у слушателей...');
+                const studentsSnapshot = await window.db.collection('users')
+                    .where('role', '==', 'student')
+                    .get();
                 
-                updatePromises.push(
-                    window.db.collection('users').doc(doc.id).update({
-                        customFields: updatedCustomFields,
-                        lastFieldUpdate: firebase.firestore.FieldValue.serverTimestamp()
-                    })
-                );
-                updatedCount++;
+                let updatedCount = 0;
+                const updatePromises = [];
+                
+                for (const doc of studentsSnapshot.docs) {
+                    const userData = doc.data();
+                    if (userData.customFields && userData.customFields[id] !== undefined) {
+                        const updatedCustomFields = { ...userData.customFields };
+                        delete updatedCustomFields[id];
+                        
+                        updatePromises.push(
+                            window.db.collection('users').doc(doc.id).update({
+                                customFields: updatedCustomFields,
+                                lastFieldUpdate: firebase.firestore.FieldValue.serverTimestamp()
+                            })
+                        );
+                        updatedCount++;
+                    }
+                }
+                
+                // Ждем завершения всех обновлений
+                await Promise.all(updatePromises);
+                console.log(`✅ Удалено поле у ${updatedCount} слушателей`);
+                
+                // 2. Удаляем само поле из коллекции custom_fields
+                console.log('2. Удаляем поле из коллекции...');
+                await window.db.collection('custom_fields').doc(id).delete();
+                console.log('✅ Поле удалено из коллекции');
+                
+                // 3. Уведомляем всех слушателей об изменении полей
+                notifyStudentsFieldsUpdated();
+                
+                // 4. Обновляем локальный массив
+                allFields = allFields.filter(f => f.id !== id);
+                
+                // 5. Обновляем отображение списка полей
+                displayFieldsList();
+                
+                // 6. Если открыта вкладка с динамическими полями у слушателя, обновляем их
+                const editModal = document.getElementById('editModal');
+                if (editModal && editModal.style.display === 'block' && currentEditStudentId) {
+                    const student = allStudents.find(s => s.id === currentEditStudentId);
+                    if (student) {
+                        // Очищаем значения удалённого поля из customFields у студента
+                        const updatedCustomFields = { ...(student.customFields || {}) };
+                        delete updatedCustomFields[id];
+                        await loadDynamicFields(updatedCustomFields);
+                    }
+                }
+                
+                showToast(`✅ Поле "${field.label}" успешно удалено! Удалено у ${updatedCount} слушателей.`, 'success');
+                
+            } catch (error) {
+                console.error('Ошибка удаления поля:', error);
+                showToast(`❌ Ошибка удаления поля: ${error.message}`, 'error');
+            } finally {
+                // Восстанавливаем кнопки
+                btns.forEach(btn => {
+                    btn.textContent = '🗑️ Удалить';
+                    btn.disabled = false;
+                });
             }
         }
-        
-        // Ждем завершения всех обновлений
-        await Promise.all(updatePromises);
-        console.log(`✅ Удалено поле у ${updatedCount} слушателей`);
-        
-        // 2. Удаляем само поле из коллекции custom_fields
-        console.log('2. Удаляем поле из коллекции...');
-        await window.db.collection('custom_fields').doc(id).delete();
-        console.log('✅ Поле удалено из коллекции');
-        
-        // 3. Обновляем локальный массив
-        allFields = allFields.filter(f => f.id !== id);
-        
-        // 4. Обновляем отображение списка полей
-        displayFieldsList();
-        
-        // 5. Если открыта вкладка с динамическими полями у слушателя, обновляем их
-        const editModal = document.getElementById('editModal');
-        if (editModal && editModal.style.display === 'block' && currentEditStudentId) {
-            const student = allStudents.find(s => s.id === currentEditStudentId);
-            if (student) {
-                await loadDynamicFields(student.customFields || {});
-            }
-        }
-        
-        showToast(`✅ Поле "${field.label}" успешно удалено! Удалено у ${updatedCount} слушателей.`, 'success');
-        
-    } catch (error) {
-        console.error('Ошибка удаления поля:', error);
-        showToast(`❌ Ошибка удаления поля: ${error.message}`, 'error');
-    } finally {
-        // Восстанавливаем кнопки
-        btns.forEach(btn => {
-            btn.textContent = '🗑️ Удалить';
-            btn.disabled = false;
-        });
-    }
-}
+
         // ========== ВЫХОД ==========
         async function logout() {
             await window.auth.signOut();
