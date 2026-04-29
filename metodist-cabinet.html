@@ -256,7 +256,7 @@
             <div class="table-responsive">
                 <table>
                     <thead>
-                        <tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Образование</th><th>Статус</th><th>Дата регистрации</th><th>Действия</th></tr>
+                        <table><th>ФИО</th><th>Email</th><th>Телефон</th><th>Образование</th><th>Статус</th><th>Дата регистрации</th><th>Действия</th></tr>
                     </thead>
                     <tbody id="studentsTableBody">
                         <tr><td colspan="7" style="text-align:center;">Загрузка...</td></tr>
@@ -783,7 +783,7 @@
                 closeFieldEditor();
                 await loadFields();
                 // Уведомляем всех слушателей об изменении полей
-                notifyStudentsFieldsUpdated();
+                await notifyStudentsFieldsChanged();
             } catch (error) {
                 console.error('Ошибка:', error);
                 showToast('❌ Ошибка: ' + error.message, 'error');
@@ -794,12 +794,27 @@
             openFieldEditor(id);
         }
 
-        // Уведомление слушателей об обновлении полей
-        function notifyStudentsFieldsUpdated() {
-            // Используем localStorage для межвкладкового обмена сообщениями
-            localStorage.setItem('fields_updated', Date.now().toString());
-            setTimeout(() => localStorage.removeItem('fields_updated'), 1000);
-            console.log('📢 Уведомление об обновлении полей отправлено слушателям');
+        // ГЛАВНОЕ ИСПРАВЛЕНИЕ: Уведомление слушателей через Firestore
+        async function notifyStudentsFieldsChanged() {
+            try {
+                console.log('📢 Отправляем уведомление слушателям об изменении полей...');
+                
+                // 1. Отправляем через localStorage (для открытых вкладок)
+                localStorage.setItem('fields_updated', Date.now().toString());
+                setTimeout(() => localStorage.removeItem('fields_updated'), 2000);
+                
+                // 2. СОЗДАЕМ СПЕЦИАЛЬНЫЙ ДОКУМЕНТ В FIRESTORE ДЛЯ УВЕДОМЛЕНИЙ
+                // Это решение работает даже если студент находится на другой вкладке
+                const notificationId = `fields_update_${Date.now()}`;
+                await window.db.collection('system_notifications').doc('last_fields_update').set({
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    version: Date.now()
+                });
+                
+                console.log('✅ Уведомление отправлено через Firestore');
+            } catch (error) {
+                console.error('Ошибка отправки уведомления:', error);
+            }
         }
 
         async function deleteField(id) {
@@ -864,7 +879,7 @@
                 console.log('✅ Поле удалено из коллекции');
                 
                 // 3. Уведомляем всех слушателей об изменении полей
-                notifyStudentsFieldsUpdated();
+                await notifyStudentsFieldsChanged();
                 
                 // 4. Обновляем локальный массив
                 allFields = allFields.filter(f => f.id !== id);
