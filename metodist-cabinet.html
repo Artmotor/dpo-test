@@ -914,6 +914,22 @@
         }
 
         // ========== ВЫХОД ==========
+
+        async function deleteField(id) {
+    const field = allFields.find(f => f.id === id);
+    if (!confirm(`Удалить поле "${field?.label}"?\n\nВсе данные слушателей будут потеряны!`)) return;
+    
+    try {
+        await window.fieldsManager.deleteField(id);
+        showToast('✅ Поле удалено', 'success');
+        await loadFields();
+    } catch (error) {
+        console.error(error);
+        showToast('❌ Ошибка удаления', 'error');
+    }
+}
+
+        
         async function logout() {
             await window.auth.signOut();
             window.location.href = 'index.html';
