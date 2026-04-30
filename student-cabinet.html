@@ -819,6 +819,29 @@
                     return `<input type="${field.type || 'text'}" id="${fieldId}" placeholder="${field.placeholder || ''}" value="${escapeHtml(value)}">`;
             }
         }
+
+        function switchTab(tabName) {
+    const tabs = ['profile', 'documents', 'address', 'additionalFields'];
+    tabs.forEach(tab => {
+        const tabElement = document.getElementById(`${tab}Tab`);
+        const btnElement = document.querySelector(`[onclick="switchTab('${tab}')"]`);
+        if (tabElement) {
+            if (tab === tabName) {
+                tabElement.classList.add('active');
+                if (btnElement) btnElement.classList.add('active');
+            } else {
+                tabElement.classList.remove('active');
+                if (btnElement) btnElement.classList.remove('active');
+            }
+        }
+    });
+    
+    // Обновляем поля при переключении на вкладку
+    if (tabName === 'additionalFields' && typeof loadCustomFields === 'function') {
+        setTimeout(() => loadCustomFields(), 100);
+    }
+}
+
         
         async function saveFieldsData() {
             const userId = window.auth.currentUser?.uid;
