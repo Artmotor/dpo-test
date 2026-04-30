@@ -5,7 +5,6 @@ class FieldsManager {
         this.collection = 'custom_fields';
     }
 
-    // Получить все поля
     async getAllFields() {
         try {
             const snapshot = await window.db.collection(this.collection).get();
@@ -23,13 +22,11 @@ class FieldsManager {
         }
     }
 
-    // Получить активные поля
     async getActiveFields() {
         const allFields = await this.getAllFields();
         return allFields.filter(field => field.isActive !== false);
     }
 
-    // Добавить поле
     async addField(fieldData) {
         try {
             const fields = await this.getAllFields();
@@ -51,7 +48,6 @@ class FieldsManager {
         }
     }
 
-    // Обновить поле
     async updateField(fieldId, updates) {
         try {
             await window.db.collection(this.collection).doc(fieldId).update({
@@ -66,37 +62,35 @@ class FieldsManager {
         }
     }
 
-    // Удалить поле и все его значения у слушателей
     async deleteField(fieldId) {
         try {
-            console.log(`🗑️ Удаление поля: ${fieldId}`);
+            console.log('Удаление поля:', fieldId);
             
-            // 1. Удаляем значения поля у всех слушателей
+            // Удаляем значения поля у всех слушателей
             const studentsSnapshot = await window.db.collection('users')
                 .where('role', '==', 'student')
                 .get();
             
-            const updatePromises = [];
+            const promises = [];
             studentsSnapshot.forEach(doc => {
                 const userData = doc.data();
                 if (userData.customFields && userData.customFields[fieldId] !== undefined) {
-                    const updatedCustomFields = { ...userData.customFields };
-                    delete updatedCustomFields[fieldId];
-                    updatePromises.push(
+                    const newCustomFields = { ...userData.customFields };
+                    delete newCustomFields[fieldId];
+                    promises.push(
                         window.db.collection('users').doc(doc.id).update({
-                            customFields: updatedCustomFields
+                            customFields: newCustomFields
                         })
                     );
                 }
             });
             
-            await Promise.all(updatePromises);
-            console.log(`✅ Удалены значения у ${updatePromises.length} слушателей`);
+            await Promise.all(promises);
             
-            // 2. Удаляем само поле
+            // Удаляем само поле
             await window.db.collection(this.collection).doc(fieldId).delete();
             
-            console.log(`✅ Поле ${fieldId} удалено из коллекции`);
+            console.log(`Поле ${fieldId} удалено, обновлено ${promises.length} слушателей`);
             return true;
         } catch (error) {
             console.error('Ошибка удаления поля:', error);
@@ -104,7 +98,6 @@ class FieldsManager {
         }
     }
 
-    // Сохранить значения полей для слушателя
     async saveFieldValues(userId, values) {
         try {
             const userRef = window.db.collection('users').doc(userId);
@@ -122,7 +115,6 @@ class FieldsManager {
                 customFields: updatedFields
             });
             
-            console.log(`✅ Сохранены значения полей для пользователя ${userId}`);
             return true;
         } catch (error) {
             console.error('Ошибка сохранения полей:', error);
@@ -130,7 +122,6 @@ class FieldsManager {
         }
     }
 
-    // Получить значения полей для слушателя
     async getFieldValues(userId) {
         try {
             const userDoc = await window.db.collection('users').doc(userId).get();
@@ -144,7 +135,6 @@ class FieldsManager {
         }
     }
 
-    // Проверить заполнение обязательных полей
     async checkRequiredFields(userId) {
         const fields = await this.getActiveFields();
         const values = await this.getFieldValues(userId);
@@ -160,63 +150,6 @@ class FieldsManager {
             missingFields: missingFields
         };
     }
-
-    // Очистить все значения поля у конкретного пользователя
-    async clearFieldValue(userId, fieldId) {
-        try {
-            const userDoc = await window.db.collection('users').doc(userId).get();
-            if (userDoc.exists) {
-                const currentData = userDoc.data();
-                const customFields = currentData.customFields || {};
-                if (customFields[fieldId] !== undefined) {
-                    const updatedCustomFields = { ...customFields };
-                    delete updatedCustomFields[fieldId];
-                    await window.db.collection('users').doc(userId).update({
-                        customFields: updatedCustomFields
-                    });
-                    console.log(`✅ Очищено значение поля ${fieldId} у пользователя ${userId}`);
-                }
-            }
-            return true;
-        } catch (error) {
-            console.error('Ошибка очистки значения поля:', error);
-            throw error;
-        }
-    }
-
-    // Получить статистику по полям
-    async getFieldsStats() {
-        try {
-            const fields = await this.getAllFields();
-            const studentsSnapshot = await window.db.collection('users')
-                .where('role', '==', 'student')
-                .get();
-            
-            const stats = {};
-            for (const field of fields) {
-                let filledCount = 0;
-                studentsSnapshot.forEach(doc => {
-                    const userData = doc.data();
-                    if (userData.customFields && userData.customFields[field.id] && userData.customFields[field.id].trim() !== '') {
-                        filledCount++;
-                    }
-                });
-                stats[field.id] = {
-                    label: field.label,
-                    total: studentsSnapshot.size,
-                    filled: filledCount,
-                    percentage: studentsSnapshot.size > 0 ? Math.round((filledCount / studentsSnapshot.size) * 100) : 0
-                };
-            }
-            return stats;
-        } catch (error) {
-            console.error('Ошибка получения статистики полей:', error);
-            return {};
-        }
-    }
 }
 
-// Создаем глобальный экземпляр
 window.fieldsManager = new FieldsManager();
-
-console.log('✅ fields-manager.js загружен');
