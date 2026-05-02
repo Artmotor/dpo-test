@@ -111,7 +111,9 @@
         }
         .form-actions { display: flex; gap: 10px; margin-top: 20px; }
         .save-btn { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; width: auto; }
+        .save-btn:hover { background: #1e7e34; }
         .cancel-btn { background: var(--secondary); color: var(--dark); border: none; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; width: auto; }
+        .cancel-btn:hover { background: #e0a800; }
         .success-message, .error-message {
             position: fixed;
             top: 20px;
@@ -128,15 +130,9 @@
         .success-message { background: var(--success); color: white; }
         .error-message { background: var(--danger); color: white; }
         .custom-field { margin-bottom: 20px; padding: 15px; border: 1px solid var(--gray); border-radius: var(--radius-sm); background: #fafafa; transition: all 0.3s; }
-        .custom-field.required-missing { border-left: 4px solid var(--warning); background: #fff8e1; }
-        .required-star { color: var(--danger); margin-left: 5px; }
-        .radio-group { display: flex; flex-wrap: wrap; gap: 20px; padding: 10px 0; }
-        .radio-group label { display: inline-flex; align-items: center; cursor: pointer; font-weight: normal; margin-bottom: 0; }
-        .radio-group input[type="radio"] { width: 18px; height: 18px; margin-right: 8px; cursor: pointer; accent-color: var(--primary); }
         .save-fields-btn { background: var(--success); color: white; border: none; padding: 12px 24px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; margin-top: 10px; }
         .save-fields-btn:hover { background: #1e7e34; transform: translateY(-2px); }
         .warning-banner { background: #fff3cd; border: 1px solid #ffc107; padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .warning-btn { background: #ffc107; color: #856404; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; }
         @media (max-width: 768px) {
             .header { padding: 15px 20px; }
             .tabs { flex-direction: column; }
@@ -194,136 +190,6 @@
     <script src="common.js"></script>
     <script src="fields-manager.js"></script>
     <script src="student-fields.js"></script>
-
-    <script>
-        let currentUserData = null;
-        let currentEditMode = null;
-
-        function showSuccess(msg) { let el = document.getElementById('successMessage'); if(el){ el.textContent = msg; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 3000); } }
-        function showError(msg) { let el = document.getElementById('errorMessage'); if(el){ el.textContent = msg; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 5000); } }
-        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
-        function formatDate(ts) { if(!ts) return '—'; try { const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString('ru-RU'); } catch(e) { return '—'; } }
-
-        function switchTab(tabName) {
-            const tabs = ['profile', 'documents', 'address', 'additionalFields'];
-            tabs.forEach(tab => {
-                const el = document.getElementById(`${tab}Tab`);
-                const btn = document.querySelector(`[onclick="switchTab('${tab}')"]`);
-                if(el) {
-                    if(tab === tabName) { el.classList.add('active'); if(btn) btn.classList.add('active'); }
-                    else { el.classList.remove('active'); if(btn) btn.classList.remove('active'); }
-                }
-            });
-            if(tabName === 'additionalFields' && typeof loadCustomFields === 'function') {
-                setTimeout(() => loadCustomFields(), 100);
-            }
-        }
-
-        async function loadUserData() {
-            const user = window.auth.currentUser;
-            if(!user) return;
-            try {
-                const doc = await window.db.collection('users').doc(user.uid).get();
-                if(!doc.exists) {
-                    const defaultData = { fullName: user.email.split('@')[0], email: user.email, phone: '', education: '', role: 'student', emailVerified: user.emailVerified, createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastLogin: firebase.firestore.FieldValue.serverTimestamp(), actualAddress: '', registrationAddress: '', passportNumber: '', passportIssuedBy: '', passportIssueDate: '', snils: '' };
-                    await window.db.collection('users').doc(user.uid).set(defaultData);
-                    currentUserData = defaultData;
-                } else { currentUserData = doc.data(); }
-                document.getElementById('userName').textContent = currentUserData.fullName || currentUserData.email;
-                displayProfileData();
-                displayDocumentsData();
-                displayAddressData();
-            } catch(e) { console.error(e); showError('Ошибка загрузки данных'); }
-        }
-
-        function displayProfileData() {
-            const container = document.getElementById('profileInfo');
-            if(!container) return;
-            container.innerHTML = `<div class="info-row"><span class="info-label">ФИО:</span><span class="info-value">${escapeHtml(currentUserData?.fullName || 'Не указано')}</span></div>
-                <div class="info-row"><span class="info-label">Email:</span><span class="info-value">${escapeHtml(currentUserData?.email || 'Не указан')}</span></div>
-                <div class="info-row"><span class="info-label">Телефон:</span><span class="info-value">${escapeHtml(currentUserData?.phone || 'Не указан')}</span></div>
-                <div class="info-row"><span class="info-label">Образование:</span><span class="info-value">${escapeHtml(currentUserData?.education || 'Не указано')}</span></div>
-                <div class="info-row"><span class="info-label">Дата регистрации:</span><span class="info-value">${formatDate(currentUserData?.createdAt)}</span></div>`;
-        }
-
-        function displayDocumentsData() {
-            const container = document.getElementById('documentsInfo');
-            if(!container) return;
-            container.innerHTML = `<div class="info-row"><span class="info-label">Номер паспорта:</span><span class="info-value">${escapeHtml(currentUserData?.passportNumber || 'Не указан')}</span></div>
-                <div class="info-row"><span class="info-label">Кем выдан:</span><span class="info-value">${escapeHtml(currentUserData?.passportIssuedBy || 'Не указано')}</span></div>
-                <div class="info-row"><span class="info-label">Когда выдан:</span><span class="info-value">${escapeHtml(currentUserData?.passportIssueDate || 'Не указано')}</span></div>
-                <div class="info-row"><span class="info-label">СНИЛС:</span><span class="info-value">${escapeHtml(currentUserData?.snils || 'Не указан')}</span></div>`;
-        }
-
-        function displayAddressData() {
-            const container = document.getElementById('addressInfo');
-            if(!container) return;
-            container.innerHTML = `<div class="info-row"><span class="info-label">Фактический адрес:</span><span class="info-value">${escapeHtml(currentUserData?.actualAddress || 'Не указан')}</span></div>
-                <div class="info-row"><span class="info-label">Адрес прописки:</span><span class="info-value">${escapeHtml(currentUserData?.registrationAddress || 'Не указан')}</span></div>`;
-        }
-
-        function editProfile() {
-            currentEditMode = 'profile';
-            document.getElementById('profileInfo').innerHTML = `<div class="form-group"><label>ФИО</label><input type="text" id="editFullName" value="${escapeHtml(currentUserData?.fullName || '')}"></div>
-                <div class="form-group"><label>Телефон</label><input type="tel" id="editPhone" value="${escapeHtml(currentUserData?.phone || '')}"></div>
-                <div class="form-group"><label>Образование</label><select id="editEducation"><option value="высшее" ${currentUserData?.education === 'высшее' ? 'selected' : ''}>Высшее</option><option value="среднее-специальное" ${currentUserData?.education === 'среднее-специальное' ? 'selected' : ''}>Среднее специальное</option><option value="среднее" ${currentUserData?.education === 'среднее' ? 'selected' : ''}>Среднее</option></select></div>
-                <div class="form-actions"><button class="save-btn" onclick="saveProfile()">💾 Сохранить</button><button class="cancel-btn" onclick="cancelEdit()">❌ Отмена</button></div>`;
-        }
-
-        async function saveProfile() {
-            const user = window.auth.currentUser;
-            if(!user) return;
-            const updates = { fullName: document.getElementById('editFullName')?.value || '', phone: document.getElementById('editPhone')?.value || '', education: document.getElementById('editEducation')?.value || '' };
-            try { await window.db.collection('users').doc(user.uid).update(updates); currentUserData = { ...currentUserData, ...updates }; displayProfileData(); showSuccess('✅ Данные обновлены!'); currentEditMode = null; } 
-            catch(e) { showError('Ошибка сохранения'); }
-        }
-
-        function editDocuments() {
-            currentEditMode = 'documents';
-            document.getElementById('documentsInfo').innerHTML = `<div class="form-group"><label>Номер паспорта</label><input type="text" id="editPassportNumber" value="${escapeHtml(currentUserData?.passportNumber || '')}"></div>
-                <div class="form-group"><label>Кем выдан</label><input type="text" id="editPassportIssuedBy" value="${escapeHtml(currentUserData?.passportIssuedBy || '')}"></div>
-                <div class="form-group"><label>Когда выдан</label><input type="date" id="editPassportIssueDate" value="${currentUserData?.passportIssueDate || ''}"></div>
-                <div class="form-group"><label>СНИЛС</label><input type="text" id="editSnils" value="${escapeHtml(currentUserData?.snils || '')}"></div>
-                <div class="form-actions"><button class="save-btn" onclick="saveDocuments()">💾 Сохранить</button><button class="cancel-btn" onclick="cancelEdit()">❌ Отмена</button></div>`;
-        }
-
-        async function saveDocuments() {
-            const user = window.auth.currentUser;
-            if(!user) return;
-            const updates = { passportNumber: document.getElementById('editPassportNumber')?.value || '', passportIssuedBy: document.getElementById('editPassportIssuedBy')?.value || '', passportIssueDate: document.getElementById('editPassportIssueDate')?.value || '', snils: document.getElementById('editSnils')?.value || '' };
-            try { await window.db.collection('users').doc(user.uid).update(updates); currentUserData = { ...currentUserData, ...updates }; displayDocumentsData(); showSuccess('✅ Данные обновлены!'); currentEditMode = null; } 
-            catch(e) { showError('Ошибка сохранения'); }
-        }
-
-        function editAddress() {
-            currentEditMode = 'address';
-            document.getElementById('addressInfo').innerHTML = `<div class="form-group"><label>Фактический адрес</label><input type="text" id="editActualAddress" value="${escapeHtml(currentUserData?.actualAddress || '')}"></div>
-                <div class="form-group"><label>Адрес прописки</label><input type="text" id="editRegistrationAddress" value="${escapeHtml(currentUserData?.registrationAddress || '')}"></div>
-                <div class="form-actions"><button class="save-btn" onclick="saveAddress()">💾 Сохранить</button><button class="cancel-btn" onclick="cancelEdit()">❌ Отмена</button></div>`;
-        }
-
-        async function saveAddress() {
-            const user = window.auth.currentUser;
-            if(!user) return;
-            const updates = { actualAddress: document.getElementById('editActualAddress')?.value || '', registrationAddress: document.getElementById('editRegistrationAddress')?.value || '' };
-            try { await window.db.collection('users').doc(user.uid).update(updates); currentUserData = { ...currentUserData, ...updates }; displayAddressData(); showSuccess('✅ Данные обновлены!'); currentEditMode = null; } 
-            catch(e) { showError('Ошибка сохранения'); }
-        }
-
-        function cancelEdit() {
-            if(currentEditMode === 'profile') displayProfileData();
-            else if(currentEditMode === 'documents') displayDocumentsData();
-            else if(currentEditMode === 'address') displayAddressData();
-            currentEditMode = null;
-        }
-
-        async function logout() { await window.auth.signOut(); window.location.href = 'index.html'; }
-
-        window.auth.onAuthStateChanged(async (user) => {
-            if(!user || !user.emailVerified) { window.location.href = 'index.html'; return; }
-            await loadUserData();
-            setTimeout(() => { if(typeof loadCustomFields === 'function') loadCustomFields(); }, 500);
-        });
-    </script>
+    <script src="student.js"></script>
 </body>
 </html>
