@@ -32,13 +32,31 @@ class FieldsManager {
     // Добавить поле
     async addField(fieldData) {
         try {
+            // Валидация
+            if (!fieldData.id || !fieldData.label) {
+                throw new Error('ID и название поля обязательны');
+            }
+            
+            if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(fieldData.id)) {
+                throw new Error('ID поля должен содержать только латиницу, цифры и underscores');
+            }
+            
             const fields = await this.getAllFields();
+            if (fields.some(f => f.id === fieldData.id)) {
+                throw new Error('Поле с таким ID уже существует');
+            }
+            
+            if ((fieldData.type === 'radio' || fieldData.type === 'select') && 
+                (!fieldData.options || fieldData.options.length === 0)) {
+                throw new Error('Для radio/select нужно указать хотя бы один вариант');
+            }
+            
             const newOrder = fields.length;
             
             const newField = {
                 ...fieldData,
-                order: newOrder,
-                isActive: true,
+                order: fieldData.order !== undefined ? fieldData.order : newOrder,
+                isActive: fieldData.isActive !== false,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 createdBy: window.auth.currentUser?.uid
             };
@@ -54,6 +72,16 @@ class FieldsManager {
     // Обновить поле
     async updateField(fieldId, updates) {
         try {
+            // Валидация
+            if (updates.label && !updates.label.trim()) {
+                throw new Error('Название поля не может быть пустым');
+            }
+            
+            if ((updates.type === 'radio' || updates.type === 'select') && 
+                updates.options && updates.options.length === 0) {
+                throw new Error('Для radio/select нужно указать хотя бы один вариант');
+            }
+            
             await window.db.collection(this.collection).doc(fieldId).update({
                 ...updates,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -108,6 +136,23 @@ class FieldsManager {
     // Сохранить значения полей для слушателя
     async saveFieldValues(userId, values) {
         try {
+            // Получаем активные поля для валидации
+            const activeFields = await this.getActiveFields();
+            const requiredFields = activeFields.filter(f => f.isRequired);
+            
+            // Проверяем обязательные поля
+            const missingFields = [];
+            for (const field of requiredFields) {
+                const value = values[field.id];
+                if (!value || (typeof value === 'string' && value.trim() === '')) {
+                    missingFields.push(field.label);
+                }
+            }
+            
+            if (missingFields.length > 0) {
+                throw new Error(`Заполните обязательные поля: ${missingFields.join(', ')}`);
+            }
+            
             const userRef = window.db.collection('users').doc(userId);
             const userDoc = await userRef.get();
             
@@ -120,7 +165,8 @@ class FieldsManager {
             const updatedFields = { ...customFields, ...values };
             
             await userRef.update({
-                customFields: updatedFields
+                customFields: updatedFields,
+                customFieldsUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             
             console.log('✅ Значения полей сохранены');
@@ -153,7 +199,7 @@ class FieldsManager {
         const requiredFields = fields.filter(f => f.isRequired);
         const missingFields = requiredFields.filter(f => {
             const value = values[f.id];
-            return !value || value.trim() === '';
+            return !value || (typeof value === 'string' && value.trim() === '');
         });
         
         return {
