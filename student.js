@@ -5,7 +5,7 @@ let currentEditMode = null;
 
 // Переключение вкладок
 function switchTab(tabName) {
-    const tabs = ['profile', 'documents', 'address'];
+    const tabs = ['profile', 'documents', 'address', 'additionalFields'];
     tabs.forEach(tab => {
         const tabElement = document.getElementById(`${tab}Tab`);
         const btnElement = document.querySelector(`[onclick="switchTab('${tab}')"]`);
@@ -19,6 +19,11 @@ function switchTab(tabName) {
             }
         }
     });
+    
+    // Загружаем дополнительные поля при переключении на соответствующую вкладку
+    if (tabName === 'additionalFields' && typeof window.loadCustomFields === 'function') {
+        setTimeout(() => window.loadCustomFields(), 100);
+    }
 }
 
 // Загрузка данных пользователя
@@ -34,7 +39,6 @@ async function loadUserData() {
         
         if (!doc.exists) {
             console.log('Документ пользователя не найден, создаем...');
-            // Создаем документ, если его нет
             const defaultData = {
                 fullName: user.email.split('@')[0],
                 email: user.email,
@@ -49,18 +53,28 @@ async function loadUserData() {
                 passportNumber: '',
                 passportIssuedBy: '',
                 passportIssueDate: '',
-                snils: ''
+                snils: '',
+                customFields: {}
             };
             await window.db.collection('users').doc(user.uid).set(defaultData);
             currentUserData = defaultData;
         } else {
             currentUserData = doc.data();
+            if (!currentUserData.customFields) {
+                currentUserData.customFields = {};
+            }
         }
         
         // Отображаем данные
         displayProfileData();
         displayDocumentsData();
         displayAddressData();
+        
+        // Обновляем имя пользователя в хедере
+        const userNameSpan = document.getElementById('userName');
+        if (userNameSpan) {
+            userNameSpan.textContent = currentUserData.fullName || currentUserData.email;
+        }
         
     } catch (error) {
         console.error('Ошибка загрузки данных:', error);
@@ -76,19 +90,19 @@ function displayProfileData() {
     container.innerHTML = `
         <div class="info-row">
             <span class="info-label">ФИО:</span>
-            <span class="info-value">${currentUserData?.fullName || 'Не указано'}</span>
+            <span class="info-value">${escapeHtml(currentUserData?.fullName || 'Не указано')}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Email:</span>
-            <span class="info-value">${currentUserData?.email || 'Не указан'}</span>
+            <span class="info-value">${escapeHtml(currentUserData?.email || 'Не указан')}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Телефон:</span>
-            <span class="info-value">${currentUserData?.phone || 'Не указан'}</span>
+            <span class="info-value">${escapeHtml(currentUserData?.phone || 'Не указан')}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Образование:</span>
-            <span class="info-value">${currentUserData?.education || 'Не указано'}</span>
+            <span class="info-value">${escapeHtml(currentUserData?.education || 'Не указано')}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Дата регистрации:</span>
@@ -105,19 +119,19 @@ function displayDocumentsData() {
     container.innerHTML = `
         <div class="info-row">
             <span class="info-label">Номер паспорта:</span>
-            <span class="info-value">${currentUserData?.passportNumber || 'Не указан'}</span>
+            <span class="info-value">${escapeHtml(currentUserData?.passportNumber || 'Не указан')}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Кем выдан:</span>
-            <span class="info-value">${currentUserData?.passportIssuedBy || 'Не указано'}</span>
+            <span class="info-value">${escapeHtml(currentUserData?.passportIssuedBy || 'Не указано')}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Когда выдан:</span>
-            <span class="info-value">${currentUserData?.passportIssueDate || 'Не указано'}</span>
+            <span class="info-value">${escapeHtml(currentUserData?.passportIssueDate || 'Не указано')}</span>
         </div>
         <div class="info-row">
             <span class="info-label">СНИЛС:</span>
-            <span class="info-value">${currentUserData?.snils || 'Не указан'}</span>
+            <span class="info-value">${escapeHtml(currentUserData?.snils || 'Не указан')}</span>
         </div>
     `;
 }
@@ -130,11 +144,11 @@ function displayAddressData() {
     container.innerHTML = `
         <div class="info-row">
             <span class="info-label">Фактический адрес:</span>
-            <span class="info-value">${currentUserData?.actualAddress || 'Не указан'}</span>
+            <span class="info-value">${escapeHtml(currentUserData?.actualAddress || 'Не указан')}</span>
         </div>
         <div class="info-row">
             <span class="info-label">Адрес прописки:</span>
-            <span class="info-value">${currentUserData?.registrationAddress || 'Не указан'}</span>
+            <span class="info-value">${escapeHtml(currentUserData?.registrationAddress || 'Не указан')}</span>
         </div>
     `;
 }
@@ -146,11 +160,11 @@ function editProfile() {
     container.innerHTML = `
         <div class="form-group">
             <label>ФИО</label>
-            <input type="text" id="editFullName" value="${currentUserData?.fullName || ''}">
+            <input type="text" id="editFullName" value="${escapeHtml(currentUserData?.fullName || '')}">
         </div>
         <div class="form-group">
             <label>Телефон</label>
-            <input type="tel" id="editPhone" value="${currentUserData?.phone || ''}">
+            <input type="tel" id="editPhone" value="${escapeHtml(currentUserData?.phone || '')}">
         </div>
         <div class="form-group">
             <label>Образование</label>
@@ -182,7 +196,7 @@ async function saveProfile() {
         await window.db.collection('users').doc(user.uid).update(updates);
         currentUserData = { ...currentUserData, ...updates };
         displayProfileData();
-        showSuccess('Данные успешно обновлены!', 'successMessage');
+        showSuccess('Данные успешно обновлены!');
         currentEditMode = null;
     } catch (error) {
         console.error('Ошибка сохранения:', error);
@@ -197,11 +211,11 @@ function editDocuments() {
     container.innerHTML = `
         <div class="form-group">
             <label>Номер паспорта</label>
-            <input type="text" id="editPassportNumber" value="${currentUserData?.passportNumber || ''}" placeholder="Серия и номер паспорта">
+            <input type="text" id="editPassportNumber" value="${escapeHtml(currentUserData?.passportNumber || '')}" placeholder="Серия и номер паспорта">
         </div>
         <div class="form-group">
             <label>Кем выдан паспорт</label>
-            <input type="text" id="editPassportIssuedBy" value="${currentUserData?.passportIssuedBy || ''}" placeholder="Кем выдан">
+            <input type="text" id="editPassportIssuedBy" value="${escapeHtml(currentUserData?.passportIssuedBy || '')}" placeholder="Кем выдан">
         </div>
         <div class="form-group">
             <label>Когда выдан паспорт</label>
@@ -209,7 +223,7 @@ function editDocuments() {
         </div>
         <div class="form-group">
             <label>СНИЛС</label>
-            <input type="text" id="editSnils" value="${currentUserData?.snils || ''}" placeholder="Номер СНИЛС">
+            <input type="text" id="editSnils" value="${escapeHtml(currentUserData?.snils || '')}" placeholder="Номер СНИЛС">
         </div>
         <div class="form-actions">
             <button class="save-btn" onclick="saveDocuments()">Сохранить</button>
@@ -234,7 +248,7 @@ async function saveDocuments() {
         await window.db.collection('users').doc(user.uid).update(updates);
         currentUserData = { ...currentUserData, ...updates };
         displayDocumentsData();
-        showSuccess('Данные успешно обновлены!', 'successMessage');
+        showSuccess('Данные успешно обновлены!');
         currentEditMode = null;
     } catch (error) {
         console.error('Ошибка сохранения:', error);
@@ -249,11 +263,11 @@ function editAddress() {
     container.innerHTML = `
         <div class="form-group">
             <label>Фактический адрес</label>
-            <input type="text" id="editActualAddress" value="${currentUserData?.actualAddress || ''}" placeholder="Индекс, город, улица, дом, кв.">
+            <input type="text" id="editActualAddress" value="${escapeHtml(currentUserData?.actualAddress || '')}" placeholder="Индекс, город, улица, дом, кв.">
         </div>
         <div class="form-group">
             <label>Адрес прописки</label>
-            <input type="text" id="editRegistrationAddress" value="${currentUserData?.registrationAddress || ''}" placeholder="Индекс, город, улица, дом, кв.">
+            <input type="text" id="editRegistrationAddress" value="${escapeHtml(currentUserData?.registrationAddress || '')}" placeholder="Индекс, город, улица, дом, кв.">
         </div>
         <div class="form-actions">
             <button class="save-btn" onclick="saveAddress()">Сохранить</button>
@@ -276,7 +290,7 @@ async function saveAddress() {
         await window.db.collection('users').doc(user.uid).update(updates);
         currentUserData = { ...currentUserData, ...updates };
         displayAddressData();
-        showSuccess('Данные успешно обновлены!', 'successMessage');
+        showSuccess('Данные успешно обновлены!');
         currentEditMode = null;
     } catch (error) {
         console.error('Ошибка сохранения:', error);
@@ -296,38 +310,16 @@ function cancelEdit() {
     currentEditMode = null;
 }
 
-// Функции для форматирования (если нет в common.js)
-function formatDate(timestamp) {
-    if (!timestamp) return 'Не указана';
-    try {
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        return date.toLocaleDateString('ru-RU');
-    } catch (e) {
-        return 'Не указана';
-    }
-}
-
-function showSuccess(message, elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.textContent = message;
-        element.style.display = 'block';
-        setTimeout(() => {
-            element.style.display = 'none';
-        }, 3000);
-    }
-}
-
-function showError(elementId, message) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.textContent = message;
-        element.style.display = 'block';
-        setTimeout(() => {
-            element.style.display = 'none';
-        }, 5000);
-    }
-}
+// Экспортируем функции в глобальную область
+window.switchTab = switchTab;
+window.loadUserData = loadUserData;
+window.editProfile = editProfile;
+window.saveProfile = saveProfile;
+window.editDocuments = editDocuments;
+window.saveDocuments = saveDocuments;
+window.editAddress = editAddress;
+window.saveAddress = saveAddress;
+window.cancelEdit = cancelEdit;
 
 // Инициализация
 window.auth.onAuthStateChanged(async (user) => {
@@ -340,6 +332,10 @@ window.auth.onAuthStateChanged(async (user) => {
             window.location.href = 'index.html';
         } else {
             await loadUserData();
+            // Загружаем дополнительные поля если они есть
+            if (typeof window.loadCustomFields === 'function') {
+                setTimeout(() => window.loadCustomFields(), 500);
+            }
         }
     } else {
         window.location.href = 'index.html';
