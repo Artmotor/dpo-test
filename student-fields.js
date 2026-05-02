@@ -59,11 +59,12 @@ function displayCustomFields(fields, values) {
                 </label>
                 ${renderFieldInput(field, value)}
                 ${field.semantics ? `<small style="display:block; margin-top:5px; color:#667eea;">🔗 ${escapeHtml(field.semantics)}</small>` : ''}
+                ${field.placeholder ? `<small style="display:block; margin-top:5px; color:#999;">${escapeHtml(field.placeholder)}</small>` : ''}
             </div>
         `;
     }
     
-    html += `<button class="save-fields-btn" onclick="saveCustomFields()" style="background:#28a745; color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer; margin-top:10px;">💾 Сохранить</button>`;
+    html += `<button class="save-fields-btn" onclick="saveCustomFields()" style="background:#28a745; color:white; border:none; padding:12px 24px; border-radius:8px; cursor:pointer; margin-top:10px; font-weight:500;">💾 Сохранить все данные</button>`;
     
     container.innerHTML = html;
 }
@@ -102,10 +103,22 @@ function renderFieldInput(field, value) {
             return selectHtml;
             
         case 'textarea':
-            return `<textarea id="${fieldId}" rows="3" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;">${escapeHtml(value)}</textarea>`;
+            return `<textarea id="${fieldId}" rows="3" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;" placeholder="${escapeHtml(field.placeholder || '')}">${escapeHtml(value)}</textarea>`;
+            
+        case 'email':
+            return `<input type="email" id="${fieldId}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.placeholder || '')}" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;">`;
+            
+        case 'tel':
+            return `<input type="tel" id="${fieldId}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.placeholder || '')}" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;">`;
+            
+        case 'date':
+            return `<input type="date" id="${fieldId}" value="${escapeHtml(value)}" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;">`;
+            
+        case 'number':
+            return `<input type="number" id="${fieldId}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.placeholder || '')}" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;">`;
             
         default:
-            return `<input type="${field.type || 'text'}" id="${fieldId}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.placeholder || '')}" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;">`;
+            return `<input type="text" id="${fieldId}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.placeholder || '')}" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;">`;
     }
 }
 
@@ -117,6 +130,7 @@ async function saveCustomFields() {
     const fields = await window.fieldsManager.getActiveFields();
     const values = {};
     
+    // Собираем значения
     for (const field of fields) {
         if (field.type === 'radio') {
             const selected = document.querySelector(`input[name="field_${field.id}"]:checked`);
@@ -127,6 +141,27 @@ async function saveCustomFields() {
                 values[field.id] = element.value;
             }
         }
+    }
+    
+    // Проверка обязательных полей на клиенте
+    const requiredFields = fields.filter(f => f.isRequired);
+    const missingRequired = [];
+    
+    for (const field of requiredFields) {
+        const value = values[field.id];
+        if (!value || (typeof value === 'string' && value.trim() === '')) {
+            missingRequired.push(field.label);
+        }
+    }
+    
+    if (missingRequired.length > 0) {
+        showMessage(`⚠️ Заполните обязательные поля: ${missingRequired.join(', ')}`, 'error');
+        // Прокручиваем к первому незаполненному полю
+        const firstMissing = document.querySelector('.custom-field[style*="border-left: 4px solid #ff9800"]');
+        if (firstMissing) {
+            firstMissing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
     }
     
     const btn = document.querySelector('.save-fields-btn');
@@ -187,6 +222,10 @@ function showMessage(message, type) {
         setTimeout(() => {
             el.style.display = 'none';
         }, 3000);
+    } else if (type === 'success') {
+        showSuccess(message);
+    } else {
+        showError('errorMessage', message);
     }
 }
 
@@ -199,6 +238,13 @@ function escapeHtml(str) {
         return m;
     });
 }
+
+// Экспортируем функции в глобальную область
+window.loadCustomFields = loadCustomFields;
+window.refreshCustomFields = refreshCustomFields;
+window.saveCustomFields = saveCustomFields;
+window.showMissingWarning = showMissingWarning;
+window.hideMissingWarning = hideMissingWarning;
 
 // Инициализация
 if (document.getElementById('customFieldsContainer')) {
