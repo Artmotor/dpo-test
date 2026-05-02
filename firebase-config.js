@@ -19,9 +19,6 @@ if (typeof firebase !== 'undefined') {
     window.auth = firebase.auth();
     window.db = firebase.firestore();
     
-    // Убираем storage - он не нужен и вызывает ошибку
-    // window.storage = firebase.storage();
-    
     // Настройки Firestore
     try {
         window.db.settings({ 
