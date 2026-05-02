@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Панель методиста - Институт ДПО</title>
+    <title>Панель администратора - Институт ДПО</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -14,7 +14,6 @@
             --secondary: #ffc107;
             --danger: #dc3545;
             --success: #28a745;
-            --warning: #ff9800;
             --gray-light: #f5f5f5;
             --gray: #ddd;
             --dark: #333;
@@ -28,10 +27,11 @@
             font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             min-height: 100vh;
+            color: var(--dark);
         }
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
+            color: var(--white);
             padding: 20px 30px;
             display: flex;
             justify-content: space-between;
@@ -46,10 +46,8 @@
         .logo-area { display: flex; align-items: center; gap: 15px; }
         .logo { font-size: 36px; background: var(--secondary); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .header h1 { font-size: clamp(18px, 5vw, 24px); font-weight: 500; }
-        .user-info { display: flex; align-items: center; gap: 15px; }
-        .user-name { background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 14px; }
         .btn-logout { background: var(--danger); color: white; border: none; padding: 10px 24px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; }
-        .btn-logout:hover { transform: translateY(-2px); }
+        .btn-logout:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
         .container { max-width: 1400px; margin: 30px auto; padding: 0 20px; }
         .stats-grid {
             display: grid;
@@ -58,12 +56,13 @@
             margin-bottom: 30px;
         }
         .stat-card {
-            background: white;
+            background: var(--white);
             border-radius: var(--radius);
             padding: 25px;
             text-align: center;
             box-shadow: var(--shadow);
             transition: all 0.3s;
+            cursor: pointer;
         }
         .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
         .stat-icon { font-size: 40px; margin-bottom: 10px; }
@@ -73,7 +72,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 25px;
-            background: white;
+            background: var(--white);
             padding: 10px;
             border-radius: var(--radius);
             box-shadow: var(--shadow);
@@ -88,13 +87,12 @@
             font-size: 15px;
             font-weight: 500;
             transition: all 0.3s;
-            color: var(--dark);
         }
         .tab-btn:hover { background: var(--gray); transform: translateY(-2px); }
         .tab-btn.active { background: var(--primary); color: white; }
         .tab-content {
             display: none;
-            background: white;
+            background: var(--white);
             padding: 30px;
             border-radius: var(--radius);
             box-shadow: var(--shadow);
@@ -102,18 +100,88 @@
         }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .form-card {
+            background: var(--gray-light);
+            padding: 25px;
+            border-radius: var(--radius);
+            margin-bottom: 30px;
+        }
+        .form-card h3 { margin-bottom: 20px; color: var(--primary); }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--gray);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .password-wrapper { position: relative; }
+        .password-wrapper input { padding-right: 45px; }
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--dark);
+            border: none;
+            padding: 12px 28px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+        }
         .search-box { margin-bottom: 20px; }
-        .search-box input { width: 100%; max-width: 400px; padding: 12px 15px; border: 2px solid var(--gray); border-radius: var(--radius-sm); font-size: 14px; }
+        .search-box input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 15px;
+            border: 2px solid var(--gray);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+        }
         .table-responsive { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--gray); }
         th { background: var(--gray-light); font-weight: 600; }
         tr:hover { background: var(--gray-light); }
-        .edit-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; transition: all 0.3s; }
-        .edit-btn:hover { transform: scale(1.05); }
-        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-        .status-verified { background: #d4edda; color: #155724; }
-        .status-unverified { background: #fff3cd; color: #856404; }
         .modal {
             display: none;
             position: fixed;
@@ -126,13 +194,13 @@
             backdrop-filter: blur(3px);
         }
         .modal-content {
-            background-color: white;
-            margin: 3% auto;
+            background-color: var(--white);
+            margin: 5% auto;
             padding: 0;
             border-radius: var(--radius);
             width: 90%;
-            max-width: 850px;
-            max-height: 90vh;
+            max-width: 700px;
+            max-height: 85vh;
             overflow-y: auto;
         }
         .modal-header {
@@ -149,30 +217,6 @@
         .close { font-size: 28px; font-weight: bold; cursor: pointer; }
         .close:hover { color: var(--secondary); }
         .modal-body { padding: 25px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid var(--gray);
-            border-radius: var(--radius-sm);
-            font-size: 14px;
-            font-family: inherit;
-        }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        .readonly-field { background: #f5f5f5; color: #666; cursor: not-allowed; }
-        hr { margin: 20px 0; border: none; border-top: 1px solid var(--gray); }
-        h4 { margin-bottom: 15px; color: var(--primary); font-weight: 500; }
-        .form-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .save-btn { background: var(--success); color: white; border: none; padding: 12px 24px; border-radius: var(--radius-sm); cursor: pointer; flex: 1; }
-        .cancel-btn { background: var(--secondary); color: var(--dark); border: none; padding: 12px 24px; border-radius: var(--radius-sm); cursor: pointer; flex: 1; }
-        .dynamic-field { margin-bottom: 20px; padding: 15px; border: 1px solid var(--gray); border-radius: var(--radius-sm); background: #fafafa; }
-        .radio-group { display: flex; flex-wrap: wrap; gap: 20px; padding: 10px 0; }
-        .radio-group label { display: inline-flex; align-items: center; cursor: pointer; font-weight: normal; margin-bottom: 0; }
-        .radio-group input[type="radio"] { width: 18px; height: 18px; margin-right: 8px; cursor: pointer; accent-color: var(--primary); }
         .toast-message {
             position: fixed;
             top: 20px;
@@ -188,83 +232,125 @@
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .toast-success { background: var(--success); color: white; }
         .toast-error { background: var(--danger); color: white; }
+        .toast-warning { background: #ff9800; color: white; }
         .empty-state { text-align: center; padding: 50px; color: #999; }
         .empty-state-icon { font-size: 64px; margin-bottom: 15px; }
         @media (max-width: 768px) {
             .tabs { flex-direction: column; }
             .tab-btn { width: 100%; text-align: center; }
             .stats-grid { grid-template-columns: 1fr; }
-            .form-actions { flex-direction: column; }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo-area"><div class="logo">📚</div><h1>Институт ДПО - Панель методиста</h1></div>
-        <div class="user-info"><span class="user-name" id="userName">Загрузка...</span><button class="btn-logout" onclick="logout()">🚪 Выйти</button></div>
+        <div class="logo-area">
+            <div class="logo">🎓</div>
+            <h1>Институт ДПО - Панель администратора</h1>
+        </div>
+        <button class="btn-logout" onclick="logout()">🚪 Выйти</button>
     </div>
 
     <div class="container">
         <div id="toastSuccess" class="toast-message toast-success"></div>
         <div id="toastError" class="toast-message toast-error"></div>
+        <div id="toastWarning" class="toast-message toast-warning"></div>
 
         <div class="stats-grid">
-            <div class="stat-card"><div class="stat-icon">🎓</div><div class="stat-number" id="totalStudents">0</div><div class="stat-label">Всего слушателей</div></div>
-            <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-number" id="verifiedStudents">0</div><div class="stat-label">Подтвердили email</div></div>
-            <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-number" id="activeStudents">0</div><div class="stat-label">Активных слушателей</div></div>
+            <div class="stat-card" onclick="switchTab('metodists')">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number" id="totalMetodists">0</div>
+                <div class="stat-label">Методистов</div>
+            </div>
+            <div class="stat-card" onclick="switchTab('students')">
+                <div class="stat-icon">🎓</div>
+                <div class="stat-number" id="totalStudents">0</div>
+                <div class="stat-label">Слушателей</div>
+            </div>
+            <div class="stat-card" onclick="switchTab('students')">
+                <div class="stat-icon">✅</div>
+                <div class="stat-number" id="verifiedStudents">0</div>
+                <div class="stat-label">Подтвердили email</div>
+            </div>
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('students')">👥 Слушатели</button>
+            <button class="tab-btn active" onclick="switchTab('metodists')">👥 Управление методистами</button>
+            <button class="tab-btn" onclick="switchTab('students')">🎓 Слушатели</button>
             <button class="tab-btn" onclick="switchTab('fields')">⚙️ Управление полями</button>
         </div>
 
-        <div id="studentsTab" class="tab-content active">
-            <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 Поиск по ФИО, email или телефону..." onkeyup="searchStudents()"></div>
+        <!-- Вкладка методистов -->
+        <div id="metodistsTab" class="tab-content active">
+            <div class="form-card">
+                <h3>➕ Создать методиста</h3>
+                <div class="form-grid">
+                    <div class="form-group"><label>ФИО *</label><input type="text" id="metodistFullName" placeholder="Иванов Иван Иванович"></div>
+                    <div class="form-group"><label>Email *</label><input type="email" id="metodistEmail" placeholder="metodist@vgau.edu37.ru"></div>
+                    <div class="form-group"><label>Телефон</label><input type="tel" id="metodistPhone" placeholder="+7 (XXX) XXX-XX-XX"></div>
+                    <div class="form-group">
+                        <div class="password-wrapper">
+                            <label>Пароль *</label>
+                            <input type="password" id="metodistPassword" placeholder="Введите пароль">
+                            <button type="button" class="toggle-password" onclick="togglePassword('metodistPassword')">👁️</button>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="createMetodist()">✅ Создать методиста</button>
+            </div>
+            <div class="search-box"><input type="text" id="searchMetodists" placeholder="🔍 Поиск по ФИО, email..." onkeyup="filterMetodists()"></div>
             <div class="table-responsive">
-                <table>
-                    <thead><tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Образование</th><th>Статус</th><th>Дата регистрации</th><th>Действия</th></tr></thead>
-                    <tbody id="studentsTableBody"><tr><td colspan="7" style="text-align:center;">Загрузка...</td></tr></tbody>
-                </table>
+                <table><thead><tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Статус</th><th>Дата создания</th><th>Действия</th></tr></thead>
+                <tbody id="metodistsTableBody"></tbody>
+            </table>
             </div>
         </div>
 
-        <div id="fieldsTab" class="tab-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
-                <h3>⚙️ Управление дополнительными полями</h3>
-                <button class="edit-btn" onclick="openFieldEditor()" style="padding:10px 20px;">➕ Создать поле</button>
+        <!-- Вкладка слушателей -->
+        <div id="studentsTab" class="tab-content">
+            <div class="search-box"><input type="text" id="searchStudents" placeholder="🔍 Поиск по ФИО, email, телефону..." onkeyup="filterStudents()"></div>
+            <div class="table-responsive">
+                <table><thead><tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Образование</th><th>Статус</th><th>Действия</th></tr></thead>
+                <tbody id="studentsTableBody"></tbody>
+            </table>
             </div>
-            <p style="color:#666; margin-bottom:20px;">Поддерживаются типы: текст, многострочный текст, email, телефон, дата, число, радиокнопка, выпадающий список.</p>
+        </div>
+
+        <!-- Вкладка полей -->
+        <div id="fieldsTab" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <h3>⚙️ Управление дополнительными полями</h3>
+                <button class="btn-primary" onclick="openFieldEditor()">➕ Создать поле</button>
+            </div>
             <div id="fieldsListContainer"></div>
         </div>
     </div>
 
     <!-- Модальное окно редактирования слушателя -->
-    <div id="editModal" class="modal">
+    <div id="editStudentModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header"><h3>✏️ Редактирование данных слушателя</h3><span class="close" onclick="closeEditModal()">&times;</span></div>
+            <div class="modal-header"><h3>✏️ Редактирование слушателя</h3><span class="close" onclick="closeStudentModal()">&times;</span></div>
             <div class="modal-body">
-                <div class="form-group"><label>ФИО</label><input type="text" id="editFullName" readonly class="readonly-field"></div>
-                <div class="form-group"><label>Email</label><input type="email" id="editEmail" readonly class="readonly-field"></div>
-                <div class="form-group"><label>Телефон</label><input type="tel" id="editPhone" readonly class="readonly-field"></div>
-                <div class="form-group"><label>Образование</label><input type="text" id="editEducation" readonly class="readonly-field"></div>
-                <hr><h4>📄 Стандартные данные</h4>
-                <div class="form-group"><label>🏠 Фактический адрес</label><input type="text" id="editActualAddress" placeholder="Индекс, город, улица, дом, кв."></div>
-                <div class="form-group"><label>📜 Адрес прописки</label><input type="text" id="editRegistrationAddress" placeholder="Индекс, город, улица, дом, кв."></div>
-                <div class="form-group"><label>🆔 Номер паспорта</label><input type="text" id="editPassportNumber" placeholder="Серия и номер паспорта"></div>
-                <div class="form-group"><label>🏛️ Кем выдан паспорт</label><input type="text" id="editPassportIssuedBy" placeholder="Кем выдан"></div>
-                <div class="form-group"><label>📅 Когда выдан паспорт</label><input type="date" id="editPassportIssueDate"></div>
-                <div class="form-group"><label>🔢 СНИЛС</label><input type="text" id="editSnils" placeholder="Номер СНИЛС"></div>
-                <hr><h4>📋 Дополнительные поля</h4>
-                <div id="dynamicFieldsContainer"></div>
-                <div class="form-actions"><button class="save-btn" onclick="saveStudentData()">💾 Сохранить все данные</button><button class="cancel-btn" onclick="closeEditModal()">❌ Отмена</button></div>
+                <div class="form-group"><label>ФИО</label><input type="text" id="editStudentFullName"></div>
+                <div class="form-group"><label>Телефон</label><input type="tel" id="editStudentPhone"></div>
+                <div class="form-group"><label>Образование</label>
+                    <select id="editStudentEducation">
+                        <option value="высшее">Высшее</option>
+                        <option value="среднее-специальное">Среднее специальное</option>
+                        <option value="среднее">Среднее</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn-primary" onclick="saveStudentEdit()">💾 Сохранить</button>
+                    <button class="btn-secondary" onclick="closeStudentModal()">❌ Отмена</button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Модальное окно для полей -->
     <div id="fieldEditorModal" class="modal">
-        <div class="modal-content" style="max-width:650px;">
+        <div class="modal-content" style="max-width: 650px;">
             <div class="modal-header"><h3 id="fieldEditorTitle">Создание поля</h3><span class="close" onclick="closeFieldEditor()">&times;</span></div>
             <div class="modal-body">
                 <div class="form-group"><label>Название поля *</label><input type="text" id="fieldLabel" placeholder="Например: Пол"></div>
@@ -292,7 +378,10 @@
                 <div class="form-group"><label>Порядок</label><input type="number" id="fieldOrder" value="0"></div>
                 <div class="form-group"><label><input type="checkbox" id="fieldRequired"> Обязательное поле</label></div>
                 <div class="form-group"><label><input type="checkbox" id="fieldActive" checked> Активно</label></div>
-                <div class="form-actions"><button class="save-btn" onclick="saveField()">💾 Сохранить</button><button class="cancel-btn" onclick="closeFieldEditor()">❌ Отмена</button></div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="btn-primary" onclick="saveField()">💾 Сохранить</button>
+                    <button class="btn-secondary" onclick="closeFieldEditor()">❌ Отмена</button>
+                </div>
             </div>
         </div>
     </div>
@@ -303,216 +392,167 @@
     <script src="firebase-config.js"></script>
     <script src="common.js"></script>
     <script src="fields-manager.js"></script>
-
+    
     <script>
-        let allStudents = [], allFields = [];
-        let currentEditStudentId = null, currentUserData = null;
+        let allMetodists = [], allStudents = [], allFields = [];
+        let currentEditStudentId = null;
 
         function showToast(message, type) {
             const el = document.getElementById(`toast${type.charAt(0).toUpperCase() + type.slice(1)}`);
-            if(el) { el.textContent = message; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 3000); }
+            if (el) { el.textContent = message; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 3000); }
         }
-        function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
-        function formatDate(ts) { if(!ts) return '—'; try { const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString('ru-RU'); } catch(e) { return '—'; } }
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { return m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'; }); }
+        function formatDate(ts) { if (!ts) return '—'; try { const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString('ru-RU'); } catch(e) { return '—'; } }
+        function togglePassword(id) { const i = document.getElementById(id); if (i) i.type = i.type === 'password' ? 'text' : 'password'; }
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`${tabName}Tab`).classList.add('active');
-            if(event && event.target) event.target.classList.add('active');
-            if(tabName === 'fields') loadFields();
+            if (event && event.target) event.target.classList.add('active');
+            if (tabName === 'metodists') loadMetodists();
+            if (tabName === 'students') loadStudents();
+            if (tabName === 'fields') loadFields();
+        }
+
+        // ========== МЕТОДИСТЫ ==========
+        async function loadMetodists() {
+            try {
+                const snapshot = await window.db.collection('users').where('role', '==', 'metodist').get();
+                allMetodists = [];
+                snapshot.forEach(doc => allMetodists.push({ id: doc.id, ...doc.data() }));
+                displayMetodists(allMetodists);
+                document.getElementById('totalMetodists').textContent = allMetodists.length;
+            } catch (e) { showToast('Ошибка загрузки', 'error'); }
+        }
+        function displayMetodists(list) {
+            const tbody = document.getElementById('metodistsTableBody');
+            if (!tbody) return;
+            if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Нет методистов</td></tr>'; return; }
+            tbody.innerHTML = list.map(m => `<tr><td>${escapeHtml(m.fullName || '—')}</td><td>${escapeHtml(m.email)}</td><td>${escapeHtml(m.phone || '—')}</td><td>${m.emailVerified ? '✅ Подтвержден' : '⏳ Не подтвержден'}</td><td>${formatDate(m.createdAt)}</td><td><button class="btn-danger" onclick="deleteMetodist('${m.id}')">🗑️ Удалить</button></td></tr>`).join('');
+        }
+        function filterMetodists() {
+            const term = document.getElementById('searchMetodists').value.toLowerCase();
+            displayMetodists(allMetodists.filter(m => (m.fullName?.toLowerCase().includes(term) || m.email.toLowerCase().includes(term))));
+        }
+        async function createMetodist() {
+            const fullName = document.getElementById('metodistFullName').value.trim();
+            const email = document.getElementById('metodistEmail').value.trim();
+            const phone = document.getElementById('metodistPhone').value.trim();
+            const password = document.getElementById('metodistPassword').value;
+            if (!fullName || !email || !password) { showToast('Заполните все поля', 'warning'); return; }
+            if (password.length < 6) { showToast('Пароль минимум 6 символов', 'warning'); return; }
+            try {
+                const userCred = await window.auth.createUserWithEmailAndPassword(email, password);
+                await userCred.user.sendEmailVerification();
+                await window.db.collection('users').doc(userCred.user.uid).set({ fullName, email, phone: phone || '', role: 'metodist', emailVerified: false, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                showToast(`✅ Методист ${fullName} создан`, 'success');
+                document.getElementById('metodistFullName').value = '';
+                document.getElementById('metodistEmail').value = '';
+                document.getElementById('metodistPhone').value = '';
+                document.getElementById('metodistPassword').value = '';
+                loadMetodists();
+            } catch (e) { showToast('Ошибка: ' + e.message, 'error'); }
+        }
+        async function deleteMetodist(id) {
+            if (!confirm('Удалить методиста?')) return;
+            try { await window.db.collection('users').doc(id).delete(); showToast('Методист удален', 'success'); loadMetodists(); } 
+            catch (e) { showToast('Ошибка удаления', 'error'); }
         }
 
         // ========== СЛУШАТЕЛИ ==========
         async function loadStudents() {
             try {
-                const snapshot = await window.db.collection('users').where('role', '==', 'student').orderBy('createdAt', 'desc').get();
+                const snapshot = await window.db.collection('users').where('role', '==', 'student').get();
                 allStudents = [];
                 snapshot.forEach(doc => allStudents.push({ id: doc.id, ...doc.data() }));
                 displayStudents(allStudents);
-                updateStats();
-            } catch(e) { showToast('Ошибка загрузки', 'error'); }
+                document.getElementById('totalStudents').textContent = allStudents.length;
+                document.getElementById('verifiedStudents').textContent = allStudents.filter(s => s.emailVerified).length;
+            } catch (e) { showToast('Ошибка загрузки', 'error'); }
         }
-
-        function displayStudents(students) {
+        function displayStudents(list) {
             const tbody = document.getElementById('studentsTableBody');
-            if(!tbody) return;
-            if(students.length === 0) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Нет слушателей</td></tr>'; return; }
-            let html = '';
-            for(const s of students) {
-                html += `<tr>
-                    <td>${escapeHtml(s.fullName || '—')}</td>
-                    <td>${escapeHtml(s.email || '—')}</td>
-                    <td>${escapeHtml(s.phone || '—')}</td>
-                    <td>${escapeHtml(s.education || '—')}</td>
-                    <td><span class="status-badge ${s.emailVerified ? 'status-verified' : 'status-unverified'}">${s.emailVerified ? '✅ Подтвержден' : '⏳ Не подтвержден'}</span></td>
-                    <td>${formatDate(s.createdAt)}</td>
-                    <td><button class="edit-btn" onclick="openEditModal('${s.id}')">✏️ Редактировать</button></td>
-                </tr>`;
-            }
-            tbody.innerHTML = html;
+            if (!tbody) return;
+            if (list.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Нет слушателей</td></tr>'; return; }
+            tbody.innerHTML = list.map(s => `<tr><td>${escapeHtml(s.fullName || '—')}</td><td>${escapeHtml(s.email)}</td><td>${escapeHtml(s.phone || '—')}</td><td>${escapeHtml(s.education || '—')}</td><td>${s.emailVerified ? '✅ Подтвержден' : '⏳ Не подтвержден'}</td><td><button class="btn-primary" onclick="openEditStudent('${s.id}')" style="padding:6px 12px;">✏️ Редактировать</button></td></tr>`).join('');
         }
-
-        function searchStudents() {
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = allStudents.filter(s => (s.fullName && s.fullName.toLowerCase().includes(term)) || (s.email && s.email.toLowerCase().includes(term)) || (s.phone && s.phone.includes(term)));
-            displayStudents(filtered);
+        function filterStudents() {
+            const term = document.getElementById('searchStudents').value.toLowerCase();
+            displayStudents(allStudents.filter(s => (s.fullName?.toLowerCase().includes(term) || s.email.toLowerCase().includes(term) || s.phone?.includes(term))));
         }
-
-        function updateStats() {
-            document.getElementById('totalStudents').textContent = allStudents.length;
-            document.getElementById('verifiedStudents').textContent = allStudents.filter(s => s.emailVerified).length;
-            const active = allStudents.filter(s => { const last = s.lastLogin?.toDate(); return last && (Date.now() - last.getTime()) / (1000*60*60*24) <= 30; }).length;
-            document.getElementById('activeStudents').textContent = active;
+        function openEditStudent(id) {
+            const student = allStudents.find(s => s.id === id);
+            if (!student) return;
+            currentEditStudentId = id;
+            document.getElementById('editStudentFullName').value = student.fullName || '';
+            document.getElementById('editStudentPhone').value = student.phone || '';
+            document.getElementById('editStudentEducation').value = student.education || 'высшее';
+            document.getElementById('editStudentModal').style.display = 'block';
         }
-
-        // ========== РЕДАКТИРОВАНИЕ СЛУШАТЕЛЯ ==========
-        async function openEditModal(studentId) {
-            const student = allStudents.find(s => s.id === studentId);
-            if(!student) return;
-            currentEditStudentId = studentId;
-            document.getElementById('editFullName').value = student.fullName || '';
-            document.getElementById('editEmail').value = student.email || '';
-            document.getElementById('editPhone').value = student.phone || '';
-            document.getElementById('editEducation').value = student.education || '';
-            document.getElementById('editActualAddress').value = student.actualAddress || '';
-            document.getElementById('editRegistrationAddress').value = student.registrationAddress || '';
-            document.getElementById('editPassportNumber').value = student.passportNumber || '';
-            document.getElementById('editPassportIssuedBy').value = student.passportIssuedBy || '';
-            document.getElementById('editPassportIssueDate').value = student.passportIssueDate || '';
-            document.getElementById('editSnils').value = student.snils || '';
-            await loadDynamicFields(student.customFields || {});
-            document.getElementById('editModal').style.display = 'block';
-        }
-
-        async function loadDynamicFields(customValues) {
-            const container = document.getElementById('dynamicFieldsContainer');
-            if(!container) return;
-            const activeFields = allFields.filter(f => f.isActive !== false);
-            if(activeFields.length === 0) { container.innerHTML = '<p style="color:#999; text-align:center; padding:20px;">Нет дополнительных полей</p>'; return; }
-            let html = '';
-            for(const field of activeFields) {
-                const value = customValues[field.id] || '';
-                html += `<div class="dynamic-field"><div class="form-group"><label>${escapeHtml(field.label)}${field.isRequired ? ' <span style="color:#dc3545;">*</span>' : ''}</label>${renderFieldInput(field, value, `dynamic_${field.id}`)}${field.semantics ? `<small style="display:block; margin-top:5px; color:#667eea;">🔗 Семантика: <a href="${escapeHtml(field.semantics)}" target="_blank">${escapeHtml(field.semantics)}</a></small>` : ''}</div></div>`;
-            }
-            container.innerHTML = html;
-        }
-
-        function renderFieldInput(field, value, fieldId) {
-            if(field.type === 'radio' && field.options && field.options.length) {
-                let html = `<div class="radio-group">`;
-                for(const opt of field.options) { html += `<label><input type="radio" name="${fieldId}" value="${escapeHtml(opt)}" ${value === opt ? 'checked' : ''}><span style="margin-left:8px;">${escapeHtml(opt)}</span></label>`; }
-                html += `</div>`;
-                return html;
-            }
-            if(field.type === 'select' && field.options && field.options.length) {
-                let html = `<select id="${fieldId}"><option value="">-- Выберите --</option>`;
-                for(const opt of field.options) { html += `<option value="${escapeHtml(opt)}" ${value === opt ? 'selected' : ''}>${escapeHtml(opt)}</option>`; }
-                html += `</select>`;
-                return html;
-            }
-            if(field.type === 'textarea') return `<textarea id="${fieldId}" placeholder="${field.placeholder || ''}" rows="3">${escapeHtml(value)}</textarea>`;
-            if(field.type === 'date') return `<input type="date" id="${fieldId}" value="${escapeHtml(value)}">`;
-            return `<input type="${field.type || 'text'}" id="${fieldId}" placeholder="${field.placeholder || ''}" value="${escapeHtml(value)}">`;
-        }
-
-        async function saveStudentData() {
-            if(!currentEditStudentId) return;
-            const updates = {
-                actualAddress: document.getElementById('editActualAddress').value,
-                registrationAddress: document.getElementById('editRegistrationAddress').value,
-                passportNumber: document.getElementById('editPassportNumber').value,
-                passportIssuedBy: document.getElementById('editPassportIssuedBy').value,
-                passportIssueDate: document.getElementById('editPassportIssueDate').value,
-                snils: document.getElementById('editSnils').value
-            };
-            const customValues = {};
-            const activeFields = allFields.filter(f => f.isActive !== false);
-            for(const field of activeFields) {
-                if(field.type === 'radio') {
-                    const selected = document.querySelector(`input[name="dynamic_${field.id}"]:checked`);
-                    customValues[field.id] = selected ? selected.value : '';
-                } else {
-                    const input = document.getElementById(`dynamic_${field.id}`);
-                    if(input) customValues[field.id] = input.value;
-                }
-            }
-            updates.customFields = customValues;
+        function closeStudentModal() { document.getElementById('editStudentModal').style.display = 'none'; currentEditStudentId = null; }
+        async function saveStudentEdit() {
+            if (!currentEditStudentId) return;
             try {
-                await window.db.collection('users').doc(currentEditStudentId).update(updates);
-                showToast('✅ Данные успешно обновлены!', 'success');
-                closeEditModal();
+                await window.db.collection('users').doc(currentEditStudentId).update({
+                    fullName: document.getElementById('editStudentFullName').value,
+                    phone: document.getElementById('editStudentPhone').value,
+                    education: document.getElementById('editStudentEducation').value
+                });
+                showToast('Данные обновлены', 'success');
+                closeStudentModal();
                 loadStudents();
-            } catch(e) { showToast('❌ Ошибка: ' + e.message, 'error'); }
+            } catch (e) { showToast('Ошибка: ' + e.message, 'error'); }
         }
-
-        function closeEditModal() { document.getElementById('editModal').style.display = 'none'; currentEditStudentId = null; }
 
         // ========== УПРАВЛЕНИЕ ПОЛЯМИ ==========
         async function loadFields() {
             try {
-                const snapshot = await window.db.collection('custom_fields').get();
-                allFields = [];
-                snapshot.forEach(doc => allFields.push({ id: doc.id, ...doc.data() }));
-                allFields.sort((a, b) => (a.order || 0) - (b.order || 0));
+                allFields = await window.fieldsManager.getAllFields();
                 displayFieldsList();
-            } catch(e) { showToast('Ошибка загрузки полей', 'error'); }
+            } catch (e) { showToast('Ошибка загрузки полей', 'error'); }
         }
-
         function displayFieldsList() {
             const container = document.getElementById('fieldsListContainer');
-            if(!container) return;
-            if(allFields.length === 0) { container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Нет созданных полей</p></div>'; return; }
-            let html = '';
-            for(const f of allFields) {
+            if (!container) return;
+            if (allFields.length === 0) { container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Нет созданных полей</p></div>'; return; }
+            container.innerHTML = allFields.map(f => {
                 let typeIcon = '', typeText = '';
-                if(f.type === 'radio') { typeIcon = '🔘'; typeText = 'Радиокнопка'; }
-                else if(f.type === 'select') { typeIcon = '📋'; typeText = 'Выпадающий список'; }
-                else if(f.type === 'textarea') { typeIcon = '📄'; typeText = 'Многострочный текст'; }
+                if (f.type === 'radio') { typeIcon = '🔘'; typeText = 'Радиокнопка'; }
+                else if (f.type === 'select') { typeIcon = '📋'; typeText = 'Выпадающий список'; }
+                else if (f.type === 'textarea') { typeIcon = '📄'; typeText = 'Многострочный текст'; }
                 else { typeIcon = '📝'; typeText = 'Текст'; }
                 let optionsHtml = '';
-                if((f.type === 'radio' || f.type === 'select') && f.options && f.options.length) {
-                    optionsHtml = `<div style="margin-top:5px; font-size:12px;">📌 Варианты: ${f.options.join(', ')}</div>`;
+                if ((f.type === 'radio' || f.type === 'select') && f.options && f.options.length) {
+                    optionsHtml = `<div style="margin-top:5px; font-size:12px; color:#666;">📌 Варианты: ${f.options.join(', ')}</div>`;
                 }
-                html += `<div style="background:#f8f9fa; padding:15px; margin-bottom:15px; border-radius:8px; border-left:3px solid var(--primary);">
+                return `<div style="background:#f8f9fa; padding:15px; margin-bottom:15px; border-radius:8px; border-left:3px solid var(--primary);">
                     <strong>${escapeHtml(f.label)}</strong>
                     <span style="margin-left:10px; font-size:12px;">${typeIcon} ${typeText}</span>
                     <span style="margin-left:10px; font-size:12px; background:${f.isRequired ? '#dc3545' : '#28a745'}; color:white; padding:2px 8px; border-radius:12px;">${f.isRequired ? 'Обязательное' : 'Необязательное'}</span>
-                    <div style="margin-top:8px; font-size:13px; color:#666;">
-                        <div>ID: <code>${escapeHtml(f.id)}</code> | Порядок: ${f.order || 0}</div>
-                        ${optionsHtml}
-                        ${f.semantics ? `<div>Семантика: <a href="${escapeHtml(f.semantics)}" target="_blank">${escapeHtml(f.semantics)}</a></div>` : ''}
-                    </div>
-                    <div style="margin-top:12px;">
-                        <button class="edit-btn" onclick="editField('${f.id}')" style="padding:5px 12px;">✏️ Редактировать</button>
-                        <button class="edit-btn" onclick="deleteField('${f.id}')" style="padding:5px 12px; background:#dc3545; margin-left:8px;">🗑️ Удалить</button>
-                    </div>
+                    <div style="margin-top:8px; font-size:13px; color:#666;"><div>ID: <code>${escapeHtml(f.id)}</code> | Порядок: ${f.order || 0}</div>${optionsHtml}${f.semantics ? `<div>Семантика: <a href="${escapeHtml(f.semantics)}" target="_blank">${escapeHtml(f.semantics)}</a></div>` : ''}</div>
+                    <div style="margin-top:12px;"><button class="btn-secondary" onclick="editField('${f.id}')" style="padding:5px 12px;">✏️ Редактировать</button><button class="btn-danger" onclick="deleteField('${f.id}')" style="margin-left:8px;">🗑️ Удалить</button></div>
                 </div>`;
-            }
-            container.innerHTML = html;
+            }).join('');
         }
-
         function toggleOptionsFields() {
             const type = document.getElementById('fieldType').value;
             document.getElementById('optionsBlock').style.display = (type === 'radio' || type === 'select') ? 'block' : 'none';
         }
-
         function addOptionField(value = '') {
             const div = document.createElement('div');
             div.style.display = 'flex'; div.style.gap = '10px'; div.style.marginBottom = '10px';
             div.innerHTML = `<input type="text" placeholder="Вариант" class="option-input" style="flex:1;" value="${escapeHtml(value)}"><button type="button" onclick="removeOption(this)" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:5px;">✖</button>`;
             document.getElementById('optionsList').appendChild(div);
         }
-
         function removeOption(btn) { btn.parentElement.remove(); }
         function getOptions() { return Array.from(document.querySelectorAll('#optionsList .option-input')).map(i => i.value.trim()).filter(v => v); }
         function setOptions(options) {
             const container = document.getElementById('optionsList');
             container.innerHTML = '';
-            if(options && options.length) { options.forEach(opt => addOptionField(opt)); }
+            if (options && options.length) { options.forEach(opt => addOptionField(opt)); }
             else { addOptionField(); }
         }
-
         function openFieldEditor(fieldId = null) {
             const field = fieldId ? allFields.find(f => f.id === fieldId) : null;
             document.getElementById('fieldEditorTitle').textContent = field ? '✏️ Редактирование поля' : '➕ Создание поля';
@@ -530,12 +570,10 @@
             document.getElementById('fieldEditorModal').dataset.editId = fieldId || '';
             document.getElementById('fieldEditorModal').style.display = 'block';
         }
-
         function closeFieldEditor() {
             document.getElementById('fieldEditorModal').style.display = 'none';
             document.getElementById('fieldId').disabled = false;
         }
-
         async function saveField() {
             const isEdit = document.getElementById('fieldEditorModal').dataset.editId !== '';
             const editId = document.getElementById('fieldEditorModal').dataset.editId;
@@ -543,47 +581,53 @@
             const label = document.getElementById('fieldLabel').value.trim();
             const type = document.getElementById('fieldType').value;
             const options = (type === 'radio' || type === 'select') ? getOptions() : [];
-            if(!label) { showToast('Введите название поля', 'warning'); return; }
-            if(!isEdit && !fieldId) { showToast('Введите ID поля', 'warning'); return; }
-            if(!isEdit && allFields.some(f => f.id === fieldId)) { showToast('ID уже существует', 'warning'); return; }
-            if((type === 'radio' || type === 'select') && options.length === 0) { showToast('Добавьте хотя бы один вариант', 'warning'); return; }
-            const fieldData = { label, type, isRequired: document.getElementById('fieldRequired').checked, isActive: document.getElementById('fieldActive').checked, semantics: document.getElementById('fieldSemantics').value.trim(), placeholder: document.getElementById('fieldPlaceholder').value.trim(), order: parseInt(document.getElementById('fieldOrder').value) || 0, options, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+            if (!label) { showToast('Введите название поля', 'warning'); return; }
+            if (!isEdit && !fieldId) { showToast('Введите ID поля', 'warning'); return; }
+            if (!isEdit && allFields.some(f => f.id === fieldId)) { showToast('ID уже существует', 'warning'); return; }
+            if ((type === 'radio' || type === 'select') && options.length === 0) { showToast('Добавьте хотя бы один вариант', 'warning'); return; }
+            const fieldData = { label, type, isRequired: document.getElementById('fieldRequired').checked, isActive: document.getElementById('fieldActive').checked, semantics: document.getElementById('fieldSemantics').value.trim(), placeholder: document.getElementById('fieldPlaceholder').value.trim(), order: parseInt(document.getElementById('fieldOrder').value) || 0, options: options, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
             try {
-                if(isEdit) { await window.db.collection('custom_fields').doc(editId).update(fieldData); showToast('✅ Поле обновлено', 'success'); }
+                if (isEdit) { await window.db.collection('custom_fields').doc(editId).update(fieldData); showToast('✅ Поле обновлено', 'success'); }
                 else { fieldData.createdAt = firebase.firestore.FieldValue.serverTimestamp(); await window.db.collection('custom_fields').doc(fieldId).set(fieldData); showToast('✅ Поле создано', 'success'); }
                 closeFieldEditor();
                 loadFields();
-            } catch(e) { showToast('❌ Ошибка: ' + e.message, 'error'); }
+            } catch (e) { showToast('Ошибка: ' + e.message, 'error'); }
         }
-
         async function editField(id) { openFieldEditor(id); }
-
         async function deleteField(id) {
             const field = allFields.find(f => f.id === id);
-            if(!field) return;
-            if(!confirm(`Удалить поле "${field.label}"?\n\nВсе данные слушателей для этого поля будут потеряны!`)) return;
+            if (!confirm(`Удалить поле "${field?.label}"?\n\nВсе данные слушателей для этого поля будут потеряны!`)) return;
             try {
-                await window.fieldsManager.deleteField(id);
-                showToast(`✅ Поле "${field.label}" удалено`, 'success');
-                await loadFields();
-            } catch(e) { showToast('❌ Ошибка удаления: ' + e.message, 'error'); }
+                await window.db.collection('custom_fields').doc(id).delete();
+                const students = await window.db.collection('users').where('role', '==', 'student').get();
+                const updates = [];
+                students.forEach(doc => {
+                    const data = doc.data();
+                    if (data.customFields && data.customFields[id]) {
+                        const newCustom = { ...data.customFields };
+                        delete newCustom[id];
+                        updates.push(window.db.collection('users').doc(doc.id).update({ customFields: newCustom }));
+                    }
+                });
+                await Promise.all(updates);
+                showToast(`✅ Поле "${field?.label}" удалено`, 'success');
+                loadFields();
+            } catch (e) { showToast('Ошибка удаления', 'error'); }
         }
 
         async function logout() { await window.auth.signOut(); window.location.href = 'index.html'; }
 
         window.auth.onAuthStateChanged(async (user) => {
-            if(!user || !user.emailVerified) { window.location.href = 'index.html'; return; }
+            if (!user) { window.location.href = 'index.html'; return; }
             const doc = await window.db.collection('users').doc(user.uid).get();
-            currentUserData = doc.data();
-            if(currentUserData.role !== 'metodist') {
-                if(currentUserData.role === 'admin') window.location.href = 'admin-cabinet.html';
-                else if(currentUserData.role === 'student') window.location.href = 'student-cabinet.html';
+            const role = doc.data()?.role;
+            if (role !== 'admin') {
+                if (role === 'metodist') window.location.href = 'metodist-cabinet.html';
+                else if (role === 'student') window.location.href = 'student-cabinet.html';
                 else window.location.href = 'index.html';
                 return;
             }
-            document.getElementById('userName').textContent = currentUserData.fullName || currentUserData.email;
-            await loadStudents();
-            await loadFields();
+            loadMetodists(); loadStudents();
         });
     </script>
 </body>
