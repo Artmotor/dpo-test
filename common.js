@@ -48,15 +48,23 @@ function showInfo(message, elementId = 'infoMessage') {
 // Форматирование даты
 function formatDate(timestamp) {
     if (!timestamp) return 'Не указана';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleDateString('ru-RU');
+    try {
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return date.toLocaleDateString('ru-RU');
+    } catch (e) {
+        return 'Не указана';
+    }
 }
 
 // Форматирование даты и времени
 function formatDateTime(timestamp) {
     if (!timestamp) return 'Не указано';
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    return date.toLocaleString('ru-RU');
+    try {
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return date.toLocaleString('ru-RU');
+    } catch (e) {
+        return 'Не указано';
+    }
 }
 
 // Экранирование HTML
@@ -77,7 +85,7 @@ async function logout() {
         window.location.href = 'index.html';
     } catch (error) {
         console.error('Ошибка выхода:', error);
-        alert('Ошибка при выходе из системы');
+        showError('errorMessage', 'Ошибка при выходе из системы');
     }
 }
 
@@ -109,4 +117,24 @@ async function checkAuthAndRole(requiredRole) {
             }
         });
     });
+}
+
+// Показ уведомления (toast)
+function showToast(message, type = 'success') {
+    const toastId = `toast${type.charAt(0).toUpperCase() + type.slice(1)}`;
+    let toast = document.getElementById(toastId);
+    
+    if (!toast) {
+        // Создаем toast если его нет
+        toast = document.createElement('div');
+        toast.id = toastId;
+        toast.className = `toast-message toast-${type}`;
+        document.body.appendChild(toast);
+    }
+    
+    toast.textContent = message;
+    toast.style.display = 'block';
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 3000);
 }
