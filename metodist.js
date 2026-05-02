@@ -1,4 +1,4 @@
-// metodist.js - исправленная версия
+// metodist.js - исправленная версия (без дублирования функций)
 
 let allStudents = [];
 let currentEditStudentId = null;
@@ -42,9 +42,9 @@ function displayStudents(students) {
     
     tbody.innerHTML = students.map(student => `
         <tr>
-            <td>${student.fullName || 'Не указано'}</td>
-            <td>${student.email || 'Не указан'}</td>
-            <td>${student.phone || 'Не указан'}</td>
+            <td>${escapeHtml(student.fullName || 'Не указано')}</td>
+            <td>${escapeHtml(student.email || 'Не указан')}</td>
+            <td>${escapeHtml(student.phone || 'Не указан')}</td>
             <td>${student.emailVerified ? '✅ Подтвержден' : '⏳ Не подтвержден'}</td>
             <td>${formatDate(student.createdAt)}</td>
             <td>
@@ -120,8 +120,79 @@ async function openEditModal(studentId) {
     if (passportIssueDateInput) passportIssueDateInput.value = student.passportIssueDate || '';
     if (snilsInput) snilsInput.value = student.snils || '';
     
+    // Загружаем динамические поля
+    await loadDynamicFieldsInModal(student.customFields || {});
+    
     const modal = document.getElementById('editModal');
     if (modal) modal.style.display = 'block';
+}
+
+// Загрузка динамических полей в модальное окно
+async function loadDynamicFieldsInModal(customValues) {
+    const container = document.getElementById('dynamicFieldsContainer');
+    if (!container) return;
+    
+    const fields = await window.fieldsManager.getActiveFields();
+    
+    if (fields.length === 0) {
+        container.innerHTML = '<p style="color:#999; text-align:center; padding:20px;">Нет дополнительных полей</p>';
+        return;
+    }
+    
+    let html = '';
+    for (const field of fields) {
+        const value = customValues[field.id] || '';
+        html += `
+            <div class="dynamic-field" style="margin-bottom:20px; padding:15px; border:1px solid #e0e0e0; border-radius:8px; background:#fafafa;">
+                <label style="display:block; margin-bottom:8px; font-weight:500;">
+                    ${escapeHtml(field.label)}
+                    ${field.isRequired ? '<span style="color:#dc3545;"> *</span>' : ''}
+                </label>
+                ${renderFieldInputInModal(field, value, `dynamic_${field.id}`)}
+                ${field.semantics ? `<small style="display:block; margin-top:5px; color:#667eea;">🔗 ${escapeHtml(field.semantics)}</small>` : ''}
+            </div>
+        `;
+    }
+    container.innerHTML = html;
+}
+
+// Рендер поля в модальном окне
+function renderFieldInputInModal(field, value, fieldId) {
+    switch (field.type) {
+        case 'radio':
+            if (!field.options || !field.options.length) {
+                return '<p style="color:red;">Нет вариантов</p>';
+            }
+            let radioHtml = '<div style="display:flex; flex-wrap:wrap; gap:15px;">';
+            for (const opt of field.options) {
+                radioHtml += `
+                    <label style="display:flex; align-items:center; cursor:pointer;">
+                        <input type="radio" name="${fieldId}" value="${escapeHtml(opt)}" ${value === opt ? 'checked' : ''} style="width:16px; height:16px; margin-right:8px;">
+                        <span>${escapeHtml(opt)}</span>
+                    </label>
+                `;
+            }
+            radioHtml += '</div>';
+            return radioHtml;
+            
+        case 'select':
+            if (!field.options || !field.options.length) {
+                return '<p style="color:red;">Нет вариантов</p>';
+            }
+            let selectHtml = `<select id="${fieldId}" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;">`;
+            selectHtml += `<option value="">-- Выберите --</option>`;
+            for (const opt of field.options) {
+                selectHtml += `<option value="${escapeHtml(opt)}" ${value === opt ? 'selected' : ''}>${escapeHtml(opt)}</option>`;
+            }
+            selectHtml += '</select>';
+            return selectHtml;
+            
+        case 'textarea':
+            return `<textarea id="${fieldId}" rows="3" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;">${escapeHtml(value)}</textarea>`;
+            
+        default:
+            return `<input type="${field.type || 'text'}" id="${fieldId}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.placeholder || '')}" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;">`;
+    }
 }
 
 // Закрытие модального окна
@@ -152,6 +223,24 @@ async function saveStudentData() {
         updatedByMetodist: firebase.firestore.FieldValue.serverTimestamp()
     };
     
+    // Собираем значения динамических полей
+    const fields = await window.fieldsManager.getActiveFields();
+    const customValues = {};
+    
+    for (const field of fields) {
+        if (field.type === 'radio') {
+            const selected = document.querySelector(`input[name="dynamic_${field.id}"]:checked`);
+            customValues[field.id] = selected ? selected.value : '';
+        } else {
+            const element = document.getElementById(`dynamic_${field.id}`);
+            if (element) {
+                customValues[field.id] = element.value;
+            }
+        }
+    }
+    
+    updates.customFields = customValues;
+    
     try {
         await window.db.collection('users').doc(currentEditStudentId).update(updates);
         
@@ -162,7 +251,7 @@ async function saveStudentData() {
         }
         
         displayStudents(allStudents);
-        showSuccess('Данные слушателя успешно обновлены!', 'successMessage');
+        showSuccess('Данные слушателя успешно обновлены!');
         closeEditModal();
     } catch (error) {
         console.error('Ошибка сохранения:', error);
@@ -170,48 +259,14 @@ async function saveStudentData() {
     }
 }
 
-// Функции для форматирования
-function formatDate(timestamp) {
-    if (!timestamp) return 'Не указана';
-    try {
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        return date.toLocaleDateString('ru-RU');
-    } catch (e) {
-        return 'Не указана';
-    }
-}
-
-function formatDateTime(timestamp) {
-    if (!timestamp) return 'Не указано';
-    try {
-        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-        return date.toLocaleString('ru-RU');
-    } catch (e) {
-        return 'Не указано';
-    }
-}
-
-function showSuccess(message, elementId) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.textContent = message;
-        element.style.display = 'block';
-        setTimeout(() => {
-            element.style.display = 'none';
-        }, 3000);
-    }
-}
-
-function showError(elementId, message) {
-    const element = document.getElementById(elementId);
-    if (element) {
-        element.textContent = message;
-        element.style.display = 'block';
-        setTimeout(() => {
-            element.style.display = 'none';
-        }, 5000);
-    }
-}
+// Экспортируем функции в глобальную область
+window.loadStudents = loadStudents;
+window.displayStudents = displayStudents;
+window.searchStudents = searchStudents;
+window.updateStats = updateStats;
+window.openEditModal = openEditModal;
+window.closeEditModal = closeEditModal;
+window.saveStudentData = saveStudentData;
 
 // Инициализация страницы методиста
 async function initMetodistPage() {
