@@ -147,8 +147,14 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo-area"><div class="logo">🎓</div><h1>Институт ДПО - Личный кабинет слушателя</h1></div>
-        <div class="user-info"><span class="user-name" id="userName">Загрузка...</span><button class="btn-logout" onclick="logout()">🚪 Выйти</button></div>
+        <div class="logo-area">
+            <div class="logo">🎓</div>
+            <h1>Институт ДПО - Личный кабинет слушателя</h1>
+        </div>
+        <div class="user-info">
+            <span class="user-name" id="userName">Загрузка...</span>
+            <button class="btn-logout" onclick="logout()">🚪 Выйти</button>
+        </div>
     </div>
 
     <div class="container">
@@ -163,33 +169,88 @@
         </div>
 
         <div id="profileTab" class="tab-content active">
-            <div class="info-card"><h3>Личная информация</h3><div id="profileInfo"></div><button class="edit-btn" onclick="editProfile()">✏️ Редактировать профиль</button></div>
+            <div class="info-card">
+                <h3>Личная информация</h3>
+                <div id="profileInfo"></div>
+                <button class="edit-btn" onclick="editProfile()">✏️ Редактировать профиль</button>
+            </div>
         </div>
 
         <div id="documentsTab" class="tab-content">
-            <div class="info-card"><h3>Паспортные данные</h3><div id="documentsInfo"></div><button class="edit-btn" onclick="editDocuments()">✏️ Редактировать документы</button></div>
+            <div class="info-card">
+                <h3>Паспортные данные</h3>
+                <div id="documentsInfo"></div>
+                <button class="edit-btn" onclick="editDocuments()">✏️ Редактировать документы</button>
+            </div>
         </div>
 
         <div id="addressTab" class="tab-content">
-            <div class="info-card"><h3>Адреса</h3><div id="addressInfo"></div><button class="edit-btn" onclick="editAddress()">✏️ Редактировать адреса</button></div>
+            <div class="info-card">
+                <h3>Адреса</h3>
+                <div id="addressInfo"></div>
+                <button class="edit-btn" onclick="editAddress()">✏️ Редактировать адреса</button>
+            </div>
         </div>
 
         <div id="additionalFieldsTab" class="tab-content">
             <div class="info-card">
                 <h3>📋 Дополнительная информация</h3>
                 <div id="missingFieldsWarning" style="display:none;"></div>
-                <div id="customFieldsContainer"><div style="text-align:center; padding:40px;">Загрузка...</div></div>
+                <div id="customFieldsContainer">
+                    <div style="text-align:center; padding:40px; color:#999;">Загрузка дополнительных полей...</div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Подключение Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <!-- Конфиг и общие скрипты -->
     <script src="firebase-config.js"></script>
     <script src="common.js"></script>
     <script src="fields-manager.js"></script>
-    <script src="student-fields.js"></script>
+    
+    <!-- Скрипты слушателя -->
     <script src="student.js"></script>
+    <script src="student-fields.js"></script>
+    
+    <!-- Дополнительная инициализация -->
+    <script>
+        // Дополнительная проверка загрузки всех скриптов
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 Страница student-cabinet.html загружена');
+            console.log('✅ Firebase готов:', !!window.firebase);
+            console.log('✅ Auth готов:', !!window.auth);
+            console.log('✅ Firestore готов:', !!window.db);
+            console.log('✅ FieldsManager готов:', !!window.fieldsManager);
+            console.log('✅ Student JS готов:', !!window.loadUserData);
+            
+            // Если пользователь уже авторизован, но по какой-то причине данные не загрузились
+            if (window.auth && window.auth.currentUser && !window.currentUserData) {
+                console.log('🔄 Повторная попытка загрузки данных...');
+                setTimeout(() => {
+                    if (typeof window.loadUserData === 'function') {
+                        window.loadUserData();
+                    }
+                }, 1000);
+            }
+        });
+        
+        // Обработка ошибок скриптов
+        window.addEventListener('error', function(e) {
+            console.error('❌ Ошибка загрузки скрипта:', e.target.src || e.message);
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv && e.target && e.target.src) {
+                errorDiv.textContent = 'Ошибка загрузки: ' + e.target.src.split('/').pop();
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
 </body>
 </html>
