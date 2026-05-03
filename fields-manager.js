@@ -644,8 +644,28 @@ window.debugFields = {
             }]);
         }
         return stats;
+    },
+    
+    // Принудительно удалить поле и все его значения
+    async forceDeleteField(fieldId) {
+        const field = await window.fieldsManager.getFieldById(fieldId);
+        if (!field) {
+            console.log(`❌ Поле ${fieldId} не найдено`);
+            return;
+        }
+        
+        console.log(`🗑️ Принудительное удаление поля "${field.label}"...`);
+        
+        const result = await window.fieldsManager.deleteField(fieldId);
+        console.log(`✅ Поле удалено. Очищено записей: ${result.cleanedCount}`);
+        
+        return result;
     }
 };
 
 console.log('✅ fields-manager.js загружен');
-console.log('💡 Для отладки доступны функции: window.debugFields.showAllFields(), window.debugFields.cleanupAllOrphanedFields()');
+console.log('💡 Для отладки доступны функции:');
+console.log('   - window.debugFields.showAllFields() - показать все поля');
+console.log('   - window.debugFields.showUserFields() - показать значения полей текущего пользователя');
+console.log('   - window.debugFields.cleanupAllOrphanedFields() - очистить устаревшие поля');
+console.log('   - window.debugFields.forceDeleteField("field_id") - принудительно удалить поле');
