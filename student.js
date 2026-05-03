@@ -76,6 +76,11 @@ async function loadUserData() {
             userNameSpan.textContent = currentUserData.fullName || currentUserData.email;
         }
         
+        // Загружаем дополнительные поля
+        if (typeof window.loadCustomFields === 'function') {
+            setTimeout(() => window.loadCustomFields(), 500);
+        }
+        
     } catch (error) {
         console.error('Ошибка загрузки данных:', error);
         showError('errorMessage', 'Ошибка загрузки данных: ' + error.message);
@@ -310,6 +315,68 @@ function cancelEdit() {
     currentEditMode = null;
 }
 
+// Выход из системы
+async function logout() {
+    try {
+        await window.auth.signOut();
+        window.location.href = 'index.html';
+    } catch (error) {
+        console.error('Ошибка выхода:', error);
+        showError('errorMessage', 'Ошибка при выходе из системы');
+    }
+}
+
+// Показ сообщения об ошибке
+function showError(elementId, message) {
+    const errorElement = document.getElementById(elementId);
+    if (errorElement) {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+        setTimeout(() => {
+            errorElement.style.display = 'none';
+        }, 5000);
+    } else {
+        console.error(message);
+        alert(message);
+    }
+}
+
+// Показ сообщения об успехе
+function showSuccess(message) {
+    const successElement = document.getElementById('successMessage');
+    if (successElement) {
+        successElement.textContent = message;
+        successElement.style.display = 'block';
+        setTimeout(() => {
+            successElement.style.display = 'none';
+        }, 3000);
+    } else {
+        console.log(message);
+    }
+}
+
+// Форматирование даты
+function formatDate(timestamp) {
+    if (!timestamp) return 'Не указана';
+    try {
+        const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+        return date.toLocaleDateString('ru-RU');
+    } catch (e) {
+        return 'Не указана';
+    }
+}
+
+// Экранирование HTML
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // Экспортируем функции в глобальную область
 window.switchTab = switchTab;
 window.loadUserData = loadUserData;
@@ -320,16 +387,28 @@ window.saveDocuments = saveDocuments;
 window.editAddress = editAddress;
 window.saveAddress = saveAddress;
 window.cancelEdit = cancelEdit;
+window.logout = logout;
+window.showError = showError;
+window.showSuccess = showSuccess;
+window.formatDate = formatDate;
+window.escapeHtml = escapeHtml;
 
-// Инициализация
+// Инициализация при загрузке DOM
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM загружен, инициализация student.js');
+});
+
+// Слушатель авторизации
 window.auth.onAuthStateChanged(async (user) => {
-    console.log('Auth state changed:', user?.email);
+    console.log('Auth state changed in student:', user?.email);
     
     if (user) {
         if (!user.emailVerified) {
-            alert('Пожалуйста, подтвердите email перед входом');
-            await window.auth.signOut();
-            window.location.href = 'index.html';
+            showError('errorMessage', 'Пожалуйста, подтвердите email перед входом. Проверьте вашу почту.');
+            setTimeout(async () => {
+                await window.auth.signOut();
+                window.location.href = 'index.html';
+            }, 3000);
         } else {
             await loadUserData();
             // Загружаем дополнительные поля если они есть
@@ -338,6 +417,9 @@ window.auth.onAuthStateChanged(async (user) => {
             }
         }
     } else {
+        console.log('Пользователь не авторизован, перенаправление на главную');
         window.location.href = 'index.html';
     }
 });
+
+console.log('✅ student.js загружен');
