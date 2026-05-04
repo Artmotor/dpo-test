@@ -2,629 +2,262 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Личный кабинет слушателя</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Институт ДПО - Личный кабинет слушателя</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #2c5f2d;
+            --primary-dark: #1e3a1f;
+            --secondary: #ffc107;
+            --danger: #dc3545;
+            --success: #28a745;
+            --warning: #ff9800;
+            --gray-light: #f5f5f5;
+            --gray: #ddd;
+            --dark: #333;
+            --white: #fff;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-hover: 0 10px 20px rgba(0,0,0,0.15);
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             min-height: 100vh;
+            color: var(--dark);
         }
         .header {
-            background: #2c5f2d;
-            color: white;
-            padding: 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--white);
+            padding: 20px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .logo { font-size: 24px; font-weight: bold; }
-        .btn-logout {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .container {
-            max-width: 800px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .card h3 {
-            color: #2c5f2d;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #ddd;
-        }
-        .field {
-            margin-bottom: 15px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 10px;
-        }
-        .field-label {
-            width: 180px;
-            font-weight: bold;
-            color: #555;
-        }
-        .field-value {
-            flex: 1;
-            color: #333;
-        }
-        .field-value.empty {
-            color: #999;
-            font-style: italic;
-        }
-        .edit-btn {
-            background: #2c5f2d;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-        .edit-btn:hover { background: #1e3a1f; }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: #2c5f2d;
-        }
-        .form-actions {
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        .logo { font-size: 36px; background: var(--secondary); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .header h1 { font-size: clamp(18px, 5vw, 24px); font-weight: 500; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-name { background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 14px; }
+        .btn-logout { background: var(--danger); color: white; border: none; padding: 10px 24px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .btn-logout:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .tabs {
             display: flex;
             gap: 10px;
-            margin-top: 20px;
+            margin-bottom: 20px;
+            background: var(--white);
+            padding: 10px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            flex-wrap: wrap;
         }
-        .save-btn {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .cancel-btn {
-            background: #ffc107;
-            color: #333;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
+        .tab-btn {
+            flex: 1;
             padding: 12px 20px;
-            border-radius: 8px;
-            display: none;
-            z-index: 1000;
+            background: var(--gray-light);
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--dark);
+            transition: all 0.3s;
         }
-        .toast.success { background: #28a745; color: white; }
-        .toast.error { background: #dc3545; color: white; }
-        @media (max-width: 600px) {
-            .field { flex-direction: column; align-items: flex-start; gap: 5px; }
-            .field-label { width: 100%; }
+        .tab-btn:hover { background: var(--gray); transform: translateY(-2px); }
+        .tab-btn.active { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; }
+        .tab-content {
+            display: none;
+            background: var(--white);
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            animation: fadeIn 0.3s;
+        }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .info-card { background: var(--gray-light); border-radius: var(--radius); padding: 25px; }
+        .info-card h3 { color: var(--primary); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--gray); font-weight: 500; }
+        .info-row { margin-bottom: 12px; padding: 12px; background: var(--white); border-radius: var(--radius-sm); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+        .info-label { font-weight: bold; color: #555; min-width: 180px; }
+        .info-value { color: var(--dark); flex: 1; }
+        .edit-btn { background: var(--primary); color: white; border: none; padding: 8px 20px; border-radius: var(--radius-sm); cursor: pointer; margin-top: 15px; transition: all 0.3s; width: auto; }
+        .edit-btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #555; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--gray);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44,95,45,0.1);
+        }
+        .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .save-btn { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; width: auto; }
+        .save-btn:hover { background: #1e7e34; }
+        .cancel-btn { background: var(--secondary); color: var(--dark); border: none; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; width: auto; }
+        .cancel-btn:hover { background: #e0a800; }
+        .success-message, .error-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: var(--radius-sm);
+            display: none;
+            z-index: 1001;
+            animation: slideIn 0.3s;
+            box-shadow: var(--shadow-hover);
+            font-weight: 500;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .success-message { background: var(--success); color: white; }
+        .error-message { background: var(--danger); color: white; }
+        .custom-field { margin-bottom: 20px; padding: 15px; border: 1px solid var(--gray); border-radius: var(--radius-sm); background: #fafafa; transition: all 0.3s; }
+        .save-fields-btn { background: var(--success); color: white; border: none; padding: 12px 24px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; margin-top: 10px; }
+        .save-fields-btn:hover { background: #1e7e34; transform: translateY(-2px); }
+        .warning-banner { background: #fff3cd; border: 1px solid #ffc107; padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        /* Стили для семантики */
+        .semantics-block {
+            background: #e3f2fd;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-top: 8px;
+            word-break: break-all;
+        }
+        .semantics-block a { color: #1976d2; text-decoration: none; }
+        .semantics-block a:hover { text-decoration: underline; }
+        @media (max-width: 768px) {
+            .header { padding: 15px 20px; }
+            .tabs { flex-direction: column; }
+            .tab-btn { width: 100%; text-align: center; }
+            .info-row { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .info-label { min-width: auto; }
+            .form-actions { flex-direction: column; }
+            .form-actions button { width: 100%; }
+            .tab-content { padding: 20px; }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo">🎓 Институт ДПО</div>
-        <button class="btn-logout" onclick="logout()">Выйти</button>
+        <div class="logo-area">
+            <div class="logo">🎓</div>
+            <h1>Институт ДПО - Личный кабинет слушателя</h1>
+        </div>
+        <div class="user-info">
+            <span class="user-name" id="userName">Загрузка...</span>
+            <button class="btn-logout" onclick="logout()">🚪 Выйти</button>
+        </div>
     </div>
 
     <div class="container">
-        <div id="toast" class="toast"></div>
-        
-        <!-- Личные данные -->
-        <div class="card">
-            <h3>👤 Личные данные</h3>
-            <div id="personalFields"></div>
-            <button class="edit-btn" onclick="editSection('personal')">✏️ Редактировать</button>
+        <div id="successMessage" class="success-message"></div>
+        <div id="errorMessage" class="error-message"></div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('profile')">👤 Мои данные</button>
+            <button class="tab-btn" onclick="switchTab('documents')">📄 Паспортные данные</button>
+            <button class="tab-btn" onclick="switchTab('address')">🏠 Адреса</button>
+            <button class="tab-btn" onclick="switchTab('additionalFields')">📋 Дополнительные поля</button>
         </div>
-        
-        <!-- Паспортные данные -->
-        <div class="card">
-            <h3>📄 Паспортные данные</h3>
-            <div id="passportFields"></div>
-            <button class="edit-btn" onclick="editSection('passport')">✏️ Редактировать</button>
+
+        <div id="profileTab" class="tab-content active">
+            <div class="info-card">
+                <h3>Личная информация</h3>
+                <div id="profileInfo"></div>
+                <button class="edit-btn" onclick="editProfile()">✏️ Редактировать профиль</button>
+            </div>
         </div>
-        
-        <!-- Адреса -->
-        <div class="card">
-            <h3>🏠 Адреса</h3>
-            <div id="addressFields"></div>
-            <button class="edit-btn" onclick="editSection('address')">✏️ Редактировать</button>
+
+        <div id="documentsTab" class="tab-content">
+            <div class="info-card">
+                <h3>Паспортные данные</h3>
+                <div id="documentsInfo"></div>
+                <button class="edit-btn" onclick="editDocuments()">✏️ Редактировать документы</button>
+            </div>
         </div>
-        
-        <!-- Дополнительные поля -->
-        <div class="card" id="customCard" style="display:none;">
-            <h3>📋 Дополнительная информация</h3>
-            <div id="customFields"></div>
-            <button class="edit-btn" onclick="editSection('custom')">✏️ Редактировать</button>
+
+        <div id="addressTab" class="tab-content">
+            <div class="info-card">
+                <h3>Адреса</h3>
+                <div id="addressInfo"></div>
+                <button class="edit-btn" onclick="editAddress()">✏️ Редактировать адреса</button>
+            </div>
+        </div>
+
+        <div id="additionalFieldsTab" class="tab-content">
+            <div class="info-card">
+                <h3>📋 Дополнительная информация</h3>
+                <div id="missingFieldsWarning" style="display:none;"></div>
+                <div id="customFieldsContainer">
+                    <div style="text-align:center; padding:40px; color:#999;">Загрузка дополнительных полей...</div>
+                </div>
+            </div>
         </div>
     </div>
 
+    <!-- Подключение Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+    <!-- Конфиг и общие скрипты -->
     <script src="firebase-config.js"></script>
-    
+    <script src="common.js"></script>
+    <script src="fields-manager.js"></script>
+
+    <!-- Скрипты слушателя -->
+    <script src="student.js"></script>
+    <script src="student-fields.js"></script>
+
+    <!-- Дополнительная инициализация -->
     <script>
-        let currentUserData = {};
-        let editMode = null;
-        
-        function showToast(message, type) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast ${type}`;
-            toast.style.display = 'block';
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 3000);
-        }
-        
-        async function loadUserData() {
-            const user = window.auth.currentUser;
-            if (!user) return;
-            
-            try {
-                const doc = await window.db.collection('users').doc(user.uid).get();
-                if (doc.exists) {
-                    currentUserData = doc.data();
-                } else {
-                    // Создаём默认数据
-                    currentUserData = {
-                        fullName: '',
-                        email: user.email,
-                        phone: '',
-                        education: '',
-                        passportNumber: '',
-                        passportIssuedBy: '',
-                        passportIssueDate: '',
-                        snils: '',
-                        actualAddress: '',
-                        registrationAddress: '',
-                        customFields: {}
-                    };
-                    await window.db.collection('users').doc(user.uid).set(currentUserData);
-                }
-                
-                displayAllFields();
-            } catch (error) {
-                console.error('Ошибка:', error);
-                showToast('Ошибка загрузки данных', 'error');
-            }
-        }
-        
-        function displayAllFields() {
-            displayPersonalFields();
-            displayPassportFields();
-            displayAddressFields();
-            displayCustomFields();
-        }
-        
-        function displayPersonalFields() {
-            const container = document.getElementById('personalFields');
-            container.innerHTML = `
-                <div class="field">
-                    <div class="field-label">ФИО:</div>
-                    <div class="field-value ${!currentUserData.fullName ? 'empty' : ''}">${escapeHtml(currentUserData.fullName) || 'Не указано'}</div>
-                </div>
-                <div class="field">
-                    <div class="field-label">Email:</div>
-                    <div class="field-value">${escapeHtml(currentUserData.email)}</div>
-                </div>
-                <div class="field">
-                    <div class="field-label">Телефон:</div>
-                    <div class="field-value ${!currentUserData.phone ? 'empty' : ''}">${escapeHtml(currentUserData.phone) || 'Не указан'}</div>
-                </div>
-                <div class="field">
-                    <div class="field-label">Образование:</div>
-                    <div class="field-value ${!currentUserData.education ? 'empty' : ''}">${getEducationText(currentUserData.education) || 'Не указано'}</div>
-                </div>
-            `;
-        }
-        
-        function displayPassportFields() {
-            const container = document.getElementById('passportFields');
-            container.innerHTML = `
-                <div class="field">
-                    <div class="field-label">Паспорт (серия/номер):</div>
-                    <div class="field-value ${!currentUserData.passportNumber ? 'empty' : ''}">${escapeHtml(currentUserData.passportNumber) || 'Не указан'}</div>
-                </div>
-                <div class="field">
-                    <div class="field-label">Кем выдан:</div>
-                    <div class="field-value ${!currentUserData.passportIssuedBy ? 'empty' : ''}">${escapeHtml(currentUserData.passportIssuedBy) || 'Не указано'}</div>
-                </div>
-                <div class="field">
-                    <div class="field-label">Дата выдачи:</div>
-                    <div class="field-value ${!currentUserData.passportIssueDate ? 'empty' : ''}">${escapeHtml(currentUserData.passportIssueDate) || 'Не указана'}</div>
-                </div>
-                <div class="field">
-                    <div class="field-label">СНИЛС:</div>
-                    <div class="field-value ${!currentUserData.snils ? 'empty' : ''}">${escapeHtml(currentUserData.snils) || 'Не указан'}</div>
-                </div>
-            `;
-        }
-        
-        function displayAddressFields() {
-            const container = document.getElementById('addressFields');
-            container.innerHTML = `
-                <div class="field">
-                    <div class="field-label">Фактический адрес:</div>
-                    <div class="field-value ${!currentUserData.actualAddress ? 'empty' : ''}">${escapeHtml(currentUserData.actualAddress) || 'Не указан'}</div>
-                </div>
-                <div class="field">
-                    <div class="field-label">Адрес прописки:</div>
-                    <div class="field-value ${!currentUserData.registrationAddress ? 'empty' : ''}">${escapeHtml(currentUserData.registrationAddress) || 'Не указан'}</div>
-                </div>
-            `;
-        }
-        
-        async function displayCustomFields() {
-            try {
-                // Загружаем дополнительные поля из отдельной коллекции
-                const snapshot = await window.db.collection('custom_fields').where('isActive', '==', true).get();
-                const customFields = [];
-                snapshot.forEach(doc => {
-                    customFields.push({ id: doc.id, ...doc.data() });
-                });
-                
-                const container = document.getElementById('customFields');
-                const card = document.getElementById('customCard');
-                
-                if (customFields.length === 0) {
-                    card.style.display = 'none';
-                    return;
-                }
-                
-                card.style.display = 'block';
-                
-                let html = '';
-                for (const field of customFields) {
-                    const value = currentUserData.customFields?.[field.id] || '';
-                    html += `
-                        <div class="field">
-                            <div class="field-label">${escapeHtml(field.label)}:</div>
-                            <div class="field-value ${!value ? 'empty' : ''}">${escapeHtml(value) || 'Не указано'}</div>
-                        </div>
-                    `;
-                }
-                container.innerHTML = html;
-            } catch (error) {
-                console.error('Ошибка загрузки доп. полей:', error);
-            }
-        }
-        
-        function getEducationText(value) {
-            const map = {
-                'высшее': 'Высшее',
-                'среднее-специальное': 'Среднее специальное',
-                'среднее': 'Среднее'
-            };
-            return map[value] || value;
-        }
-        
-        function editSection(section) {
-            editMode = section;
-            
-            if (section === 'personal') {
-                showPersonalEditForm();
-            } else if (section === 'passport') {
-                showPassportEditForm();
-            } else if (section === 'address') {
-                showAddressEditForm();
-            } else if (section === 'custom') {
-                showCustomEditForm();
-            }
-        }
-        
-        function showPersonalEditForm() {
-            const container = document.getElementById('personalFields');
-            container.innerHTML = `
-                <div class="form-group">
-                    <label>ФИО</label>
-                    <input type="text" id="editFullName" value="${escapeHtml(currentUserData.fullName || '')}">
-                </div>
-                <div class="form-group">
-                    <label>Телефон</label>
-                    <input type="tel" id="editPhone" value="${escapeHtml(currentUserData.phone || '')}">
-                </div>
-                <div class="form-group">
-                    <label>Образование</label>
-                    <select id="editEducation">
-                        <option value="">-- Выберите --</option>
-                        <option value="высшее" ${currentUserData.education === 'высшее' ? 'selected' : ''}>Высшее</option>
-                        <option value="среднее-специальное" ${currentUserData.education === 'среднее-специальное' ? 'selected' : ''}>Среднее специальное</option>
-                        <option value="среднее" ${currentUserData.education === 'среднее' ? 'selected' : ''}>Среднее</option>
-                    </select>
-                </div>
-                <div class="form-actions">
-                    <button class="save-btn" onclick="savePersonal()">Сохранить</button>
-                    <button class="cancel-btn" onclick="cancelEdit()">Отмена</button>
-                </div>
-            `;
-        }
-        
-        function showPassportEditForm() {
-            const container = document.getElementById('passportFields');
-            container.innerHTML = `
-                <div class="form-group">
-                    <label>Паспорт (серия/номер)</label>
-                    <input type="text" id="editPassportNumber" value="${escapeHtml(currentUserData.passportNumber || '')}">
-                </div>
-                <div class="form-group">
-                    <label>Кем выдан</label>
-                    <input type="text" id="editPassportIssuedBy" value="${escapeHtml(currentUserData.passportIssuedBy || '')}">
-                </div>
-                <div class="form-group">
-                    <label>Дата выдачи</label>
-                    <input type="date" id="editPassportIssueDate" value="${currentUserData.passportIssueDate || ''}">
-                </div>
-                <div class="form-group">
-                    <label>СНИЛС</label>
-                    <input type="text" id="editSnils" value="${escapeHtml(currentUserData.snils || '')}">
-                </div>
-                <div class="form-actions">
-                    <button class="save-btn" onclick="savePassport()">Сохранить</button>
-                    <button class="cancel-btn" onclick="cancelEdit()">Отмена</button>
-                </div>
-            `;
-        }
-        
-        function showAddressEditForm() {
-            const container = document.getElementById('addressFields');
-            container.innerHTML = `
-                <div class="form-group">
-                    <label>Фактический адрес</label>
-                    <textarea id="editActualAddress" rows="2">${escapeHtml(currentUserData.actualAddress || '')}</textarea>
-                </div>
-                <div class="form-group">
-                    <label>Адрес прописки</label>
-                    <textarea id="editRegistrationAddress" rows="2">${escapeHtml(currentUserData.registrationAddress || '')}</textarea>
-                </div>
-                <div class="form-actions">
-                    <button class="save-btn" onclick="saveAddress()">Сохранить</button>
-                    <button class="cancel-btn" onclick="cancelEdit()">Отмена</button>
-                </div>
-            `;
-        }
-        
-        async function showCustomEditForm() {
-            const snapshot = await window.db.collection('custom_fields').where('isActive', '==', true).get();
-            const customFields = [];
-            snapshot.forEach(doc => {
-                customFields.push({ id: doc.id, ...doc.data() });
-            });
-            
-            let html = '';
-            for (const field of customFields) {
-                const value = currentUserData.customFields?.[field.id] || '';
-                html += `
-                    <div class="form-group">
-                        <label>${escapeHtml(field.label)} ${field.isRequired ? '*' : ''}</label>
-                        ${renderCustomFieldInput(field, value)}
-                        ${field.placeholder ? `<small style="color:#999;">${escapeHtml(field.placeholder)}</small>` : ''}
-                    </div>
-                `;
-            }
-            
-            html += `
-                <div class="form-actions">
-                    <button class="save-btn" onclick="saveCustom()">Сохранить</button>
-                    <button class="cancel-btn" onclick="cancelEdit()">Отмена</button>
-                </div>
-            `;
-            
-            document.getElementById('customFields').innerHTML = html;
-        }
-        
-        function renderCustomFieldInput(field, value) {
-            const fieldId = `custom_${field.id}`;
-            
-            switch (field.type) {
-                case 'textarea':
-                    return `<textarea id="${fieldId}" class="form-control" rows="3">${escapeHtml(value)}</textarea>`;
-                case 'radio':
-                    if (!field.options) return '<input type="text">';
-                    let radioHtml = '<div>';
-                    for (const opt of field.options) {
-                        radioHtml += `
-                            <label style="display:inline-flex; align-items:center; margin-right:15px;">
-                                <input type="radio" name="${fieldId}" value="${escapeHtml(opt)}" ${value === opt ? 'checked' : ''}>
-                                <span style="margin-left:5px;">${escapeHtml(opt)}</span>
-                            </label>
-                        `;
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 Страница student-cabinet.html загружена');
+            console.log('✅ Firebase готов:', !!window.firebase);
+            console.log('✅ Auth готов:', !!window.auth);
+            console.log('✅ Firestore готов:', !!window.db);
+            console.log('✅ FieldsManager готов:', !!window.fieldsManager);
+            console.log('✅ Student JS готов:', !!window.loadUserData);
+
+            if (window.auth && window.auth.currentUser && !window.currentUserData) {
+                console.log('🔄 Повторная попытка загрузки данных...');
+                setTimeout(() => {
+                    if (typeof window.loadUserData === 'function') {
+                        window.loadUserData();
                     }
-                    radioHtml += '</div>';
-                    return radioHtml;
-                case 'select':
-                    if (!field.options) return '<input type="text">';
-                    let selectHtml = `<select id="${fieldId}" class="form-control">`;
-                    selectHtml += `<option value="">-- Выберите --</option>`;
-                    for (const opt of field.options) {
-                        selectHtml += `<option value="${escapeHtml(opt)}" ${value === opt ? 'selected' : ''}>${escapeHtml(opt)}</option>`;
-                    }
-                    selectHtml += '</select>';
-                    return selectHtml;
-                default:
-                    return `<input type="${field.type || 'text'}" id="${fieldId}" class="form-control" value="${escapeHtml(value)}">`;
+                }, 1000);
             }
-        }
-        
-        async function savePersonal() {
-            const user = window.auth.currentUser;
-            if (!user) return;
-            
-            const updates = {
-                fullName: document.getElementById('editFullName')?.value || '',
-                phone: document.getElementById('editPhone')?.value || '',
-                education: document.getElementById('editEducation')?.value || ''
-            };
-            
-            try {
-                await window.db.collection('users').doc(user.uid).update(updates);
-                currentUserData = { ...currentUserData, ...updates };
-                displayPersonalFields();
-                showToast('Данные сохранены', 'success');
-                editMode = null;
-            } catch (error) {
-                showToast('Ошибка: ' + error.message, 'error');
+        });
+
+        window.addEventListener('error', function(e) {
+            console.error('❌ Ошибка загрузки скрипта:', e.target.src || e.message);
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv && e.target && e.target.src) {
+                errorDiv.textContent = 'Ошибка загрузки: ' + e.target.src.split('/').pop();
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 5000);
             }
-        }
-        
-        async function savePassport() {
-            const user = window.auth.currentUser;
-            if (!user) return;
-            
-            const updates = {
-                passportNumber: document.getElementById('editPassportNumber')?.value || '',
-                passportIssuedBy: document.getElementById('editPassportIssuedBy')?.value || '',
-                passportIssueDate: document.getElementById('editPassportIssueDate')?.value || '',
-                snils: document.getElementById('editSnils')?.value || ''
-            };
-            
-            try {
-                await window.db.collection('users').doc(user.uid).update(updates);
-                currentUserData = { ...currentUserData, ...updates };
-                displayPassportFields();
-                showToast('Данные сохранены', 'success');
-                editMode = null;
-            } catch (error) {
-                showToast('Ошибка: ' + error.message, 'error');
-            }
-        }
-        
-        async function saveAddress() {
-            const user = window.auth.currentUser;
-            if (!user) return;
-            
-            const updates = {
-                actualAddress: document.getElementById('editActualAddress')?.value || '',
-                registrationAddress: document.getElementById('editRegistrationAddress')?.value || ''
-            };
-            
-            try {
-                await window.db.collection('users').doc(user.uid).update(updates);
-                currentUserData = { ...currentUserData, ...updates };
-                displayAddressFields();
-                showToast('Данные сохранены', 'success');
-                editMode = null;
-            } catch (error) {
-                showToast('Ошибка: ' + error.message, 'error');
-            }
-        }
-        
-        async function saveCustom() {
-            const user = window.auth.currentUser;
-            if (!user) return;
-            
-            const snapshot = await window.db.collection('custom_fields').where('isActive', '==', true).get();
-            const customFields = [];
-            snapshot.forEach(doc => {
-                customFields.push({ id: doc.id, ...doc.data() });
-            });
-            
-            const customValues = {};
-            for (const field of customFields) {
-                const fieldId = `custom_${field.id}`;
-                if (field.type === 'radio') {
-                    const selected = document.querySelector(`input[name="${fieldId}"]:checked`);
-                    customValues[field.id] = selected ? selected.value : '';
-                } else {
-                    const input = document.getElementById(fieldId);
-                    customValues[field.id] = input ? input.value : '';
-                }
-            }
-            
-            try {
-                await window.db.collection('users').doc(user.uid).update({
-                    customFields: customValues
-                });
-                currentUserData.customFields = customValues;
-                displayCustomFields();
-                showToast('Данные сохранены', 'success');
-                editMode = null;
-            } catch (error) {
-                showToast('Ошибка: ' + error.message, 'error');
-            }
-        }
-        
-        function cancelEdit() {
-            if (editMode === 'personal') displayPersonalFields();
-            else if (editMode === 'passport') displayPassportFields();
-            else if (editMode === 'address') displayAddressFields();
-            else if (editMode === 'custom') displayCustomFields();
-            editMode = null;
-        }
-        
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-        
-        async function logout() {
-            try {
-                await window.auth.signOut();
-                window.location.href = 'index.html';
-            } catch (error) {
-                showToast('Ошибка выхода', 'error');
-            }
-        }
-        
-        // Инициализация
-        window.auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.href = 'index.html';
-                return;
-            }
-            
-            if (!user.emailVerified) {
-                showToast('Подтвердите email перед входом', 'error');
-                setTimeout(async () => {
-                    await window.auth.signOut();
-                    window.location.href = 'index.html';
-                }, 3000);
-                return;
-            }
-            
-            await loadUserData();
         });
     </script>
 </body>
