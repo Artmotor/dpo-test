@@ -443,45 +443,41 @@
     <div class="container">
         <div class="header">
             <div class="logo-icon">🎓</div>
-            <h1>Институт ДПО</h1>
-            <p>Система дистанционного обучения</p>
+            <h1>Ин-т</h1>
+            <p>Система</p>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('login')">Вход</button>
-            <button class="tab" onclick="switchTab('register')">Регистрация</button>
+            <button class="tab active" onclick="switchTab('login')">1</button>
+            <button class="tab" onclick="switchTab('register')">2</button>
         </div>
-
         <div class="form-container">
-            <!-- Форма входа -->
-            <div id="loginForm" class="form active">
+              <div id="loginForm" class="form active">
                 <div id="loginSuccess" class="success-message"></div>
                 <div id="loginInfo" class="info-message"></div>
                 <div class="form-group">
-                    <label>Электронная почта</label>
+                    <label>Число 13</label>
                     <input type="email" id="loginEmail" placeholder="example@mail.ru" autocomplete="email">
                     <div id="loginEmailError" class="error-message"></div>
                 </div>
                 <div class="form-group">
-                    <label>Пароль</label>
+                    <label>Число 12</label>
                     <div class="password-wrapper">
-                        <input type="password" id="loginPassword" placeholder="Введите пароль" autocomplete="current-password">
+                        <input type="password" id="loginPassword" placeholder="Число 11" autocomplete="current-password">
                         <button type="button" class="toggle-password" onclick="togglePassword('loginPassword')">👁️</button>
                     </div>
                     <div id="loginPasswordError" class="error-message"></div>
                 </div>
                 <div class="forgot-password">
-                    <a onclick="showResetPasswordModal()">Забыли пароль?</a>
+                    <a onclick="showResetPasswordModal()">Число 8</a>
                 </div>
-                <button onclick="login()">Войти в систему</button>
+                <button onclick="login()">Число 10</button>
             </div>
-
-            <!-- Форма регистрации -->
             <div id="registerForm" class="form">
                 <div id="registerSuccess" class="success-message"></div>
                 <div class="form-group">
-                    <label>ФИО *</label>
-                    <input type="text" id="regFullName" placeholder="Иванов Иван Иванович">
+                    <label>число 1 *</label>
+                    <input type="text" id="regFullName" placeholder="123">
                     <div id="regFullNameError" class="error-message"></div>
                 </div>
                 <div class="form-group">
@@ -490,12 +486,12 @@
                     <div id="regEmailError" class="error-message"></div>
                 </div>
                 <div class="form-group">
-                    <label>Телефон</label>
+                    <label>Число 2</label>
                     <input type="tel" id="regPhone" placeholder="+7 (XXX) XXX-XX-XX">
                     <div id="regPhoneError" class="error-message"></div>
                 </div>
                 <div class="form-group">
-                    <label>Образование</label>
+                    <label>Число 3</label>
                     <select id="regEducation">
                         <option value="">Выберите образование</option>
                         <option value="высшее">Высшее</option>
@@ -505,7 +501,7 @@
                     <div id="regEducationError" class="error-message"></div>
                 </div>
                 <div class="form-group">
-                    <label>Пароль *</label>
+                    <label>Число 4*</label>
                     <div class="password-wrapper">
                         <input type="password" id="regPassword" placeholder="Не менее 6 символов">
                         <button type="button" class="toggle-password" onclick="togglePassword('regPassword')">👁️</button>
@@ -513,23 +509,22 @@
                     <div id="regPasswordError" class="error-message"></div>
                 </div>
                 <div class="form-group">
-                    <label>Подтверждение пароля *</label>
+                    <label>Число 5 *</label>
                     <div class="password-wrapper">
                         <input type="password" id="regConfirmPassword" placeholder="Повторите пароль">
                         <button type="button" class="toggle-password" onclick="togglePassword('regConfirmPassword')">👁️</button>
                     </div>
                     <div id="regConfirmError" class="error-message"></div>
                 </div>
-                <button onclick="register()">Зарегистрироваться</button>
+                <button onclick="register()">Нажать</button>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно сброса пароля -->
     <div id="resetModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Сброс пароля</h3>
+                <h3>Число 6</h3>
                 <span class="close" onclick="closeResetModal()">&times;</span>
             </div>
             <div class="modal-body">
@@ -539,11 +534,11 @@
                     <input type="email" id="resetEmail" placeholder="example@mail.ru">
                     <div id="resetEmailError" class="error-message"></div>
                 </div>
-                <p style="font-size: 12px; color: #666; margin-top: 10px;">На указанный email будет отправлена ссылка для восстановления пароля</p>
+                <p style="font-size: 12px; color: #666; margin-top: 10px;"></p>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeResetModal()">Отмена</button>
-                <button class="btn-primary-modal" onclick="resetPassword()">Отправить</button>
+                <button class="btn-secondary" onclick="closeResetModal()">Да</button>
+                <button class="btn-primary-modal" onclick="resetPassword()">Нет</button>
             </div>
         </div>
     </div>
