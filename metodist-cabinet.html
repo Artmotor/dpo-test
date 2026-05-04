@@ -309,7 +309,7 @@
                         <option value="среднее">Среднее</option>
                     </select>
                 </div>
-
+                
                 <hr>
                 <h4>🏠 Адреса</h4>
                 <div class="form-group">
@@ -320,7 +320,7 @@
                     <label>Адрес прописки</label>
                     <input type="text" id="editRegistrationAddress" placeholder="Индекс, город, улица, дом, кв.">
                 </div>
-
+                
                 <hr>
                 <h4>📄 Паспортные данные</h4>
                 <div class="form-group">
@@ -339,11 +339,11 @@
                     <label>СНИЛС</label>
                     <input type="text" id="editSnils" placeholder="Номер СНИЛС">
                 </div>
-
+                
                 <hr>
                 <h4>📋 Дополнительные поля</h4>
                 <div id="dynamicFieldsContainer"></div>
-
+                
                 <div class="form-actions">
                     <button class="save-btn" onclick="saveStudentData()">💾 Сохранить все данные</button>
                     <button class="cancel-btn" onclick="closeEditModal()">❌ Отмена</button>
@@ -482,12 +482,12 @@
                     .where('role', '==', 'student')
                     .orderBy('createdAt', 'desc')
                     .get();
-
+                
                 allStudents = [];
                 snapshot.forEach(doc => {
                     allStudents.push({ id: doc.id, ...doc.data() });
                 });
-
+                
                 displayStudents(allStudents);
                 updateStats();
             } catch (error) {
@@ -499,12 +499,12 @@
         function displayStudents(students) {
             const tbody = document.getElementById('studentsTableBody');
             if (!tbody) return;
-
+            
             if (students.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Нет слушателей</td></tr>';
                 return;
             }
-
+            
             tbody.innerHTML = students.map(student => `
                 <tr>
                     <td>${escapeHtml(student.fullName || 'Не указано')}</td>
@@ -521,7 +521,7 @@
 
         function searchStudents() {
             const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
-            const filtered = allStudents.filter(student =>
+            const filtered = allStudents.filter(student => 
                 (student.fullName && student.fullName.toLowerCase().includes(searchTerm)) ||
                 (student.email && student.email.toLowerCase().includes(searchTerm)) ||
                 (student.phone && student.phone.toLowerCase().includes(searchTerm))
@@ -538,11 +538,11 @@
                 const daysSinceLogin = (Date.now() - lastLogin.getTime()) / (1000 * 60 * 60 * 24);
                 return daysSinceLogin <= 30;
             }).length;
-
+            
             const totalElem = document.getElementById('totalStudents');
             const verifiedElem = document.getElementById('verifiedStudents');
             const activeElem = document.getElementById('activeStudents');
-
+            
             if (totalElem) totalElem.textContent = total;
             if (verifiedElem) verifiedElem.textContent = verified;
             if (activeElem) activeElem.textContent = active;
@@ -552,47 +552,47 @@
         async function openEditModal(studentId) {
             const student = allStudents.find(s => s.id === studentId);
             if (!student) return;
-
+            
             currentEditStudentId = studentId;
-
+            
             // Заполняем редактируемые поля
             document.getElementById('editFullName').value = student.fullName || '';
             document.getElementById('editEmail').value = student.email || '';
             document.getElementById('editPhone').value = student.phone || '';
             document.getElementById('editEducation').value = student.education || 'высшее';
-
+            
             // Адреса
             document.getElementById('editActualAddress').value = student.actualAddress || '';
             document.getElementById('editRegistrationAddress').value = student.registrationAddress || '';
-
+            
             // Паспортные данные
             document.getElementById('editPassportNumber').value = student.passportNumber || '';
             document.getElementById('editPassportIssuedBy').value = student.passportIssuedBy || '';
             document.getElementById('editPassportIssueDate').value = student.passportIssueDate || '';
             document.getElementById('editSnils').value = student.snils || '';
-
+            
             // Загружаем динамические поля (дополнительные)
             await loadDynamicFieldsInModal(student.customFields || {});
-
+            
             document.getElementById('editModal').style.display = 'block';
         }
 
         async function loadDynamicFieldsInModal(customValues) {
             const container = document.getElementById('dynamicFieldsContainer');
             if (!container) return;
-
+            
             // Загружаем поля, если еще не загружены
             if (allFields.length === 0) {
                 await loadFields();
             }
-
+            
             const activeFields = allFields.filter(f => f.isActive !== false);
-
+            
             if (activeFields.length === 0) {
                 container.innerHTML = '<p style="color:#999; text-align:center; padding:20px;">Нет дополнительных полей</p>';
                 return;
             }
-
+            
             let html = '';
             for (const field of activeFields) {
                 const value = customValues[field.id] || '';
@@ -634,7 +634,7 @@
                     }
                     radioHtml += '</div>';
                     return radioHtml;
-
+                    
                 case 'select':
                     if (!field.options || !field.options.length) {
                         return '<p style="color:red;">❌ Нет вариантов для выбора</p>';
@@ -646,10 +646,10 @@
                     }
                     selectHtml += '</select>';
                     return selectHtml;
-
+                    
                 case 'textarea':
                     return `<textarea id="${fieldId}" rows="3" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;" placeholder="${escapeHtml(field.placeholder || '')}">${escapeHtml(value)}</textarea>`;
-
+                    
                 default:
                     return `<input type="${field.type || 'text'}" id="${fieldId}" value="${escapeHtml(value)}" placeholder="${escapeHtml(field.placeholder || '')}" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px;">`;
             }
@@ -662,7 +662,7 @@
 
         async function saveStudentData() {
             if (!currentEditStudentId) return;
-
+            
             // Собираем все обновления (все поля!)
             const updates = {
                 fullName: document.getElementById('editFullName')?.value || '',
@@ -677,11 +677,11 @@
                 updatedByMetodist: firebase.firestore.FieldValue.serverTimestamp(),
                 metodistUpdateTime: firebase.firestore.FieldValue.serverTimestamp()
             };
-
+            
             // Собираем значения динамических полей (дополнительные поля)
             const activeFields = allFields.filter(f => f.isActive !== false);
             const customValues = {};
-
+            
             for (const field of activeFields) {
                 if (field.type === 'radio') {
                     const selected = document.querySelector(`input[name="dynamic_${field.id}"]:checked`);
@@ -693,18 +693,18 @@
                     }
                 }
             }
-
+            
             updates.customFields = customValues;
-
+            
             try {
                 await window.db.collection('users').doc(currentEditStudentId).update(updates);
-
+                
                 // Обновляем данные в массиве
                 const index = allStudents.findIndex(s => s.id === currentEditStudentId);
                 if (index !== -1) {
                     allStudents[index] = { ...allStudents[index], ...updates };
                 }
-
+                
                 displayStudents(allStudents);
                 updateStats();
                 showToast('✅ Все данные слушателя успешно обновлены!', 'success');
@@ -734,7 +734,7 @@
         function displayFieldsList() {
             const container = document.getElementById('fieldsListContainer');
             if (!container) return;
-
+            
             if (allFields.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
@@ -745,7 +745,7 @@
                 `;
                 return;
             }
-
+            
             container.innerHTML = allFields.map(field => {
                 let typeIcon = '', typeText = '';
                 switch(field.type) {
@@ -754,17 +754,17 @@
                     case 'textarea': typeIcon = '📄'; typeText = 'Многострочный текст'; break;
                     default: typeIcon = '📝'; typeText = field.type === 'email' ? 'Email' : (field.type === 'tel' ? 'Телефон' : (field.type === 'date' ? 'Дата' : (field.type === 'number' ? 'Число' : 'Текст')));
                 }
-
+                
                 let optionsHtml = '';
                 if ((field.type === 'radio' || field.type === 'select') && field.options && field.options.length) {
                     optionsHtml = `<div style="margin-top:5px; font-size:12px; color:#666;">📌 Варианты: ${field.options.join(', ')}</div>`;
                 }
-
+                
                 let semanticsHtml = '';
                 if (field.semantics && field.semantics.trim()) {
                     semanticsHtml = `<div style="margin-top:5px; font-size:12px; color:#1976d2;">🔗 Семантика: <a href="${escapeHtml(field.semantics)}" target="_blank">${escapeHtml(field.semantics)}</a></div>`;
                 }
-
+                
                 return `
                     <div class="field-item">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
@@ -794,7 +794,7 @@
         async function deleteField(id) {
             const field = allFields.find(f => f.id === id);
             if (!field) return;
-
+            
             // Подсчитываем количество слушателей, у которых заполнено это поле
             let filledCount = 0;
             try {
@@ -806,7 +806,7 @@
             } catch (e) {
                 console.error('Ошибка подсчета:', e);
             }
-
+            
             // Формируем сообщение с предупреждением
             let message = `⚠️ ВНИМАНИЕ!\n\n`;
             message += `Вы уверены, что хотите удалить поле "${field.label}"?\n\n`;
@@ -819,28 +819,28 @@
             message += `• Поле исчезнет из интерфейса\n\n`;
             message += `Отменить это действие будет невозможно!\n\n`;
             message += `Нажмите "ОК" для подтверждения удаления.`;
-
+            
             if (!confirm(message)) return;
-
+            
             // Дополнительное подтверждение с вводом текста
             const confirmText = prompt(`Для подтверждения удаления поля "${field.label}" введите "УДАЛИТЬ":`);
             if (confirmText !== "УДАЛИТЬ") {
                 showToast('❌ Удаление отменено', 'warning');
                 return;
             }
-
+            
             showToast('⏳ Удаление поля... Пожалуйста, подождите', 'info');
-
+            
             try {
                 // 1. Получаем всех слушателей
                 const studentsSnapshot = await window.db.collection('users')
                     .where('role', '==', 'student')
                     .get();
-
+                
                 // 2. Удаляем значения этого поля у всех слушателей
                 const updatePromises = [];
                 let updatedCount = 0;
-
+                
                 for (const doc of studentsSnapshot.docs) {
                     const userData = doc.data();
                     if (userData.customFields && userData.customFields[id] !== undefined) {
@@ -855,21 +855,21 @@
                         updatedCount++;
                     }
                 }
-
+                
                 // Ждем завершения всех обновлений
                 if (updatePromises.length > 0) {
                     await Promise.all(updatePromises);
                 }
-
+                
                 // 3. Удаляем само поле из коллекции custom_fields
                 await window.db.collection('custom_fields').doc(id).delete();
-
+                
                 showToast(`✅ Поле "${field.label}" полностью удалено! Очищено записей: ${updatedCount}`, 'success');
-
+                
                 // 4. Обновляем списки
                 await loadFields();
                 await loadStudents();
-
+                
             } catch (error) {
                 console.error('Ошибка удаления поля:', error);
                 showToast('❌ Ошибка при удалении поля: ' + error.message, 'error');
@@ -923,7 +923,7 @@
         function openFieldEditor(fieldId = null) {
             const isEdit = fieldId !== null;
             const field = isEdit ? allFields.find(f => f.id === fieldId) : null;
-
+            
             document.getElementById('fieldEditorTitle').textContent = isEdit ? '✏️ Редактирование поля' : '➕ Создание поля';
             document.getElementById('fieldLabel').value = field?.label || '';
             document.getElementById('fieldId').value = field?.id || '';
@@ -934,10 +934,10 @@
             document.getElementById('fieldOrder').value = field?.order || allFields.length;
             document.getElementById('fieldRequired').checked = field?.isRequired || false;
             document.getElementById('fieldActive').checked = field?.isActive !== false;
-
+            
             setOptions(field?.options || []);
             toggleOptionsFields();
-
+            
             document.getElementById('fieldEditorModal').dataset.editId = fieldId || '';
             document.getElementById('fieldEditorModal').style.display = 'block';
         }
@@ -959,28 +959,28 @@
             const order = parseInt(document.getElementById('fieldOrder').value) || 0;
             const isRequired = document.getElementById('fieldRequired').checked;
             const isActive = document.getElementById('fieldActive').checked;
-
+            
             // Валидация
             if (!label) {
                 showToast('Введите название поля', 'warning');
                 return;
             }
-
+            
             if (!isEdit && !fieldId) {
                 showToast('Введите ID поля', 'warning');
                 return;
             }
-
+            
             if (!isEdit && allFields.some(f => f.id === fieldId)) {
                 showToast('Поле с таким ID уже существует', 'warning');
                 return;
             }
-
+            
             if ((type === 'radio' || type === 'select') && options.length === 0) {
                 showToast('Добавьте хотя бы один вариант', 'warning');
                 return;
             }
-
+            
             const fieldData = {
                 label: label,
                 type: type,
@@ -992,7 +992,7 @@
                 options: options,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
-
+            
             try {
                 if (isEdit) {
                     await window.db.collection('custom_fields').doc(editId).update(fieldData);
@@ -1028,24 +1028,24 @@
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
         async function initMetodistPage() {
             console.log('Инициализация страницы методиста...');
-
+            
             const user = window.auth.currentUser;
             if (!user) {
                 window.location.href = 'index.html';
                 return;
             }
-
+            
             try {
                 const userDoc = await window.db.collection('users').doc(user.uid).get();
-
+                
                 if (!userDoc.exists) {
                     await window.auth.signOut();
                     window.location.href = 'index.html';
                     return;
                 }
-
+                
                 const userData = userDoc.data();
-
+                
                 if (userData.role !== 'metodist') {
                     if (userData.role === 'admin') {
                         window.location.href = 'admin-cabinet.html';
@@ -1056,16 +1056,16 @@
                     }
                     return;
                 }
-
+                
                 // Отображаем имя пользователя
                 const userNameSpan = document.getElementById('userName');
                 if (userNameSpan) {
                     userNameSpan.textContent = userData.fullName || userData.email;
                 }
-
+                
                 await loadStudents();
                 await loadFields();
-
+                
             } catch (error) {
                 console.error('Ошибка инициализации:', error);
                 window.location.href = 'index.html';
@@ -1075,7 +1075,7 @@
         // ========== СЛУШАТЕЛЬ СОБЫТИЙ АУТЕНТИФИКАЦИИ ==========
         window.auth.onAuthStateChanged(async (user) => {
             console.log('Auth state changed in metodist:', user?.email);
-
+            
             if (user && user.emailVerified) {
                 await initMetodistPage();
             } else if (user && !user.emailVerified) {
