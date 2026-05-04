@@ -1,9 +1,9 @@
-// dynamic-profile.js - полностью динамический профиль
+// dynamic-profile.js - полностью исправленная версия
 
 class DynamicProfile {
     constructor() {
-        this.fieldDefinitions = [];     // все поля
-        this.tabs = [];                 // сгруппированные вкладки
+        this.fieldDefinitions = [];
+        this.tabs = [];
         this.userData = null;
         this.userId = null;
         this.currentTab = null;
@@ -11,7 +11,6 @@ class DynamicProfile {
         this.currentEditField = null;
     }
 
-    // Инициализация
     async init(userId) {
         this.userId = userId;
         await this.loadFieldDefinitions();
@@ -19,30 +18,40 @@ class DynamicProfile {
         this.renderTabs();
     }
 
-    // Загрузка всех полей из Firestore
     async loadFieldDefinitions() {
         try {
+            // Простой запрос без сортировки
             const snapshot = await window.db.collection('field_definitions')
                 .where('isActive', '==', true)
-                .orderBy('tabOrder', 'asc')
-                .orderBy('fieldOrder', 'asc')
                 .get();
             
             this.fieldDefinitions = [];
             snapshot.forEach(doc => {
-                this.fieldDefinitions.push({ id: doc.id, ...doc.data() });
+                const data = doc.data();
+                this.fieldDefinitions.push({ 
+                    id: doc.id, 
+                    ...data,
+                    tabOrder: data.tabOrder || 0,
+                    fieldOrder: data.fieldOrder || 0
+                });
             });
-
-            // Группируем по вкладкам
-            this.groupFieldsByTabs();
             
-            console.log(`✅ Загружено ${this.fieldDefinitions.length} полей, ${this.tabs.length} вкладок`);
+            // Сортировка на клиенте
+            this.fieldDefinitions.sort((a, b) => {
+                if (a.tabOrder !== b.tabOrder) {
+                    return a.tabOrder - b.tabOrder;
+                }
+                return a.fieldOrder - b.fieldOrder;
+            });
+            
+            this.groupFieldsByTabs();
+            console.log(`✅ Загружено ${this.fieldDefinitions.length} полей`);
         } catch (error) {
             console.error('Ошибка загрузки полей:', error);
+            this.showError('Не удалось загрузить конфигурацию профиля. Обновите страницу.');
         }
     }
 
-    // Группировка полей по вкладкам
     groupFieldsByTabs() {
         const tabMap = new Map();
         
@@ -62,16 +71,13 @@ class DynamicProfile {
             tabMap.get(tabKey).fields.push(field);
         }
         
-        // Сортируем поля внутри вкладок
         for (const [_, tab] of tabMap) {
             tab.fields.sort((a, b) => (a.fieldOrder || 0) - (b.fieldOrder || 0));
         }
         
-        // Сортируем вкладки
         this.tabs = Array.from(tabMap.values()).sort((a, b) => a.order - b.order);
     }
 
-    // Загрузка данных пользователя
     async loadUserData() {
         try {
             const doc = await window.db.collection('users').doc(this.userId).get();
@@ -81,12 +87,21 @@ class DynamicProfile {
         }
     }
 
-    // Рендер всех вкладок
     renderTabs() {
         const container = document.getElementById('dynamicProfileContainer');
         if (!container) return;
 
-        // Создаём HTML для вкладок
+        if (this.tabs.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📭</div>
+                    <p>Нет настроенных полей для отображения</p>
+                    <p style="font-size: 12px; margin-top: 10px;">Обратитесь к администратору для настройки профиля</p>
+                </div>
+            `;
+            return;
+        }
+
         let tabsHtml = '<div class="dynamic-tabs">';
         let contentHtml = '<div class="dynamic-tab-content">';
         
@@ -112,10 +127,9 @@ class DynamicProfile {
         container.innerHTML = tabsHtml + contentHtml;
     }
 
-    // Рендер полей во вкладке
     renderFields(fields) {
         if (!fields || fields.length === 0) {
-            return '<div class="empty-state">Нет полей для отображения</div>';
+            return '<div class="empty-state">Нет полей в этой вкладке</div>';
         }
 
         let html = '<div class="dynamic-fields-grid">';
@@ -173,13 +187,10 @@ class DynamicProfile {
         return html;
     }
 
-    // Отображение значения поля
     renderFieldValue(field, value) {
         if (this.editMode && !field.readOnly) {
-            // Режим редактирования
             return this.renderFieldInput(field, value);
         } else {
-            // Режим просмотра
             if (!value || value === '') {
                 return '<span class="empty-value">—</span>';
             }
@@ -199,7 +210,6 @@ class DynamicProfile {
         }
     }
 
-    // Рендер поля для редактирования
     renderFieldInput(field, value) {
         const fieldId = `field_${field.id}`;
         
@@ -240,43 +250,35 @@ class DynamicProfile {
         }
     }
 
-    // Получить значение поля пользователя
     getUserFieldValue(fieldId) {
-        // Проверяем в корне документа
         if (this.userData && this.userData[fieldId] !== undefined) {
             return this.userData[fieldId];
         }
-        // Проверяем в customFields
         if (this.userData.customFields && this.userData.customFields[fieldId] !== undefined) {
             return this.userData.customFields[fieldId];
         }
         return '';
     }
 
-    // Включить режим редактирования
     enableEditMode() {
         this.editMode = true;
         this.renderTabs();
     }
 
-    // Отменить редактирование
     cancelEdit() {
         this.editMode = false;
         this.renderTabs();
     }
 
-    // Редактирование отдельного поля (модальное окно)
     async editField(fieldId) {
         const field = this.fieldDefinitions.find(f => f.id === fieldId);
         if (!field || field.readOnly) return;
         
         this.currentEditField = field;
         const currentValue = this.getUserFieldValue(fieldId);
-        
         this.showFieldModal(field, currentValue);
     }
 
-    // Показать модальное окно для редактирования поля
     showFieldModal(field, currentValue) {
         let modal = document.getElementById('fieldEditModal');
         if (!modal) {
@@ -296,7 +298,6 @@ class DynamicProfile {
         modal.querySelector('.modal-header h3').textContent = `Редактирование: ${field.label}`;
         modal.style.display = 'block';
         
-        // Сохраняем обработчик
         const saveBtn = modal.querySelector('.save-field-btn');
         const newSaveBtn = saveBtn.cloneNode(true);
         saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
@@ -325,7 +326,6 @@ class DynamicProfile {
         `;
         document.body.appendChild(modal);
         
-        // Закрытие по клику вне
         window.onclick = (event) => {
             if (event.target === modal) {
                 modal.style.display = 'none';
@@ -335,7 +335,6 @@ class DynamicProfile {
         return modal;
     }
 
-    // Сохранить одно поле
     async saveSingleField(field) {
         const fieldId = `field_${field.id}`;
         let newValue;
@@ -345,14 +344,9 @@ class DynamicProfile {
             newValue = selected ? selected.value : '';
         } else {
             const input = document.getElementById(fieldId);
-            if (input) {
-                newValue = input.type === 'checkbox' ? input.checked : input.value;
-            } else {
-                newValue = '';
-            }
+            newValue = input ? input.value : '';
         }
         
-        // Валидация
         if (field.isRequired && (!newValue || newValue === '')) {
             this.showToast(`Поле "${field.label}" обязательно для заполнения`, 'warning');
             return;
@@ -365,7 +359,6 @@ class DynamicProfile {
         this.showToast(`✅ Поле "${field.label}" сохранено`, 'success');
     }
 
-    // Сохранить все поля
     async saveAllFields() {
         const updates = {};
         
@@ -380,17 +373,12 @@ class DynamicProfile {
                 newValue = selected ? selected.value : '';
             } else {
                 const input = document.getElementById(fieldId);
-                if (input) {
-                    newValue = input.type === 'checkbox' ? input.checked : input.value;
-                } else {
-                    newValue = '';
-                }
+                newValue = input ? input.value : '';
             }
             
             updates[field.id] = newValue;
         }
         
-        // Проверка обязательных полей
         const missingFields = [];
         for (const field of this.fieldDefinitions) {
             if (field.isRequired && !updates[field.id]) {
@@ -439,22 +427,27 @@ class DynamicProfile {
         }
     }
 
-    // Переключение вкладки
     switchTab(tabId) {
-        // Обновляем кнопки
         document.querySelectorAll('.dynamic-tab-btn').forEach(btn => {
             btn.classList.remove('active');
         });
-        document.querySelector(`.dynamic-tab-btn[onclick*="${tabId}"]`)?.classList.add('active');
         
-        // Обновляем панели
+        const buttons = document.querySelectorAll('.dynamic-tab-btn');
+        for (const btn of buttons) {
+            if (btn.textContent.trim().toLowerCase().replace(/\s/g, '_') === tabId ||
+                btn.getAttribute('onclick')?.includes(tabId)) {
+                btn.classList.add('active');
+                break;
+            }
+        }
+        
         document.querySelectorAll('.dynamic-tab-pane').forEach(pane => {
             pane.classList.remove('active');
         });
-        document.getElementById(`tab-${tabId}`)?.classList.add('active');
+        const targetPane = document.getElementById(`tab-${tabId}`);
+        if (targetPane) targetPane.classList.add('active');
     }
 
-    // Вспомогательные функции
     escapeHtml(str) {
         if (!str) return '';
         return str.replace(/[&<>]/g, function(m) {
@@ -485,10 +478,22 @@ class DynamicProfile {
                 toast.style.display = 'none';
             }, 3000);
         } else {
-            alert(message);
+            console.log(`[${type}] ${message}`);
+        }
+    }
+
+    showError(message) {
+        const container = document.getElementById('dynamicProfileContainer');
+        if (container) {
+            container.innerHTML = `
+                <div class="error-state" style="text-align:center; padding:40px; background:#fff3cd; border-radius:16px;">
+                    <div style="font-size:48px;">⚠️</div>
+                    <p style="margin-top:15px; color:#856404;">${this.escapeHtml(message)}</p>
+                    <button onclick="location.reload()" style="margin-top:15px; padding:10px 20px; background:#2c5f2d; color:white; border:none; border-radius:8px; cursor:pointer;">Обновить страницу</button>
+                </div>
+            `;
         }
     }
 }
 
-// Глобальный экземпляр
 window.dynamicProfile = null;
