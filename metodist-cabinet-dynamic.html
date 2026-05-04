@@ -1,0 +1,644 @@
+<!-- metodist-cabinet-dynamic.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель методиста</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #2c5f2d;
+            --primary-dark: #1e3a1f;
+            --secondary: #ffc107;
+            --danger: #dc3545;
+            --success: #28a745;
+            --gray-light: #f5f5f5;
+            --gray: #ddd;
+            --dark: #333;
+            --white: #fff;
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+        body {
+            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            min-height: 100vh;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        .logo { font-size: 36px; background: var(--secondary); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .btn-logout {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        /* Вкладки */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: white;
+            padding: 10px;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 12px 28px;
+            background: var(--gray-light);
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover { background: var(--gray); transform: translateY(-2px); }
+        .tab-btn.active { background: var(--primary); color: white; }
+        
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            animation: fadeIn 0.3s;
+        }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Управление полями */
+        .manager-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--dark);
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+        }
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+        
+        /* Список полей */
+        .fields-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .field-manager-item {
+            background: var(--gray-light);
+            border-radius: var(--radius-sm);
+            padding: 18px;
+            border-left: 4px solid var(--primary);
+        }
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .field-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .field-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 8px;
+            margin: 12px 0;
+            font-size: 13px;
+            color: #666;
+        }
+        .detail-row {
+            display: flex;
+            gap: 8px;
+        }
+        .detail-label {
+            font-weight: 600;
+            min-width: 90px;
+        }
+        .detail-hint {
+            color: #999;
+            font-size: 11px;
+        }
+        .field-preview {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--gray);
+        }
+        .preview-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .preview-input {
+            padding: 8px;
+            border: 1px solid var(--gray);
+            border-radius: 5px;
+            background: white;
+            width: 100%;
+            max-width: 300px;
+        }
+        .preview-radio-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .badge-required, .badge-optional, .badge-active, .badge-inactive {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .badge-required { background: #dc3545; color: white; }
+        .badge-optional { background: #28a745; color: white; }
+        .badge-active { background: #28a745; color: white; }
+        .badge-inactive { background: #999; color: white; }
+        .type-icon { font-size: 16px; }
+        
+        /* Вкладки менеджер */
+        .tabs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .tab-manager-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--gray-light);
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+        }
+        .tab-info {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .tab-badge {
+            background: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+        
+        /* Формы */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--gray);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .checkbox-group label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: normal;
+        }
+        .validation-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 3% auto;
+            padding: 0;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            padding: 20px;
+            background: var(--primary);
+            color: white;
+            border-radius: var(--radius) var(--radius) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+        }
+        .close-modal {
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-modal:hover { color: var(--secondary); }
+        .modal-body {
+            padding: 25px;
+        }
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--gray);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .option-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .option-row input {
+            flex: 1;
+        }
+        .btn-remove {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 0 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            border-radius: var(--radius-sm);
+            display: none;
+            z-index: 1001;
+            animation: slideIn 0.3s;
+            font-weight: 500;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast-success { background: var(--success); color: white; }
+        .toast-error { background: var(--danger); color: white; }
+        .toast-warning { background: #ff9800; color: white; }
+        
+        /* Таблица слушателей */
+        .search-box { margin-bottom: 20px; }
+        .search-box input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 15px;
+            border: 2px solid var(--gray);
+            border-radius: var(--radius-sm);
+        }
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--gray); }
+        th { background: var(--gray-light); font-weight: 600; }
+        tr:hover { background: var(--gray-light); }
+        
+        @media (max-width: 768px) {
+            .tabs { flex-direction: column; }
+            .tab-btn { width: 100%; text-align: center; }
+            .field-details { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-area">
+            <div class="logo">📚</div>
+            <h1>Панель методиста - Управление профилями</h1>
+        </div>
+        <button class="btn-logout" onclick="logout()">🚪 Выйти</button>
+    </div>
+
+    <div class="container">
+        <div id="toastMessage" class="toast"></div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('students')">👥 Слушатели</button>
+            <button class="tab-btn" onclick="switchTab('fields')">⚙️ Управление полями</button>
+            <button class="tab-btn" onclick="switchTab('tabs')">📑 Управление вкладками</button>
+        </div>
+        
+        <!-- Вкладка слушателей -->
+        <div id="studentsTab" class="tab-content active">
+            <div class="search-box">
+                <input type="text" id="searchStudents" placeholder="🔍 Поиск по ФИО, email, телефону..." onkeyup="filterStudents()">
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Статус</th><th>Действия</th></tr>
+                    </thead>
+                    <tbody id="studentsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Вкладка управления полями -->
+        <div id="fieldsTab" class="tab-content">
+            <div id="fieldsListContainer"></div>
+        </div>
+        
+        <!-- Вкладка управления вкладками -->
+        <div id="tabsTab" class="tab-content">
+            <div id="tabsManagerContainer"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="dynamic-profile.js"></script>
+    <script src="field-definitions-manager.js"></script>
+    
+    <script>
+        let allStudents = [];
+        let dynamicProfile = null;
+        
+        function showToast(message, type) {
+            const toast = document.getElementById('toastMessage');
+            toast.textContent = message;
+            toast.className = `toast toast-${type}`;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+        }
+        
+        function formatDate(ts) {
+            if (!ts) return '—';
+            try {
+                const d = ts.toDate ? ts.toDate() : new Date(ts);
+                return d.toLocaleDateString('ru-RU');
+            } catch(e) { return '—'; }
+        }
+        
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'fields' && window.fieldManager) {
+                window.fieldManager.init();
+            }
+            if (tabName === 'tabs' && window.fieldManager) {
+                window.fieldManager.init();
+            }
+        }
+        
+        async function loadStudents() {
+            try {
+                const snapshot = await window.db.collection('users')
+                    .where('role', '==', 'student')
+                    .orderBy('createdAt', 'desc')
+                    .get();
+                allStudents = [];
+                snapshot.forEach(doc => allStudents.push({ id: doc.id, ...doc.data() }));
+                displayStudents(allStudents);
+            } catch (e) {
+                console.error('Ошибка загрузки:', e);
+                showToast('Ошибка загрузки слушателей', 'error');
+            }
+        }
+        
+        function displayStudents(students) {
+            const tbody = document.getElementById('studentsTableBody');
+            if (!tbody) return;
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Нет слушателей</td></tr>';
+                return;
+            }
+            tbody.innerHTML = students.map(s => `
+                <tr>
+                    <td>${escapeHtml(s.fullName || '—')}</td>
+                    <td>${escapeHtml(s.email)}</td>
+                    <td>${escapeHtml(s.phone || '—')}</td>
+                    <td>${s.emailVerified ? '✅ Подтвержден' : '⏳ Не подтвержден'}</td>
+                    <td><button class="btn-primary btn-sm" onclick="openStudentProfile('${s.id}')">👤 Редактировать профиль</button></td>
+                </tr>
+            `).join('');
+        }
+        
+        function filterStudents() {
+            const term = document.getElementById('searchStudents').value.toLowerCase();
+            displayStudents(allStudents.filter(s => 
+                (s.fullName?.toLowerCase().includes(term)) ||
+                (s.email?.toLowerCase().includes(term)) ||
+                (s.phone?.includes(term))
+            ));
+        }
+        
+        // Открыть профиль слушателя в модальном окне для редактирования методистом
+        async function openStudentProfile(studentId) {
+            const student = allStudents.find(s => s.id === studentId);
+            if (!student) return;
+            
+            // Создаём модальное окно с динамическим профилем
+            let modal = document.getElementById('studentProfileModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'studentProfileModal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content" style="max-width: 900px;">
+                        <div class="modal-header">
+                            <h3>Редактирование профиля слушателя</h3>
+                            <span class="close-modal">&times;</span>
+                        </div>
+                        <div class="modal-body" id="studentProfileBody"></div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary close-modal">Закрыть</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                const closeBtns = modal.querySelectorAll('.close-modal');
+                closeBtns.forEach(btn => {
+                    btn.onclick = () => modal.style.display = 'none';
+                });
+                window.onclick = (event) => {
+                    if (event.target === modal) modal.style.display = 'none';
+                };
+            }
+            
+            modal.style.display = 'block';
+            const body = document.getElementById('studentProfileBody');
+            body.innerHTML = '<div style="text-align:center; padding:40px;">Загрузка профиля...</div>';
+            
+            // Инициализируем динамический профиль для методиста (с правом редактирования любых полей)
+            const editor = new DynamicProfile();
+            editor.editMode = true;  // Всегда в режиме редактирования для методиста
+            editor.userId = studentId;
+            await editor.loadFieldDefinitions();
+            await editor.loadUserData();
+            
+            body.innerHTML = '';
+            editor.renderTabs();
+            
+            // Переопределяем сохранение для методиста
+            editor.saveAllFields = async function() {
+                const updates = {};
+                for (const field of this.fieldDefinitions) {
+                    if (field.readOnly) continue;
+                    const fieldId = `field_${field.id}`;
+                    let newValue;
+                    if (field.type === 'radio') {
+                        const selected = document.querySelector(`input[name="${fieldId}"]:checked`);
+                        newValue = selected ? selected.value : '';
+                    } else {
+                        const input = document.getElementById(fieldId);
+                        if (input) newValue = input.value;
+                        else newValue = '';
+                    }
+                    updates[field.id] = newValue;
+                }
+                
+                try {
+                    await window.db.collection('users').doc(this.userId).update({
+                        ...updates,
+                        customFields: updates,
+                        updatedByMetodist: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    showToast('✅ Данные слушателя сохранены', 'success');
+                    this.editMode = true;
+                    await this.loadUserData();
+                    this.renderTabs();
+                    await loadStudents(); // Обновляем список
+                } catch (error) {
+                    showToast('Ошибка сохранения: ' + error.message, 'error');
+                }
+            };
+            
+            editor.renderTabs();
+        }
+        
+        async function logout() {
+            await window.auth.signOut();
+            window.location.href = 'index.html';
+        }
+        
+        // Инициализация
+        window.auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            const doc = await window.db.collection('users').doc(user.uid).get();
+            const role = doc.data()?.role;
+            if (role !== 'metodist' && role !== 'admin') {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            document.querySelector('.header h1').textContent = `Панель ${role === 'admin' ? 'Администратора' : 'Методиста'} - Управление профилями`;
+            
+            await loadStudents();
+            
+            // Инициализируем менеджер полей
+            window.fieldManager = new FieldDefinitionsManager();
+            await window.fieldManager.init();
+        });
+    </script>
+</body>
+</html>
