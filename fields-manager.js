@@ -6,6 +6,141 @@ class FieldsManager {
         this.cache = null;
         this.cacheTime = null;
         this.cacheTTL = 60000; // 60 секунд кэширования
+        
+        // Предустановленные (системные) поля с семантикой
+        this.systemFields = [
+            {
+                id: 'fullName',
+                label: 'ФИО',
+                type: 'text',
+                isRequired: true,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/фио',
+                placeholder: 'Иванов Иван Иванович',
+                order: 1,
+                category: 'personal'
+            },
+            {
+                id: 'email',
+                label: 'Email',
+                type: 'email',
+                isRequired: true,
+                isActive: true,
+                isSystem: true,
+                isEditable: false, // Email нельзя редактировать через форму
+                semantics: 'http://schemas.titul24.ru/simplex/email',
+                placeholder: 'example@mail.ru',
+                order: 2,
+                category: 'personal'
+            },
+            {
+                id: 'phone',
+                label: 'Телефон',
+                type: 'tel',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/телефон',
+                placeholder: '+7 (XXX) XXX-XX-XX',
+                order: 3,
+                category: 'personal'
+            },
+            {
+                id: 'education',
+                label: 'Образование',
+                type: 'select',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/образование',
+                placeholder: 'Выберите уровень образования',
+                options: ['высшее', 'среднее-специальное', 'среднее'],
+                order: 4,
+                category: 'personal'
+            },
+            {
+                id: 'actualAddress',
+                label: 'Фактический адрес',
+                type: 'textarea',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/фактическийАдрес',
+                placeholder: 'Индекс, город, улица, дом, квартира',
+                order: 5,
+                category: 'address'
+            },
+            {
+                id: 'registrationAddress',
+                label: 'Адрес прописки',
+                type: 'textarea',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/адресПрописки',
+                placeholder: 'Индекс, город, улица, дом, квартира',
+                order: 6,
+                category: 'address'
+            },
+            {
+                id: 'passportNumber',
+                label: 'Номер паспорта',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/паспортНомер',
+                placeholder: 'XXXX XXXXXX',
+                order: 7,
+                category: 'documents'
+            },
+            {
+                id: 'passportIssuedBy',
+                label: 'Кем выдан паспорт',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/паспортКемВыдан',
+                placeholder: 'Название органа, выдавшего паспорт',
+                order: 8,
+                category: 'documents'
+            },
+            {
+                id: 'passportIssueDate',
+                label: 'Когда выдан паспорт',
+                type: 'date',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/паспортДатаВыдачи',
+                placeholder: 'Дата выдачи паспорта',
+                order: 9,
+                category: 'documents'
+            },
+            {
+                id: 'snils',
+                label: 'СНИЛС',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/снилс',
+                placeholder: 'XXX-XXX-XXX XX',
+                order: 10,
+                category: 'documents'
+            }
+        ];
     }
 
     // Очистка кэша
@@ -14,7 +149,7 @@ class FieldsManager {
         this.cacheTime = null;
     }
 
-    // Получить все поля (с кэшированием)
+    // Получить все поля (системные + пользовательские)
     async getAllFields(forceRefresh = false) {
         // Проверяем кэш
         if (!forceRefresh && this.cache && this.cacheTime && (Date.now() - this.cacheTime) < this.cacheTTL) {
@@ -23,32 +158,36 @@ class FieldsManager {
         }
         
         try {
+            // Получаем пользовательские поля из Firestore
             const snapshot = await window.db.collection(this.collection).get();
-            const fields = [];
+            const customFields = [];
             snapshot.forEach(doc => {
-                fields.push({
+                customFields.push({
                     id: doc.id,
-                    ...doc.data()
+                    ...doc.data(),
+                    isSystem: false
                 });
             });
             
+            // Объединяем системные и пользовательские поля
+            const allFields = [...this.systemFields, ...customFields];
+            
             // Сортируем по порядку
-            fields.sort((a, b) => (a.order || 0) - (b.order || 0));
+            allFields.sort((a, b) => (a.order || 999) - (b.order || 999));
             
             // Сохраняем в кэш
-            this.cache = fields;
+            this.cache = allFields;
             this.cacheTime = Date.now();
             
-            console.log('✅ Загружено полей:', fields.length);
-            return fields;
+            console.log('✅ Загружено полей:', allFields.length, '(системных:', this.systemFields.length, ', пользовательских:', customFields.length, ')');
+            return allFields;
         } catch (error) {
             console.error('Ошибка загрузки полей:', error);
-            // Возвращаем кэш если есть, даже если он устарел
             if (this.cache) {
-                console.log('⚠️ Возврат устаревшего кэша из-за ошибки');
+                console.log('⚠️ Возврат устаревшего кэша');
                 return this.cache;
             }
-            return [];
+            return this.systemFields; // Возвращаем хотя бы системные поля
         }
     }
 
@@ -60,12 +199,36 @@ class FieldsManager {
         return activeFields;
     }
 
-    // Получить поле по ID
+    // Получить поля по категории
+    async getFieldsByCategory(category, forceRefresh = false) {
+        const allFields = await this.getAllFields(forceRefresh);
+        return allFields.filter(field => field.category === category);
+    }
+
+    // Получить системные поля
+    getSystemFields() {
+        return [...this.systemFields];
+    }
+
+    // Получить пользовательские поля
+    async getCustomFields(forceRefresh = false) {
+        const allFields = await this.getAllFields(forceRefresh);
+        return allFields.filter(field => !field.isSystem);
+    }
+
+    // Получить поле по ID (включая системные)
     async getFieldById(fieldId) {
+        // Сначала ищем среди системных
+        const systemField = this.systemFields.find(f => f.id === fieldId);
+        if (systemField) {
+            return { ...systemField, isSystem: true };
+        }
+        
+        // Затем в Firestore
         try {
             const doc = await window.db.collection(this.collection).doc(fieldId).get();
             if (doc.exists) {
-                return { id: doc.id, ...doc.data() };
+                return { id: doc.id, ...doc.data(), isSystem: false };
             }
             return null;
         } catch (error) {
@@ -74,87 +237,69 @@ class FieldsManager {
         }
     }
 
-    // Валидация данных поля
-    validateFieldData(fieldData, isNew = true) {
-        const errors = [];
+    // Обновить системное поле (только отдельные свойства)
+    async updateSystemField(fieldId, updates) {
+        const systemField = this.systemFields.find(f => f.id === fieldId);
+        if (!systemField) {
+            throw new Error(`Системное поле ${fieldId} не найдено`);
+        }
         
-        // Проверка ID для нового поля
-        if (isNew) {
-            if (!fieldData.id || typeof fieldData.id !== 'string') {
-                errors.push('ID поля обязателен');
-            } else if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(fieldData.id)) {
-                errors.push('ID поля должен содержать только латиницу, цифры и underscores, начинаться с буквы или "_"');
-            } else if (fieldData.id.length < 2 || fieldData.id.length > 50) {
-                errors.push('ID поля должен быть от 2 до 50 символов');
+        // Разрешенные для обновления свойства системных полей
+        const allowedUpdates = ['isActive', 'isRequired', 'placeholder', 'order'];
+        const filteredUpdates = {};
+        
+        for (const key of allowedUpdates) {
+            if (updates[key] !== undefined) {
+                filteredUpdates[key] = updates[key];
             }
         }
         
-        // Проверка названия
-        if (!fieldData.label || typeof fieldData.label !== 'string' || fieldData.label.trim() === '') {
-            errors.push('Название поля обязательно');
-        } else if (fieldData.label.length < 2 || fieldData.label.length > 100) {
-            errors.push('Название поля должно быть от 2 до 100 символов');
-        }
+        // Сохраняем настройки системного поля в отдельной коллекции
+        const settingsRef = window.db.collection('system_fields_settings').doc(fieldId);
+        await settingsRef.set({
+            ...filteredUpdates,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedBy: window.auth.currentUser?.uid || null
+        }, { merge: true });
         
-        // Проверка типа
-        const validTypes = ['text', 'textarea', 'email', 'tel', 'date', 'number', 'radio', 'select'];
-        if (!fieldData.type || !validTypes.includes(fieldData.type)) {
-            errors.push(`Некорректный тип поля. Допустимые типы: ${validTypes.join(', ')}`);
+        // Обновляем локальный кэш
+        const index = this.systemFields.findIndex(f => f.id === fieldId);
+        if (index !== -1) {
+            this.systemFields[index] = { ...this.systemFields[index], ...filteredUpdates };
         }
+        this.clearCache();
         
-        // Проверка опций для radio и select
-        if ((fieldData.type === 'radio' || fieldData.type === 'select')) {
-            if (!fieldData.options || !Array.isArray(fieldData.options) || fieldData.options.length === 0) {
-                errors.push('Для полей типа "Радиокнопка" и "Выпадающий список" нужно указать хотя бы один вариант');
-            } else if (fieldData.options.length > 50) {
-                errors.push('Не более 50 вариантов для выбора');
-            } else {
-                // Проверка дубликатов
-                const uniqueOptions = new Set(fieldData.options);
-                if (uniqueOptions.size !== fieldData.options.length) {
-                    errors.push('Варианты ответов не должны повторяться');
-                }
-                // Проверка пустых вариантов
-                if (fieldData.options.some(opt => !opt || opt.trim() === '')) {
-                    errors.push('Варианты ответов не могут быть пустыми');
-                }
-            }
-        }
-        
-        // Проверка URL семантики
-        if (fieldData.semantics && typeof fieldData.semantics === 'string') {
-            const urlPattern = /^https?:\/\/[^\s/$.?#].[^\s]*$/i;
-            if (fieldData.semantics.trim() !== '' && !urlPattern.test(fieldData.semantics)) {
-                errors.push('Семантика должна быть корректным URL');
-            }
-        }
-        
-        // Проверка порядка
-        if (fieldData.order !== undefined && (typeof fieldData.order !== 'number' || fieldData.order < 0)) {
-            errors.push('Порядок отображения должен быть неотрицательным числом');
-        }
-        
-        return { isValid: errors.length === 0, errors };
+        console.log(`✅ Системное поле "${fieldId}" обновлено`);
+        return true;
     }
 
-    // Добавить поле
+    // Получить настройки системного поля
+    async getSystemFieldSettings(fieldId) {
+        try {
+            const doc = await window.db.collection('system_fields_settings').doc(fieldId).get();
+            if (doc.exists) {
+                return doc.data();
+            }
+            return {};
+        } catch (error) {
+            console.error('Ошибка получения настроек поля:', error);
+            return {};
+        }
+    }
+
+    // Добавить пользовательское поле
     async addField(fieldData) {
         try {
-            // Валидация
-            const validation = this.validateFieldData(fieldData, true);
-            if (!validation.isValid) {
-                throw new Error(`Ошибка валидации: ${validation.errors.join(', ')}`);
+            // Проверяем, нет ли поля с таким ID среди системных
+            if (this.systemFields.some(f => f.id === fieldData.id)) {
+                throw new Error(`ID "${fieldData.id}" зарезервирован для системного поля`);
             }
             
-            // Проверяем существование поля
+            // Проверяем существование
             const existingField = await this.getFieldById(fieldData.id);
             if (existingField) {
                 throw new Error(`Поле с ID "${fieldData.id}" уже существует`);
             }
-            
-            // Получаем текущие поля для определения порядка
-            const fields = await this.getAllFields(true);
-            const newOrder = fieldData.order !== undefined ? fieldData.order : fields.length;
             
             const newField = {
                 label: fieldData.label.trim(),
@@ -163,7 +308,8 @@ class FieldsManager {
                 isActive: fieldData.isActive !== false,
                 semantics: fieldData.semantics?.trim() || '',
                 placeholder: fieldData.placeholder?.trim() || '',
-                order: newOrder,
+                order: fieldData.order || 0,
+                category: fieldData.category || 'custom',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 createdBy: window.auth.currentUser?.uid || null,
                 createdByEmail: window.auth.currentUser?.email || null
@@ -171,6 +317,9 @@ class FieldsManager {
             
             // Добавляем опции для radio/select
             if (fieldData.type === 'radio' || fieldData.type === 'select') {
+                if (!fieldData.options || fieldData.options.length === 0) {
+                    throw new Error('Для выбранного типа поля нужно добавить варианты ответов');
+                }
                 newField.options = fieldData.options.map(opt => opt.trim());
             }
             
@@ -179,8 +328,8 @@ class FieldsManager {
             // Очищаем кэш
             this.clearCache();
             
-            console.log(`✅ Поле "${fieldData.label}" создано`);
-            return { id: fieldData.id, ...newField };
+            console.log(`✅ Пользовательское поле "${fieldData.label}" создано`);
+            return { id: fieldData.id, ...newField, isSystem: false };
             
         } catch (error) {
             console.error('Ошибка добавления поля:', error);
@@ -188,88 +337,35 @@ class FieldsManager {
         }
     }
 
-    // Обновить поле
+    // Обновить пользовательское поле
     async updateField(fieldId, updates) {
         try {
-            // Получаем текущее поле
             const currentField = await this.getFieldById(fieldId);
             if (!currentField) {
                 throw new Error(`Поле с ID "${fieldId}" не найдено`);
             }
             
-            // Подготавливаем обновления
-            const updateData = {};
-            
-            if (updates.label !== undefined) {
-                updateData.label = updates.label.trim();
+            if (currentField.isSystem) {
+                return await this.updateSystemField(fieldId, updates);
             }
             
-            if (updates.type !== undefined) {
-                const validTypes = ['text', 'textarea', 'email', 'tel', 'date', 'number', 'radio', 'select'];
-                if (!validTypes.includes(updates.type)) {
-                    throw new Error(`Некорректный тип поля: ${updates.type}`);
-                }
-                updateData.type = updates.type;
-            }
+            const updateData = {
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedBy: window.auth.currentUser?.uid || null,
+                updatedByEmail: window.auth.currentUser?.email || null
+            };
             
-            if (updates.isRequired !== undefined) {
-                updateData.isRequired = updates.isRequired === true;
-            }
-            
-            if (updates.isActive !== undefined) {
-                updateData.isActive = updates.isActive !== false;
-            }
-            
-            if (updates.semantics !== undefined) {
-                updateData.semantics = updates.semantics?.trim() || '';
-            }
-            
-            if (updates.placeholder !== undefined) {
-                updateData.placeholder = updates.placeholder?.trim() || '';
-            }
-            
-            if (updates.order !== undefined) {
-                if (typeof updates.order !== 'number' || updates.order < 0) {
-                    throw new Error('Порядок отображения должен быть неотрицательным числом');
-                }
-                updateData.order = updates.order;
-            }
-            
-            // Обновляем опции для radio/select
-            if (updates.options !== undefined) {
-                if (currentField.type === 'radio' || currentField.type === 'select') {
-                    if (!Array.isArray(updates.options) || updates.options.length === 0) {
-                        throw new Error('Для полей типа "Радиокнопка" и "Выпадающий список" нужно указать хотя бы один вариант');
-                    }
-                    if (updates.options.length > 50) {
-                        throw new Error('Не более 50 вариантов для выбора');
-                    }
-                    // Проверка дубликатов
-                    const uniqueOptions = new Set(updates.options);
-                    if (uniqueOptions.size !== updates.options.length) {
-                        throw new Error('Варианты ответов не должны повторяться');
-                    }
-                    updateData.options = updates.options.map(opt => opt.trim());
+            const allowedUpdates = ['label', 'type', 'isRequired', 'isActive', 'semantics', 'placeholder', 'order', 'category', 'options'];
+            for (const key of allowedUpdates) {
+                if (updates[key] !== undefined) {
+                    updateData[key] = updates[key];
                 }
             }
-            
-            // Валидация обновленных данных
-            const testField = { ...currentField, ...updateData };
-            const validation = this.validateFieldData(testField, false);
-            if (!validation.isValid) {
-                throw new Error(`Ошибка валидации: ${validation.errors.join(', ')}`);
-            }
-            
-            updateData.updatedAt = firebase.firestore.FieldValue.serverTimestamp();
-            updateData.updatedBy = window.auth.currentUser?.uid || null;
-            updateData.updatedByEmail = window.auth.currentUser?.email || null;
             
             await window.db.collection(this.collection).doc(fieldId).update(updateData);
-            
-            // Очищаем кэш
             this.clearCache();
             
-            console.log(`✅ Поле "${fieldId}" обновлено`);
+            console.log(`✅ Пользовательское поле "${fieldId}" обновлено`);
             return true;
             
         } catch (error) {
@@ -278,12 +374,41 @@ class FieldsManager {
         }
     }
 
-    // Принудительно удалить значения поля у всех пользователей
+    // Удалить пользовательское поле
+    async deleteField(fieldId, options = {}) {
+        const { skipCleanup = false } = options;
+        
+        try {
+            const field = await this.getFieldById(fieldId);
+            if (!field) {
+                throw new Error(`Поле с ID "${fieldId}" не найдено`);
+            }
+            
+            if (field.isSystem) {
+                throw new Error(`Системное поле "${field.label}" нельзя удалить, можно только отключить`);
+            }
+            
+            let cleanedCount = 0;
+            
+            if (!skipCleanup) {
+                cleanedCount = await this.cleanupFieldValues(fieldId);
+            }
+            
+            await window.db.collection(this.collection).doc(fieldId).delete();
+            this.clearCache();
+            
+            console.log(`✅ Пользовательское поле "${field.label}" удалено. Очищено записей: ${cleanedCount}`);
+            return { success: true, cleanedCount, fieldName: field.label };
+            
+        } catch (error) {
+            console.error('Ошибка удаления поля:', error);
+            throw error;
+        }
+    }
+
+    // Очистить значения поля у всех пользователей
     async cleanupFieldValues(fieldId) {
         try {
-            console.log(`🧹 Очистка значений поля ${fieldId} у всех пользователей...`);
-            
-            // Получаем всех пользователей с ролью student
             const studentsSnapshot = await window.db.collection('users')
                 .where('role', '==', 'student')
                 .get();
@@ -308,9 +433,6 @@ class FieldsManager {
             
             if (updatePromises.length > 0) {
                 await Promise.all(updatePromises);
-                console.log(`✅ Очищено ${cleanedCount} записей для поля ${fieldId}`);
-            } else {
-                console.log(`ℹ️ Нет записей для очистки поля ${fieldId}`);
             }
             
             return cleanedCount;
@@ -321,56 +443,15 @@ class FieldsManager {
         }
     }
 
-    // Удалить поле и все его значения у слушателей
-    async deleteField(fieldId, options = {}) {
-        const { skipCleanup = false } = options;
-        
-        try {
-            console.log('🗑️ Удаление поля:', fieldId);
-            
-            // Получаем информацию о поле перед удалением
-            const field = await this.getFieldById(fieldId);
-            if (!field) {
-                throw new Error(`Поле с ID "${fieldId}" не найдено`);
-            }
-            
-            let cleanedCount = 0;
-            
-            // 1. Очищаем значения поля у всех слушателей (если не пропущено)
-            if (!skipCleanup) {
-                cleanedCount = await this.cleanupFieldValues(fieldId);
-            }
-            
-            // 2. Удаляем само поле
-            await window.db.collection(this.collection).doc(fieldId).delete();
-            
-            // Очищаем кэш
-            this.clearCache();
-            
-            console.log(`✅ Поле "${field.label}" полностью удалено. Очищено записей: ${cleanedCount}`);
-            
-            return { 
-                success: true, 
-                cleanedCount,
-                fieldName: field.label 
-            };
-            
-        } catch (error) {
-            console.error('Ошибка удаления поля:', error);
-            throw error;
-        }
-    }
-
-    // Сохранить значения полей для слушателя
+    // Сохранить значения полей для слушателя (включая системные)
     async saveFieldValues(userId, values) {
         try {
             if (!userId) {
                 throw new Error('ID пользователя обязателен');
             }
             
-            // Получаем активные поля для валидации
-            const activeFields = await this.getActiveFields();
-            const requiredFields = activeFields.filter(f => f.isRequired);
+            const allFields = await this.getActiveFields();
+            const requiredFields = allFields.filter(f => f.isRequired);
             
             // Проверяем обязательные поля
             const missingFields = [];
@@ -385,38 +466,37 @@ class FieldsManager {
                 throw new Error(`Заполните обязательные поля: ${missingFields.join(', ')}`);
             }
             
-            // Очищаем значения для полей, которые больше не существуют
-            const existingFieldIds = new Set(activeFields.map(f => f.id));
-            const cleanedValues = {};
+            // Разделяем системные поля и пользовательские
+            const systemFieldsIds = this.systemFields.map(f => f.id);
+            const systemUpdates = {};
+            const customUpdates = {};
             
             for (const [key, value] of Object.entries(values)) {
-                if (existingFieldIds.has(key)) {
-                    // Очищаем значения от лишних пробелов
-                    if (typeof value === 'string') {
-                        cleanedValues[key] = value.trim();
-                    } else {
-                        cleanedValues[key] = value;
-                    }
+                if (systemFieldsIds.includes(key)) {
+                    systemUpdates[key] = value;
                 } else {
-                    console.log(`ℹ️ Пропуск несуществующего поля: ${key}`);
+                    customUpdates[key] = value;
                 }
             }
             
             const userRef = window.db.collection('users').doc(userId);
-            const userDoc = await userRef.get();
             
-            if (!userDoc.exists) {
-                throw new Error('Пользователь не найден');
+            // Обновляем системные поля напрямую в документе
+            if (Object.keys(systemUpdates).length > 0) {
+                await userRef.update(systemUpdates);
             }
             
-            const currentData = userDoc.data();
-            const customFields = currentData.customFields || {};
-            const updatedFields = { ...customFields, ...cleanedValues };
-            
-            await userRef.update({
-                customFields: updatedFields,
-                customFieldsUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            // Обновляем пользовательские поля в customFields
+            if (Object.keys(customUpdates).length > 0) {
+                const userDoc = await userRef.get();
+                const currentCustomFields = userDoc.data()?.customFields || {};
+                const updatedCustomFields = { ...currentCustomFields, ...customUpdates };
+                
+                await userRef.update({
+                    customFields: updatedCustomFields,
+                    customFieldsUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
             
             console.log('✅ Значения полей сохранены');
             return true;
@@ -435,36 +515,26 @@ class FieldsManager {
             }
             
             const userDoc = await window.db.collection('users').doc(userId).get();
-            if (userDoc.exists) {
-                const customFields = userDoc.data().customFields || {};
-                
-                // Очищаем значения для уже несуществующих полей
-                const activeFields = await this.getActiveFields();
-                const existingFieldIds = new Set(activeFields.map(f => f.id));
-                const cleanedFields = {};
-                
-                let hasOrphaned = false;
-                for (const [key, value] of Object.entries(customFields)) {
-                    if (existingFieldIds.has(key)) {
-                        cleanedFields[key] = value;
-                    } else {
-                        hasOrphaned = true;
-                        console.log(`🧹 Обнаружено устаревшее поле: ${key}`);
-                    }
-                }
-                
-                // Если есть устаревшие поля, обновляем документ
-                if (hasOrphaned && Object.keys(cleanedFields).length !== Object.keys(customFields).length) {
-                    await userDoc.ref.update({
-                        customFields: cleanedFields,
-                        customFieldsCleanedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    console.log('✅ Устаревшие поля очищены автоматически');
-                }
-                
-                return cleanedFields;
+            if (!userDoc.exists) {
+                return {};
             }
-            return {};
+            
+            const userData = userDoc.data();
+            const values = {};
+            
+            // Получаем значения системных полей
+            for (const field of this.systemFields) {
+                values[field.id] = userData[field.id] || '';
+            }
+            
+            // Получаем значения пользовательских полей
+            const customFields = userData.customFields || {};
+            for (const [key, value] of Object.entries(customFields)) {
+                values[key] = value;
+            }
+            
+            return values;
+            
         } catch (error) {
             console.error('Ошибка получения значений полей:', error);
             return {};
@@ -474,10 +544,10 @@ class FieldsManager {
     // Проверить заполнение обязательных полей
     async checkRequiredFields(userId) {
         try {
-            const fields = await this.getActiveFields();
+            const allFields = await this.getActiveFields();
             const values = await this.getFieldValues(userId);
             
-            const requiredFields = fields.filter(f => f.isRequired);
+            const requiredFields = allFields.filter(f => f.isRequired);
             const missingFields = requiredFields.filter(f => {
                 const value = values[f.id];
                 return !value || (typeof value === 'string' && value.trim() === '');
@@ -501,57 +571,31 @@ class FieldsManager {
         }
     }
 
-    // Получить статистику по полю (сколько слушателей заполнили)
-    async getFieldStatistics(fieldId) {
+    // Сбросить кэш системных полей (при обновлении из админки)
+    async refreshSystemFields() {
+        // Загружаем настройки системных полей из Firestore
         try {
-            const studentsSnapshot = await window.db.collection('users')
-                .where('role', '==', 'student')
-                .get();
+            const snapshot = await window.db.collection('system_fields_settings').get();
+            const settings = {};
+            snapshot.forEach(doc => {
+                settings[doc.id] = doc.data();
+            });
             
-            let filledCount = 0;
-            let totalCount = studentsSnapshot.size;
-            
-            for (const doc of studentsSnapshot.docs) {
-                const data = doc.data();
-                if (data.customFields && data.customFields[fieldId]) {
-                    const value = data.customFields[fieldId];
-                    if (value && (typeof value !== 'string' || value.trim() !== '')) {
-                        filledCount++;
-                    }
+            // Применяем настройки к системным полям
+            for (const field of this.systemFields) {
+                const fieldSettings = settings[field.id];
+                if (fieldSettings) {
+                    if (fieldSettings.isActive !== undefined) field.isActive = fieldSettings.isActive;
+                    if (fieldSettings.isRequired !== undefined) field.isRequired = fieldSettings.isRequired;
+                    if (fieldSettings.placeholder !== undefined) field.placeholder = fieldSettings.placeholder;
+                    if (fieldSettings.order !== undefined) field.order = fieldSettings.order;
                 }
             }
             
-            return {
-                total: totalCount,
-                filled: filledCount,
-                empty: totalCount - filledCount,
-                percentage: totalCount > 0 ? Math.round((filledCount / totalCount) * 100) : 0
-            };
-        } catch (error) {
-            console.error('Ошибка получения статистики поля:', error);
-            return null;
-        }
-    }
-
-    // Пересчитать порядок полей
-    async reorderFields(fieldIds) {
-        try {
-            const updates = [];
-            for (let i = 0; i < fieldIds.length; i++) {
-                updates.push(
-                    window.db.collection(this.collection).doc(fieldIds[i]).update({
-                        order: i,
-                        reorderedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    })
-                );
-            }
-            await Promise.all(updates);
             this.clearCache();
-            console.log('✅ Порядок полей обновлен');
-            return true;
+            console.log('✅ Системные поля обновлены из настроек');
         } catch (error) {
-            console.error('Ошибка переупорядочивания полей:', error);
-            throw error;
+            console.error('Ошибка обновления системных полей:', error);
         }
     }
 }
@@ -559,113 +603,8 @@ class FieldsManager {
 // Создаем глобальный экземпляр
 window.fieldsManager = new FieldsManager();
 
-// Вспомогательная функция для отладки (вызывать из консоли)
-window.debugFields = {
-    // Показать все поля
-    async showAllFields() {
-        const fields = await window.fieldsManager.getAllFields(true);
-        console.table(fields.map(f => ({
-            ID: f.id,
-            Название: f.label,
-            Тип: f.type,
-            Обязательное: f.isRequired ? '✅' : '❌',
-            Активно: f.isActive !== false ? '✅' : '❌',
-            Порядок: f.order
-        })));
-        return fields;
-    },
-    
-    // Показать значения полей пользователя
-    async showUserFields(userId = null) {
-        const uid = userId || window.auth.currentUser?.uid;
-        if (!uid) {
-            console.log('❌ Пользователь не авторизован');
-            return;
-        }
-        const values = await window.fieldsManager.getFieldValues(uid);
-        console.table(values);
-        return values;
-    },
-    
-    // Очистить все устаревшие поля у всех пользователей
-    async cleanupAllOrphanedFields() {
-        console.log('🔍 Поиск устаревших полей...');
-        
-        const fields = await window.fieldsManager.getAllFields(true);
-        const existingFieldIds = new Set(fields.map(f => f.id));
-        
-        const studentsSnapshot = await window.db.collection('users')
-            .where('role', '==', 'student')
-            .get();
-        
-        let totalCleaned = 0;
-        let usersWithIssues = 0;
-        
-        for (const doc of studentsSnapshot.docs) {
-            const data = doc.data();
-            if (data.customFields) {
-                let needsUpdate = false;
-                const cleanedFields = { ...data.customFields };
-                
-                for (const fieldId in data.customFields) {
-                    if (!existingFieldIds.has(fieldId)) {
-                        delete cleanedFields[fieldId];
-                        needsUpdate = true;
-                        totalCleaned++;
-                    }
-                }
-                
-                if (needsUpdate) {
-                    await doc.ref.update({
-                        customFields: cleanedFields,
-                        customFieldsCleanedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    usersWithIssues++;
-                }
-            }
-        }
-        
-        console.log(`✅ Очистка завершена!`);
-        console.log(`   - Удалено устаревших записей: ${totalCleaned}`);
-        console.log(`   - Обработано пользователей: ${usersWithIssues}`);
-        
-        return { totalCleaned, usersWithIssues };
-    },
-    
-    // Показать статистику по полю
-    async showFieldStats(fieldId) {
-        const stats = await window.fieldsManager.getFieldStatistics(fieldId);
-        if (stats) {
-            console.table([{
-                'Всего слушателей': stats.total,
-                'Заполнили': stats.filled,
-                'Не заполнили': stats.empty,
-                'Заполненность': `${stats.percentage}%`
-            }]);
-        }
-        return stats;
-    },
-    
-    // Принудительно удалить поле и все его значения
-    async forceDeleteField(fieldId) {
-        const field = await window.fieldsManager.getFieldById(fieldId);
-        if (!field) {
-            console.log(`❌ Поле ${fieldId} не найдено`);
-            return;
-        }
-        
-        console.log(`🗑️ Принудительное удаление поля "${field.label}"...`);
-        
-        const result = await window.fieldsManager.deleteField(fieldId);
-        console.log(`✅ Поле удалено. Очищено записей: ${result.cleanedCount}`);
-        
-        return result;
-    }
-};
+// Инициализация
+window.fieldsManager.refreshSystemFields();
 
 console.log('✅ fields-manager.js загружен');
-console.log('💡 Для отладки доступны функции:');
-console.log('   - window.debugFields.showAllFields() - показать все поля');
-console.log('   - window.debugFields.showUserFields() - показать значения полей текущего пользователя');
-console.log('   - window.debugFields.cleanupAllOrphanedFields() - очистить устаревшие поля');
-console.log('   - window.debugFields.forceDeleteField("field_id") - принудительно удалить поле');
+console.log('📋 Системные поля:', window.fieldsManager.systemFields.map(f => `${f.id} (${f.label})`).join(', '));
