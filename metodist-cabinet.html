@@ -235,6 +235,7 @@
         .toast-success { background: var(--success); color: white; }
         .toast-error { background: var(--danger); color: white; }
         .toast-warning { background: var(--warning); color: white; }
+        .toast-info { background: var(--info); color: white; }
         
         @media (max-width: 768px) {
             .tabs { flex-direction: column; }
@@ -255,6 +256,7 @@
         <div id="toastSuccess" class="toast-message toast-success"></div>
         <div id="toastError" class="toast-message toast-error"></div>
         <div id="toastWarning" class="toast-message toast-warning"></div>
+        <div id="toastInfo" class="toast-message toast-info"></div>
 
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-icon">🎓</div><div class="stat-number" id="totalStudents">0</div><div class="stat-label">Всего слушателей</div></div>
@@ -278,7 +280,7 @@
             <div class="table-responsive">
                 <table>
                     <thead><tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Статус</th><th>Инициалы</th><th>Действия</th></tr></thead>
-                    <tbody id="studentsTableBody"><tr><td colspan="6" style="text-align:center;">Загрузка...</td></tr></tr>
+                    <tbody id="studentsTableBody"><td><td colspan="6" style="text-align:center;">Загрузка...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -298,6 +300,7 @@
                 <div class="import-preview" id="previewTable"></div>
                 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
                 <div id="importStats"></div>
+                <div id="duplicateWarning" style="display:none; background:#fff3cd; padding:10px; border-radius:8px; margin:10px 0;"></div>
                 <div style="display:flex; gap:10px; margin-top:20px;">
                     <button class="btn-success" onclick="confirmImport()">✅ Подтвердить импорт</button>
                     <button class="btn-warning" onclick="clearImport()">🗑️ Очистить</button>
@@ -329,7 +332,7 @@
             <div class="table-responsive">
                 <table class="fields-table">
                     <thead><tr><th>ID поля</th><th>Название</th><th>Тип</th><th>Семантика (URL)</th><th>Категория</th><th>Обязат.</th><th>Статус</th><th>Действия</th></tr></thead>
-                    <tbody id="fieldsTableBody"><tr><td colspan="8" style="text-align:center;">Загрузка...</td></tr></tbody>
+                    <tbody id="fieldsTableBody"><tr><td colspan="8" style="text-align:center;">Загрузка...</td></td></tbody>
                 </table>
             </div>
         </div>
@@ -362,7 +365,7 @@
     <script src="fields-manager.js"></script>
 
     <script>
-        let allStudents = [], allFields = [], currentEditStudentId = null, importedData = null;
+        let allStudents = [], allFields = [], currentEditStudentId = null, importedData = null, isImporting = false;
 
         function showToast(msg, type) {
             const el = document.getElementById(`toast${type.charAt(0).toUpperCase() + type.slice(1)}`);
@@ -389,6 +392,7 @@
                 displayStudents(allStudents);
                 document.getElementById('totalStudents').textContent = allStudents.length;
                 document.getElementById('verifiedStudents').textContent = allStudents.filter(s => s.emailVerified).length;
+                document.getElementById('activeStudents').textContent = allStudents.filter(s => s.lastLogin && (Date.now() - (s.lastLogin.toDate?.() || new Date()).getTime()) < 30*24*60*60*1000).length;
             } catch (e) { showToast('Ошибка загрузки', 'error'); }
         }
 
@@ -488,7 +492,7 @@
 
         function closeEditModal() { document.getElementById('editModal').style.display = 'none'; currentEditStudentId = null; }
 
-        // ========== ИМПОРТ ИЗ EXCEL (БЕЗ СОЗДАНИЯ AUTH) ==========
+        // ========== ИМПОРТ ИЗ EXCEL (УЛУЧШЕННЫЙ) ==========
         const semanticsMap = {
             'http://schemas.titul24.ru/simplex/фамилия': 'lastName',
             'http://schemas.titul24.ru/simplex/имя': 'firstName',
@@ -506,6 +510,7 @@
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
+            showToast('⏳ Чтение файла...', 'info');
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
@@ -534,7 +539,7 @@
                         }
                         mappings.push({
                             index: i, systemField, customName: name || `field_${i}`,
-                            isIgnored: (name && (name.includes('инициалы') || name.includes('Слово') || name.includes('ФИО'))),
+                            isIgnored: (name && (name.includes('инициалы') || name.includes('Слово') || name.includes('ФИО') || name.includes('автоматически'))),
                             isDate: (name && (name.includes('дата') || name.includes('рождения') || name.includes('когда')))
                         });
                     }
@@ -567,47 +572,77 @@
                     }
                     window.importedUsersData = importedUsers;
                     showImportPreview(importedUsers);
+                    showToast(`✅ Файл загружен, найдено ${importedUsers.length} записей`, 'success');
                 } catch (err) { showToast('Ошибка: ' + err.message, 'error'); }
             };
+            reader.onerror = () => showToast('Ошибка чтения файла', 'error');
             reader.readAsArrayBuffer(file);
         }
 
         function showImportPreview(users) {
             if (!users?.length) { showToast('Нет данных', 'warning'); return; }
-            let html = '<table style="width:100%; border-collapse:collapse;"><thead><tr><th>№</th><th>Email</th><th>Фамилия</th><th>Имя</th><th>Телефон</th><th>Доп. полей</th></tr></thead><tbody>';
+            let html = '<table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr><th>№</th><th>Email</th><th>Фамилия</th><th>Имя</th><th>Телефон</th><th>Доп. полей</th></tr></thead><tbody>';
             users.slice(0,10).forEach((u, idx) => {
-                html += `<tr><td>${idx+1}</td><td>${escapeHtml(u.email)}</td><td>${escapeHtml(u.lastName||'')}</td><td>${escapeHtml(u.firstName||'')}</td><td>${escapeHtml(u.phone||'')}</td><td>${Object.keys(u.customFields||{}).length}</td></tr>`;
+                html += `<tr><td style="padding:8px; border:1px solid #ddd;">${idx+1}</td><td style="padding:8px; border:1px solid #ddd;">${escapeHtml(u.email)}</td><td style="padding:8px; border:1px solid #ddd;">${escapeHtml(u.lastName||'')}</td><td style="padding:8px; border:1px solid #ddd;">${escapeHtml(u.firstName||'')}</td><td style="padding:8px; border:1px solid #ddd;">${escapeHtml(u.phone||'')}</td><td style="padding:8px; border:1px solid #ddd;">${Object.keys(u.customFields||{}).length}</td></tr>`;
             });
             html += '</tbody></table>';
+            if (users.length > 10) html += `<p style="margin-top:5px;">и ещё ${users.length-10} записей...</p>`;
             document.getElementById('previewTable').innerHTML = html;
             document.getElementById('importPreview').style.display = 'block';
             document.getElementById('importStats').innerHTML = `<p>📊 Найдено: ${users.length}</p>`;
         }
 
-        // ВАЖНО: Импорт БЕЗ создания Auth (только Firestore)
+        async function checkExistingEmails(users) {
+            const emails = users.map(u => u.email);
+            const existing = new Set();
+            for (const email of emails) {
+                const snapshot = await window.db.collection('users').where('email', '==', email).get();
+                if (!snapshot.empty) existing.add(email);
+            }
+            return existing;
+        }
+
         async function confirmImport() {
+            if (isImporting) { showToast('Импорт уже выполняется', 'warning'); return; }
             const users = window.importedUsersData;
-            if (!users?.length) { showToast('Нет данных', 'warning'); return; }
+            if (!users?.length) { showToast('Нет данных для импорта', 'warning'); return; }
             
+            isImporting = true;
             const progressFill = document.getElementById('progressFill');
-            let success = 0, errors = 0;
+            const importBtn = document.querySelector('#importTab .btn-success');
+            const originalBtnText = importBtn?.textContent;
+            if (importBtn) { importBtn.textContent = '⏳ Импорт...'; importBtn.disabled = true; }
+            
+            // Проверка дубликатов
+            showToast('🔍 Проверка дубликатов...', 'info');
+            const existingEmails = await checkExistingEmails(users);
+            const duplicateCount = existingEmails.size;
+            
+            if (duplicateCount > 0) {
+                const warningDiv = document.getElementById('duplicateWarning');
+                warningDiv.innerHTML = `⚠️ Обнаружено ${duplicateCount} уже существующих email(ов). Они будут пропущены.`;
+                warningDiv.style.display = 'block';
+                showToast(`Найдено ${duplicateCount} дубликатов, они будут пропущены`, 'warning');
+            }
+            
+            const apiKey = firebaseConfig.apiKey;
+            let success = 0, errors = 0, duplicates = 0;
             
             for (let i = 0; i < users.length; i++) {
                 const u = users[i];
-                progressFill.style.width = `${((i+1)/users.length)*100}%`;
+                const percent = ((i + 1) / users.length) * 100;
+                progressFill.style.width = `${percent}%`;
+                
+                // Пропускаем дубликаты
+                if (existingEmails.has(u.email)) {
+                    duplicates++;
+                    continue;
+                }
+                
                 try {
-                    // Проверка существования
-                    const existing = await window.db.collection('users').where('email', '==', u.email).get();
-                    if (!existing.empty) { errors++; continue; }
-                    
-                    // Генерация временного пароля
                     const tempPassword = `Temp${Date.now()}${i}${Math.random().toString(36).substring(2,6)}`;
                     
-                    // СОЗДАНИЕ В AUTH (но с сохранением сессии методиста)
-                    // Используем fetch API для создания через REST, чтобы не сбивать текущую сессию
-                    const apiKey = firebaseConfig.apiKey;
                     const signUpUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`;
-                    
                     const response = await fetch(signUpUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -619,7 +654,6 @@
                     
                     const userId = result.localId;
                     
-                    // Сохранение в Firestore
                     const firestoreData = {
                         role: 'student', emailVerified: false,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -631,14 +665,24 @@
                     
                     await window.db.collection('users').doc(userId).set(firestoreData);
                     success++;
+                    
+                    // Небольшая задержка между запросами
+                    await new Promise(r => setTimeout(r, 200));
+                    
                 } catch (err) {
                     console.error('Import error:', err);
                     errors++;
                 }
             }
-            showToast(`✅ Импорт: +${success}, ошибок ${errors}`, 'success');
-            document.getElementById('importStats').innerHTML = `<p>✅ Успешно: ${success} | ❌ Ошибок: ${errors}</p>`;
-            if (success) await loadStudents();
+            
+            progressFill.style.width = '100%';
+            showToast(`✅ Импорт завершён: +${success} новых, ⏭️ пропущено ${duplicates}, ❌ ошибок ${errors}`, 'success');
+            document.getElementById('importStats').innerHTML = `<p>✅ Успешно: ${success} | ⏭️ Дубликаты: ${duplicates} | ❌ Ошибок: ${errors}</p>`;
+            
+            if (importBtn) { importBtn.textContent = originalBtnText; importBtn.disabled = false; }
+            isImporting = false;
+            
+            if (success > 0) await loadStudents();
         }
 
         function clearImport() {
@@ -646,6 +690,7 @@
             document.getElementById('importPreview').style.display = 'none';
             document.getElementById('fileInput').value = '';
             document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('duplicateWarning').style.display = 'none';
             showToast('Импорт очищен', 'success');
         }
 
