@@ -8,7 +8,8 @@ function switchTab(tabName) {
     const tabs = ['profile', 'documents', 'address', 'additionalFields'];
     tabs.forEach(tab => {
         const tabElement = document.getElementById(`${tab}Tab`);
-        const btnElement = document.querySelector(`[onclick="switchTab('${tab}')"]`);
+        const btnElement = document.querySelector(`.tab-btn[onclick*="${tab}"]`) || 
+                           document.querySelector(`.tab-btn:nth-child(${tabs.indexOf(tab) + 1})`);
         if (tabElement) {
             if (tab === tabName) {
                 tabElement.classList.add('active');
@@ -411,7 +412,6 @@ window.auth.onAuthStateChanged(async (user) => {
             }, 3000);
         } else {
             await loadUserData();
-            // Загружаем дополнительные поля если они есть
             if (typeof window.loadCustomFields === 'function') {
                 setTimeout(() => window.loadCustomFields(), 500);
             }
