@@ -280,7 +280,7 @@
             <div class="table-responsive">
                 <table>
                     <thead><tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Статус</th><th>Инициалы</th><th>Действия</th></tr></thead>
-                    <tbody id="studentsTableBody"><tr><td colspan="6" style="text-align:center;">Загрузка...</td></tr></tbody>
+                    <tbody id="studentsTableBody"><tr><td colspan="6" style="text-align:center;">Загрузка...<tr></tr></tbody>
                 </table>
             </div>
         </div>
@@ -391,14 +391,13 @@
                 displayStudents(allStudents);
                 document.getElementById('totalStudents').textContent = allStudents.length;
                 document.getElementById('verifiedStudents').textContent = allStudents.filter(s => s.emailVerified).length;
-                document.getElementById('activeStudents').textContent = allStudents.filter(s => s.lastLogin && (Date.now() - (s.lastLogin.toDate?.() || new Date()).getTime()) < 30*24*60*60*1000).length;
             } catch (e) { showToast('Ошибка загрузки', 'error'); }
         }
 
         function displayStudents(students) {
             const tbody = document.getElementById('studentsTableBody');
             if (!tbody) return;
-            if (!students.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Нет слушателей</td></tr>'; return; }
+            if (!students.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Нет слушателей</td>' + '</tr>'; return; }
             tbody.innerHTML = students.map(s => `<tr>
                 <td>${escapeHtml(s.fullName || `${s.lastName || ''} ${s.firstName || ''} ${s.patronymic || ''}`.trim() || '—')}</td>
                 <td>${escapeHtml(s.email)}</td>
@@ -432,7 +431,7 @@
             await loadAllFields();
             const activeFields = allFields.filter(f => f.isActive !== false);
             let html = '';
-            const categories = { personal: '👤 Личные данные', documents: '📄 Документы', address: '🏠 Адреса', education: '🎓 Образование', custom: '📋 Дополнительные' };
+            const categories = { personal: '👤 Личные данные', documents: '📄 Документы', address: '🏠 Адреса', custom: '📋 Дополнительные' };
             for (const [catKey, catTitle] of Object.entries(categories)) {
                 const catFields = activeFields.filter(f => (f.category || 'custom') === catKey);
                 if (!catFields.length) continue;
@@ -492,7 +491,8 @@
         function closeEditModal() { document.getElementById('editModal').style.display = 'none'; currentEditStudentId = null; }
 
         // ========== ИМПОРТ ИЗ EXCEL (ИСПРАВЛЕННЫЙ) ==========
-        const semanticsMap = {
+        // Только системные поля, которые нужно импортировать
+        const systemFieldsMap = {
             'http://schemas.titul24.ru/simplex/фамилия': 'lastName',
             'http://schemas.titul24.ru/simplex/имя': 'firstName',
             'http://schemas.titul24.ru/simplex/отчество': 'patronymic',
@@ -505,6 +505,23 @@
             'tel': 'phone',
             'СНИЛС': 'snils'
         };
+
+        // Поля, которые игнорируем (курсы, работодатель, вычисляемые)
+        const ignoredPatterns = [
+            'КПК', 'курс', 'Программы', 'часов', 'стоимость', 'договора', 'руководителя',
+            'Банк', 'ОГРН', 'КПП', 'счет', 'БИК', 'ИНН', 'Сертификата', 'инициалы', 'Слово', 'ФИО (автоматически)'
+        ];
+
+        function shouldIgnoreField(name, semantics) {
+            const lowerName = (name || '').toLowerCase();
+            const lowerSem = (semantics || '').toLowerCase();
+            for (const pattern of ignoredPatterns) {
+                if (lowerName.includes(pattern.toLowerCase()) || lowerSem.includes(pattern.toLowerCase())) {
+                    return true;
+                }
+            }
+            return false;
+        }
 
         function handleFileUpload(event) {
             const file = event.target.files[0];
@@ -528,50 +545,75 @@
                     for (let i = 0; i < semanticsRow.length; i++) {
                         const sem = semanticsRow[i];
                         const name = namesRow[i];
+                        
+                        if (shouldIgnoreField(name, sem)) continue;
+                        
                         let systemField = null;
-                        if (sem && semanticsMap[sem]) systemField = semanticsMap[sem];
-                        else if (name) {
+                        if (sem && systemFieldsMap[sem]) {
+                            systemField = systemFieldsMap[sem];
+                        } else if (name) {
                             const ln = name.toLowerCase();
-                            if (ln === 'e-mail' || ln === 'email') systemField = 'email';
-                            else if (ln === 'телефон' || ln === 'phone') systemField = 'phone';
+                            if (ln === 'e-mail' || ln === 'email' || ln === 'mail') systemField = 'email';
+                            else if (ln === 'телефон' || ln === 'phone' || ln === 'tel') systemField = 'phone';
                             else if (ln === 'снилс') systemField = 'snils';
+                            else if (ln === 'фамилия') systemField = 'lastName';
+                            else if (ln === 'имя') systemField = 'firstName';
+                            else if (ln === 'отчество') systemField = 'patronymic';
                         }
+                        
                         mappings.push({
-                            index: i, systemField, customName: name || `field_${i}`,
-                            isIgnored: (name && (name.includes('инициалы') || name.includes('Слово') || name.includes('ФИО') || name.includes('автоматически'))),
+                            index: i,
+                            systemField: systemField,
+                            customName: name || `field_${i}`,
                             isDate: (name && (name.includes('дата') || name.includes('рождения') || name.includes('когда')))
                         });
                     }
                     
                     const importedUsers = [];
                     for (const row of dataRows) {
-                        const userData = {}, customFields = {};
+                        const userData = {};
+                        let hasEmail = false;
+                        
                         for (const map of mappings) {
-                            if (map.isIgnored) continue;
                             let raw = row[map.index];
                             if (raw === undefined || raw === null || raw === '') continue;
+                            
                             if (map.isDate && typeof raw === 'number') {
                                 const date = new Date((raw - 25569) * 86400000);
                                 raw = date.toISOString().split('T')[0];
-                            } else if (typeof raw === 'number') raw = String(raw);
-                            else if (typeof raw === 'string') raw = raw.trim();
+                            } else if (typeof raw === 'number') {
+                                raw = String(raw);
+                            } else if (typeof raw === 'string') {
+                                raw = raw.trim();
+                            }
                             if (!raw) continue;
-                            if (map.systemField) userData[map.systemField] = raw;
-                            else customFields[map.customName] = raw;
+                            
+                            if (map.systemField) {
+                                userData[map.systemField] = raw;
+                                if (map.systemField === 'email') hasEmail = true;
+                            }
                         }
-                        if (!userData.email) userData.email = `import_${Date.now()}_${Math.random().toString(36).substring(2,8)}@temp.ru`;
+                        
+                        // Пропускаем записи без email
+                        if (!hasEmail) {
+                            console.warn('Пропущена запись без email');
+                            continue;
+                        }
+                        
+                        // Формируем ФИО и инициалы
                         if (userData.lastName || userData.firstName || userData.patronymic) {
                             userData.fullName = [userData.lastName, userData.firstName, userData.patronymic].filter(Boolean).join(' ');
                             const fi = userData.firstName ? userData.firstName.charAt(0).toUpperCase() + '.' : '';
                             const pi = userData.patronymic ? userData.patronymic.charAt(0).toUpperCase() + '.' : '';
                             userData.initials = `${userData.lastName || ''} ${fi}${pi}`.trim();
                         }
-                        userData.customFields = customFields;
+                        
                         importedUsers.push(userData);
                     }
+                    
                     window.importedUsersData = importedUsers;
                     showImportPreview(importedUsers);
-                    showToast(`✅ Файл загружен, найдено ${importedUsers.length} записей`, 'success');
+                    showToast(`✅ Файл загружен, найдено ${importedUsers.length} записей с email`, 'success');
                 } catch (err) { showToast('Ошибка: ' + err.message, 'error'); }
             };
             reader.onerror = () => showToast('Ошибка чтения файла', 'error');
@@ -579,10 +621,10 @@
         }
 
         function showImportPreview(users) {
-            if (!users?.length) { showToast('Нет данных', 'warning'); return; }
-            let html = '<table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr><th>№</th><th>Email</th><th>Фамилия</th><th>Имя</th><th>Телефон</th><th>Доп. полей</th></tr></thead><tbody>';
+            if (!users?.length) { showToast('Нет данных для импорта', 'warning'); return; }
+            let html = '<table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr><th>№</th><th>Email</th><th>Фамилия</th><th>Имя</th><th>Телефон</th><th>Дата рождения</th></tr></thead><tbody>';
             users.slice(0,10).forEach((u, idx) => {
-                html += `<tr><td style="padding:8px; border:1px solid #ddd;">${idx+1}</td><td style="padding:8px; border:1px solid #ddd;">${escapeHtml(u.email)}</td><td style="padding:8px; border:1px solid #ddd;">${escapeHtml(u.lastName||'')}</td><td style="padding:8px; border:1px solid #ddd;">${escapeHtml(u.firstName||'')}</td><td style="padding:8px; border:1px solid #ddd;">${escapeHtml(u.phone||'')}</td><td style="padding:8px; border:1px solid #ddd;">${Object.keys(u.customFields||{}).length}</td></tr>`;
+                html += `<tr><td style="padding:8px; border:1px solid #ddd;">${idx+1}</td><td style="padding:8px; border:1px solid #ddd;">${escapeHtml(u.email)}</td><td style="padding:8px; border:1px solid #ddd;">${escapeHtml(u.lastName||'')}</td><td style="padding:8px; border:1px solid #ddd;">${escapeHtml(u.firstName||'')}</td><td style="padding:8px; border:1px solid #ddd;">${escapeHtml(u.phone||'')}</td><td style="padding:8px; border:1px solid #ddd;">${escapeHtml(u.birthDate||'')}</td></tr>`;
             });
             html += '</tbody></table>';
             if (users.length > 10) html += `<p style="margin-top:5px;">и ещё ${users.length-10} записей...</p>`;
@@ -591,7 +633,6 @@
             document.getElementById('importStats').innerHTML = `<p>📊 Найдено: ${users.length}</p>`;
         }
 
-        // ОСНОВНАЯ ФУНКЦИЯ ИМПОРТА - ИСПРАВЛЕНА
         async function confirmImport() {
             if (isImporting) { showToast('Импорт уже выполняется', 'warning'); return; }
             const users = window.importedUsersData;
@@ -614,42 +655,43 @@
                 if (importBtn) importBtn.textContent = `⏳ Импорт: ${i+1}/${users.length}`;
                 
                 try {
-                    const tempPassword = `Temp${Date.now()}${i}${Math.random().toString(36).substring(2,6)}`;
+                    // Проверяем, существует ли пользователь в Auth
+                    const checkUrl = `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`;
+                    const checkResponse = await fetch(checkUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: [u.email] })
+                    });
+                    const checkResult = await checkResponse.json();
                     
+                    if (!checkResult.error) {
+                        // Пользователь уже существует
+                        duplicates++;
+                        console.log(`⏭️ Пропущен (уже существует): ${u.email}`);
+                        continue;
+                    }
+                    
+                    // Создаем нового пользователя
+                    const tempPassword = `Temp${Date.now()}${i}${Math.random().toString(36).substring(2,6)}`;
                     const signUpUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`;
                     const response = await fetch(signUpUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            email: u.email, 
-                            password: tempPassword, 
-                            returnSecureToken: false 
-                        })
+                        body: JSON.stringify({ email: u.email, password: tempPassword, returnSecureToken: false })
                     });
                     
                     const result = await response.json();
-                    
-                    // Обработка ошибки EMAIL_EXISTS
-                    if (result.error) {
-                        if (result.error.message === 'EMAIL_EXISTS') {
-                            duplicates++;
-                            console.log(`⏭️ Пропущен (уже существует): ${u.email}`);
-                            continue;
-                        } else {
-                            throw new Error(result.error.message);
-                        }
-                    }
+                    if (result.error) throw new Error(result.error.message);
                     
                     const userId = result.localId;
                     
                     // Сохранение в Firestore
                     const firestoreData = {
-                        role: 'student', 
+                        role: 'student',
                         emailVerified: false,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        importSource: 'excel', 
-                        email: u.email,
-                        customFields: u.customFields || {}
+                        importSource: 'excel',
+                        email: u.email
                     };
                     
                     const systemFields = ['lastName','firstName','patronymic','fullName','initials','birthDate','actualAddress','phone','snils','passportNumber','passportIssuedBy','passportIssueDate'];
@@ -660,23 +702,11 @@
                     await window.db.collection('users').doc(userId).set(firestoreData);
                     success++;
                     
-                    // Небольшая задержка между запросами
-                    await new Promise(r => setTimeout(r, 300));
+                    await new Promise(r => setTimeout(r, 200));
                     
                 } catch (err) {
                     console.error('Import error:', err);
-                    // Дополнительная проверка на дубликаты из Firestore
-                    try {
-                        const existing = await window.db.collection('users').where('email', '==', u.email).get();
-                        if (!existing.empty) {
-                            duplicates++;
-                            console.log(`⏭️ Пропущен (уже существует в Firestore): ${u.email}`);
-                        } else {
-                            errors++;
-                        }
-                    } catch (e) {
-                        errors++;
-                    }
+                    errors++;
                 }
             }
             
@@ -716,7 +746,7 @@
             showToast('📎 Экспорт выполнен', 'success');
         }
 
-        // ========== УПРАВЛЕНИЕ ПОЛЯМИ (сокращено для экономии места) ==========
+        // ========== УПРАВЛЕНИЕ ПОЛЯМИ (сокращено) ==========
         async function loadAllFields() { allFields = await window.fieldsManager.getAllFields(true); return allFields; }
         async function renderFieldsTab() {
             await loadAllFields();
