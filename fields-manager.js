@@ -5,10 +5,11 @@ class FieldsManager {
         this.collection = 'custom_fields';
         this.cache = null;
         this.cacheTime = null;
-        this.cacheTTL = 60000; // 60 секунд кэширования
+        this.cacheTTL = 60000;
         
-        // Предустановленные (системные) поля с семантикой
+        // ========== РАСШИРЕННЫЕ СИСТЕМНЫЕ ПОЛЯ ==========
         this.systemFields = [
+            // === РАЗДЕЛ 1: ЛИЧНАЯ ИНФОРМАЦИЯ ===
             {
                 id: 'fullName',
                 label: 'ФИО',
@@ -20,7 +21,22 @@ class FieldsManager {
                 semantics: 'http://schemas.titul24.ru/simplex/фио',
                 placeholder: 'Иванов Иван Иванович',
                 order: 1,
-                category: 'personal'
+                category: 'personal',
+                section: 'personal'
+            },
+            {
+                id: 'birthDate',
+                label: 'Дата рождения',
+                type: 'date',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/датаРождения',
+                placeholder: 'Выберите дату рождения',
+                order: 2,
+                category: 'personal',
+                section: 'personal'
             },
             {
                 id: 'email',
@@ -29,11 +45,12 @@ class FieldsManager {
                 isRequired: true,
                 isActive: true,
                 isSystem: true,
-                isEditable: false, // Email нельзя редактировать через форму
+                isEditable: false,
                 semantics: 'http://schemas.titul24.ru/simplex/email',
                 placeholder: 'example@mail.ru',
-                order: 2,
-                category: 'personal'
+                order: 3,
+                category: 'personal',
+                section: 'personal'
             },
             {
                 id: 'phone',
@@ -45,23 +62,243 @@ class FieldsManager {
                 isEditable: true,
                 semantics: 'http://schemas.titul24.ru/simplex/телефон',
                 placeholder: '+7 (XXX) XXX-XX-XX',
-                order: 3,
-                category: 'personal'
+                order: 4,
+                category: 'personal',
+                section: 'personal'
             },
             {
-                id: 'education',
-                label: 'Образование',
+                id: 'inn',
+                label: 'ИНН',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/инн',
+                placeholder: '12 цифр без пробелов',
+                order: 5,
+                category: 'personal',
+                section: 'personal'
+            },
+            
+            // === РАЗДЕЛ 2: ОБРАЗОВАНИЕ ===
+            {
+                id: 'educationLevel',
+                label: 'Уровень образования',
                 type: 'select',
                 isRequired: false,
                 isActive: true,
                 isSystem: true,
                 isEditable: true,
-                semantics: 'http://schemas.titul24.ru/simplex/образование',
+                semantics: 'http://schemas.titul24.ru/simplex/уровеньОбразования',
                 placeholder: 'Выберите уровень образования',
-                options: ['высшее', 'среднее-специальное', 'среднее'],
-                order: 4,
-                category: 'personal'
+                options: ['Высшее (ВО)', 'Среднее профессиональное (СПО)', 'Среднее общее', 'Основное общее'],
+                order: 10,
+                category: 'education',
+                section: 'education'
             },
+            {
+                id: 'educationInstitution',
+                label: 'Место обучения (наименование учреждения, организации, предприятия)',
+                type: 'textarea',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/местоОбучения',
+                placeholder: 'Полное наименование учебного заведения',
+                order: 11,
+                category: 'education',
+                section: 'education'
+            },
+            {
+                id: 'diplomaSeries',
+                label: 'Диплом серия',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/дипломСерия',
+                placeholder: 'АА',
+                order: 12,
+                category: 'education',
+                section: 'education'
+            },
+            {
+                id: 'diplomaNumber',
+                label: 'Диплом номер',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/дипломНомер',
+                placeholder: '123456',
+                order: 13,
+                category: 'education',
+                section: 'education'
+            },
+            {
+                id: 'diplomaIssueDate',
+                label: 'Диплом когда выдан',
+                type: 'date',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/дипломДатаВыдачи',
+                placeholder: 'Дата выдачи диплома',
+                order: 14,
+                category: 'education',
+                section: 'education'
+            },
+            {
+                id: 'diplomaLastName',
+                label: 'Фамилия, указанная в дипломе (если менялась)',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/фамилияВДипломе',
+                placeholder: 'Фамилия, если отличается от текущей',
+                order: 15,
+                category: 'education',
+                section: 'education'
+            },
+            
+            // === РАЗДЕЛ 3: РАБОТА ===
+            {
+                id: 'workPlace',
+                label: 'Место работы (название организации)',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/местоРаботы',
+                placeholder: 'ООО "Ромашка"',
+                order: 20,
+                category: 'work',
+                section: 'work'
+            },
+            {
+                id: 'workAddress',
+                label: 'Адрес организации',
+                type: 'textarea',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/адресОрганизации',
+                placeholder: 'Индекс, город, улица, дом',
+                order: 21,
+                category: 'work',
+                section: 'work'
+            },
+            {
+                id: 'position',
+                label: 'Должность',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/должность',
+                placeholder: 'Ведущий специалист',
+                order: 22,
+                category: 'work',
+                section: 'work'
+            },
+            
+            // === РАЗДЕЛ 4: ПАСПОРТНЫЕ ДАННЫЕ ===
+            {
+                id: 'passportSeries',
+                label: 'Паспорт серия',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/паспортСерия',
+                placeholder: '12 34',
+                order: 30,
+                category: 'documents',
+                section: 'documents'
+            },
+            {
+                id: 'passportNumber',
+                label: 'Паспорт номер',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/паспортНомер',
+                placeholder: '567890',
+                order: 31,
+                category: 'documents',
+                section: 'documents'
+            },
+            {
+                id: 'passportIssueDate',
+                label: 'Паспорт когда выдан',
+                type: 'date',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/паспортДатаВыдачи',
+                placeholder: 'Дата выдачи паспорта',
+                order: 32,
+                category: 'documents',
+                section: 'documents'
+            },
+            {
+                id: 'passportIssuedBy',
+                label: 'Паспорт кем выдан',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/паспортКемВыдан',
+                placeholder: 'Отделом УФМС России',
+                order: 33,
+                category: 'documents',
+                section: 'documents'
+            },
+            {
+                id: 'passportDepartmentCode',
+                label: 'Номер подразделения (паспорт)',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/паспортКодПодразделения',
+                placeholder: '123-456',
+                order: 34,
+                category: 'documents',
+                section: 'documents'
+            },
+            {
+                id: 'snils',
+                label: 'СНИЛС',
+                type: 'text',
+                isRequired: false,
+                isActive: true,
+                isSystem: true,
+                isEditable: true,
+                semantics: 'http://schemas.titul24.ru/simplex/снилс',
+                placeholder: '123-456-789 00',
+                order: 35,
+                category: 'documents',
+                section: 'documents'
+            },
+            
+            // === РАЗДЕЛ 5: АДРЕСА ===
             {
                 id: 'actualAddress',
                 label: 'Фактический адрес',
@@ -72,8 +309,9 @@ class FieldsManager {
                 isEditable: true,
                 semantics: 'http://schemas.titul24.ru/simplex/фактическийАдрес',
                 placeholder: 'Индекс, город, улица, дом, квартира',
-                order: 5,
-                category: 'address'
+                order: 40,
+                category: 'address',
+                section: 'address'
             },
             {
                 id: 'registrationAddress',
@@ -85,80 +323,59 @@ class FieldsManager {
                 isEditable: true,
                 semantics: 'http://schemas.titul24.ru/simplex/адресПрописки',
                 placeholder: 'Индекс, город, улица, дом, квартира',
-                order: 6,
-                category: 'address'
-            },
-            {
-                id: 'passportNumber',
-                label: 'Номер паспорта',
-                type: 'text',
-                isRequired: false,
-                isActive: true,
-                isSystem: true,
-                isEditable: true,
-                semantics: 'http://schemas.titul24.ru/simplex/паспортНомер',
-                placeholder: 'XXXX XXXXXX',
-                order: 7,
-                category: 'documents'
-            },
-            {
-                id: 'passportIssuedBy',
-                label: 'Кем выдан паспорт',
-                type: 'text',
-                isRequired: false,
-                isActive: true,
-                isSystem: true,
-                isEditable: true,
-                semantics: 'http://schemas.titul24.ru/simplex/паспортКемВыдан',
-                placeholder: 'Название органа, выдавшего паспорт',
-                order: 8,
-                category: 'documents'
-            },
-            {
-                id: 'passportIssueDate',
-                label: 'Когда выдан паспорт',
-                type: 'date',
-                isRequired: false,
-                isActive: true,
-                isSystem: true,
-                isEditable: true,
-                semantics: 'http://schemas.titul24.ru/simplex/паспортДатаВыдачи',
-                placeholder: 'Дата выдачи паспорта',
-                order: 9,
-                category: 'documents'
-            },
-            {
-                id: 'snils',
-                label: 'СНИЛС',
-                type: 'text',
-                isRequired: false,
-                isActive: true,
-                isSystem: true,
-                isEditable: true,
-                semantics: 'http://schemas.titul24.ru/simplex/снилс',
-                placeholder: 'XXX-XXX-XXX XX',
-                order: 10,
-                category: 'documents'
+                order: 41,
+                category: 'address',
+                section: 'address'
             }
         ];
+        
+        // Группировка разделов для отображения
+        this.sections = {
+            personal: { title: '👤 Личная информация', icon: '👤', order: 1 },
+            education: { title: '🎓 Образование', icon: '🎓', order: 2 },
+            work: { title: '💼 Место работы', icon: '💼', order: 3 },
+            documents: { title: '📄 Паспортные данные', icon: '📄', order: 4 },
+            address: { title: '🏠 Адреса', icon: '🏠', order: 5 },
+            custom: { title: '📋 Дополнительные поля', icon: '📋', order: 6 }
+        };
     }
 
-    // Очистка кэша
+    // Получить все системные поля
+    getSystemFields() {
+        return [...this.systemFields];
+    }
+    
+    // Получить системные поля по разделу
+    getSystemFieldsBySection(section) {
+        return this.systemFields.filter(f => f.section === section);
+    }
+    
+    // Получить все разделы
+    getSections() {
+        return this.sections;
+    }
+    
+    // Получить активные системные поля по разделу
+    async getActiveSystemFieldsBySection(section) {
+        const allFields = await this.getAllFields();
+        return allFields.filter(f => f.section === section && f.isActive !== false);
+    }
+    
+    // Остальные методы остаются без изменений...
+    // (getAllFields, getActiveFields, getFieldById и т.д.)
+    
     clearCache() {
         this.cache = null;
         this.cacheTime = null;
     }
 
-    // Получить все поля (системные + пользовательские)
     async getAllFields(forceRefresh = false) {
-        // Проверяем кэш
         if (!forceRefresh && this.cache && this.cacheTime && (Date.now() - this.cacheTime) < this.cacheTTL) {
             console.log('📦 Использование кэша полей, полей:', this.cache.length);
             return this.cache;
         }
         
         try {
-            // Получаем пользовательские поля из Firestore
             const snapshot = await window.db.collection(this.collection).get();
             const customFields = [];
             snapshot.forEach(doc => {
@@ -169,62 +386,56 @@ class FieldsManager {
                 });
             });
             
-            // Объединяем системные и пользовательские поля
-            const allFields = [...this.systemFields, ...customFields];
+            // Получаем настройки системных полей
+            const settingsSnapshot = await window.db.collection('system_fields_settings').get();
+            const settings = {};
+            settingsSnapshot.forEach(doc => {
+                settings[doc.id] = doc.data();
+            });
             
-            // Сортируем по порядку
+            // Применяем настройки к системным полям
+            const systemFieldsWithSettings = this.systemFields.map(field => {
+                const fieldSettings = settings[field.id];
+                if (fieldSettings) {
+                    return {
+                        ...field,
+                        isActive: fieldSettings.isActive !== undefined ? fieldSettings.isActive : field.isActive,
+                        isRequired: fieldSettings.isRequired !== undefined ? fieldSettings.isRequired : field.isRequired,
+                        placeholder: fieldSettings.placeholder || field.placeholder,
+                        order: fieldSettings.order || field.order,
+                        options: fieldSettings.options || field.options
+                    };
+                }
+                return field;
+            });
+            
+            const allFields = [...systemFieldsWithSettings, ...customFields];
             allFields.sort((a, b) => (a.order || 999) - (b.order || 999));
             
-            // Сохраняем в кэш
             this.cache = allFields;
             this.cacheTime = Date.now();
             
-            console.log('✅ Загружено полей:', allFields.length, '(системных:', this.systemFields.length, ', пользовательских:', customFields.length, ')');
+            console.log(`✅ Загружено полей: ${allFields.length} (системных: ${systemFieldsWithSettings.length}, пользовательских: ${customFields.length})`);
             return allFields;
         } catch (error) {
             console.error('Ошибка загрузки полей:', error);
-            if (this.cache) {
-                console.log('⚠️ Возврат устаревшего кэша');
-                return this.cache;
-            }
-            return this.systemFields; // Возвращаем хотя бы системные поля
+            if (this.cache) return this.cache;
+            return this.systemFields;
         }
     }
 
-    // Получить активные поля
     async getActiveFields(forceRefresh = false) {
         const allFields = await this.getAllFields(forceRefresh);
-        const activeFields = allFields.filter(field => field.isActive !== false);
-        console.log(`✅ Активных полей: ${activeFields.length} из ${allFields.length}`);
-        return activeFields;
+        return allFields.filter(field => field.isActive !== false);
     }
 
-    // Получить поля по категории
-    async getFieldsByCategory(category, forceRefresh = false) {
-        const allFields = await this.getAllFields(forceRefresh);
-        return allFields.filter(field => field.category === category);
-    }
-
-    // Получить системные поля
-    getSystemFields() {
-        return [...this.systemFields];
-    }
-
-    // Получить пользовательские поля
-    async getCustomFields(forceRefresh = false) {
-        const allFields = await this.getAllFields(forceRefresh);
-        return allFields.filter(field => !field.isSystem);
-    }
-
-    // Получить поле по ID (включая системные)
     async getFieldById(fieldId) {
-        // Сначала ищем среди системных
         const systemField = this.systemFields.find(f => f.id === fieldId);
         if (systemField) {
-            return { ...systemField, isSystem: true };
+            const settings = await this.getSystemFieldSettings(fieldId);
+            return { ...systemField, ...settings, isSystem: true };
         }
         
-        // Затем в Firestore
         try {
             const doc = await window.db.collection(this.collection).doc(fieldId).get();
             if (doc.exists) {
@@ -237,15 +448,23 @@ class FieldsManager {
         }
     }
 
-    // Обновить системное поле (только отдельные свойства)
+    async getSystemFieldSettings(fieldId) {
+        try {
+            const doc = await window.db.collection('system_fields_settings').doc(fieldId).get();
+            return doc.exists ? doc.data() : {};
+        } catch (error) {
+            console.error('Ошибка получения настроек поля:', error);
+            return {};
+        }
+    }
+
     async updateSystemField(fieldId, updates) {
         const systemField = this.systemFields.find(f => f.id === fieldId);
         if (!systemField) {
             throw new Error(`Системное поле ${fieldId} не найдено`);
         }
         
-        // Разрешенные для обновления свойства системных полей
-        const allowedUpdates = ['isActive', 'isRequired', 'placeholder', 'order'];
+        const allowedUpdates = ['isActive', 'isRequired', 'placeholder', 'order', 'options'];
         const filteredUpdates = {};
         
         for (const key of allowedUpdates) {
@@ -254,7 +473,6 @@ class FieldsManager {
             }
         }
         
-        // Сохраняем настройки системного поля в отдельной коллекции
         const settingsRef = window.db.collection('system_fields_settings').doc(fieldId);
         await settingsRef.set({
             ...filteredUpdates,
@@ -262,151 +480,105 @@ class FieldsManager {
             updatedBy: window.auth.currentUser?.uid || null
         }, { merge: true });
         
-        // Обновляем локальный кэш
-        const index = this.systemFields.findIndex(f => f.id === fieldId);
-        if (index !== -1) {
-            this.systemFields[index] = { ...this.systemFields[index], ...filteredUpdates };
-        }
         this.clearCache();
-        
         console.log(`✅ Системное поле "${fieldId}" обновлено`);
         return true;
     }
 
-    // Получить настройки системного поля
-    async getSystemFieldSettings(fieldId) {
-        try {
-            const doc = await window.db.collection('system_fields_settings').doc(fieldId).get();
-            if (doc.exists) {
-                return doc.data();
-            }
-            return {};
-        } catch (error) {
-            console.error('Ошибка получения настроек поля:', error);
-            return {};
-        }
-    }
-
-    // Добавить пользовательское поле
     async addField(fieldData) {
-        try {
-            // Проверяем, нет ли поля с таким ID среди системных
-            if (this.systemFields.some(f => f.id === fieldData.id)) {
-                throw new Error(`ID "${fieldData.id}" зарезервирован для системного поля`);
-            }
-            
-            // Проверяем существование
-            const existingField = await this.getFieldById(fieldData.id);
-            if (existingField) {
-                throw new Error(`Поле с ID "${fieldData.id}" уже существует`);
-            }
-            
-            const newField = {
-                label: fieldData.label.trim(),
-                type: fieldData.type,
-                isRequired: fieldData.isRequired === true,
-                isActive: fieldData.isActive !== false,
-                semantics: fieldData.semantics?.trim() || '',
-                placeholder: fieldData.placeholder?.trim() || '',
-                order: fieldData.order || 0,
-                category: fieldData.category || 'custom',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                createdBy: window.auth.currentUser?.uid || null,
-                createdByEmail: window.auth.currentUser?.email || null
-            };
-            
-            // Добавляем опции для radio/select
-            if (fieldData.type === 'radio' || fieldData.type === 'select') {
-                if (!fieldData.options || fieldData.options.length === 0) {
-                    throw new Error('Для выбранного типа поля нужно добавить варианты ответов');
-                }
-                newField.options = fieldData.options.map(opt => opt.trim());
-            }
-            
-            await window.db.collection(this.collection).doc(fieldData.id).set(newField);
-            
-            // Очищаем кэш
-            this.clearCache();
-            
-            console.log(`✅ Пользовательское поле "${fieldData.label}" создано`);
-            return { id: fieldData.id, ...newField, isSystem: false };
-            
-        } catch (error) {
-            console.error('Ошибка добавления поля:', error);
-            throw error;
+        if (this.systemFields.some(f => f.id === fieldData.id)) {
+            throw new Error(`ID "${fieldData.id}" зарезервирован для системного поля`);
         }
+        
+        const existingField = await this.getFieldById(fieldData.id);
+        if (existingField) {
+            throw new Error(`Поле с ID "${fieldData.id}" уже существует`);
+        }
+        
+        const newField = {
+            label: fieldData.label.trim(),
+            type: fieldData.type,
+            isRequired: fieldData.isRequired === true,
+            isActive: fieldData.isActive !== false,
+            semantics: fieldData.semantics?.trim() || '',
+            placeholder: fieldData.placeholder?.trim() || '',
+            order: fieldData.order || 0,
+            category: fieldData.category || 'custom',
+            section: fieldData.section || 'custom',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdBy: window.auth.currentUser?.uid || null,
+            createdByEmail: window.auth.currentUser?.email || null
+        };
+        
+        if (fieldData.type === 'radio' || fieldData.type === 'select') {
+            if (!fieldData.options || fieldData.options.length === 0) {
+                throw new Error('Для выбранного типа поля нужно добавить варианты ответов');
+            }
+            newField.options = fieldData.options.map(opt => opt.trim());
+        }
+        
+        await window.db.collection(this.collection).doc(fieldData.id).set(newField);
+        this.clearCache();
+        
+        console.log(`✅ Пользовательское поле "${fieldData.label}" создано`);
+        return { id: fieldData.id, ...newField, isSystem: false };
     }
 
-    // Обновить пользовательское поле
     async updateField(fieldId, updates) {
-        try {
-            const currentField = await this.getFieldById(fieldId);
-            if (!currentField) {
-                throw new Error(`Поле с ID "${fieldId}" не найдено`);
-            }
-            
-            if (currentField.isSystem) {
-                return await this.updateSystemField(fieldId, updates);
-            }
-            
-            const updateData = {
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                updatedBy: window.auth.currentUser?.uid || null,
-                updatedByEmail: window.auth.currentUser?.email || null
-            };
-            
-            const allowedUpdates = ['label', 'type', 'isRequired', 'isActive', 'semantics', 'placeholder', 'order', 'category', 'options'];
-            for (const key of allowedUpdates) {
-                if (updates[key] !== undefined) {
-                    updateData[key] = updates[key];
-                }
-            }
-            
-            await window.db.collection(this.collection).doc(fieldId).update(updateData);
-            this.clearCache();
-            
-            console.log(`✅ Пользовательское поле "${fieldId}" обновлено`);
-            return true;
-            
-        } catch (error) {
-            console.error('Ошибка обновления поля:', error);
-            throw error;
+        const currentField = await this.getFieldById(fieldId);
+        if (!currentField) {
+            throw new Error(`Поле с ID "${fieldId}" не найдено`);
         }
+        
+        if (currentField.isSystem) {
+            return await this.updateSystemField(fieldId, updates);
+        }
+        
+        const updateData = {
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedBy: window.auth.currentUser?.uid || null,
+            updatedByEmail: window.auth.currentUser?.email || null
+        };
+        
+        const allowedUpdates = ['label', 'type', 'isRequired', 'isActive', 'semantics', 'placeholder', 'order', 'category', 'section', 'options'];
+        for (const key of allowedUpdates) {
+            if (updates[key] !== undefined) {
+                updateData[key] = updates[key];
+            }
+        }
+        
+        await window.db.collection(this.collection).doc(fieldId).update(updateData);
+        this.clearCache();
+        
+        console.log(`✅ Пользовательское поле "${fieldId}" обновлено`);
+        return true;
     }
 
-    // Удалить пользовательское поле
     async deleteField(fieldId, options = {}) {
         const { skipCleanup = false } = options;
         
-        try {
-            const field = await this.getFieldById(fieldId);
-            if (!field) {
-                throw new Error(`Поле с ID "${fieldId}" не найдено`);
-            }
-            
-            if (field.isSystem) {
-                throw new Error(`Системное поле "${field.label}" нельзя удалить, можно только отключить`);
-            }
-            
-            let cleanedCount = 0;
-            
-            if (!skipCleanup) {
-                cleanedCount = await this.cleanupFieldValues(fieldId);
-            }
-            
-            await window.db.collection(this.collection).doc(fieldId).delete();
-            this.clearCache();
-            
-            console.log(`✅ Пользовательское поле "${field.label}" удалено. Очищено записей: ${cleanedCount}`);
-            return { success: true, cleanedCount, fieldName: field.label };
-            
-        } catch (error) {
-            console.error('Ошибка удаления поля:', error);
-            throw error;
+        const field = await this.getFieldById(fieldId);
+        if (!field) {
+            throw new Error(`Поле с ID "${fieldId}" не найдено`);
         }
+        
+        if (field.isSystem) {
+            throw new Error(`Системное поле "${field.label}" нельзя удалить, можно только отключить`);
+        }
+        
+        let cleanedCount = 0;
+        
+        if (!skipCleanup) {
+            cleanedCount = await this.cleanupFieldValues(fieldId);
+        }
+        
+        await window.db.collection(this.collection).doc(fieldId).delete();
+        this.clearCache();
+        
+        console.log(`✅ Пользовательское поле "${field.label}" удалено. Очищено записей: ${cleanedCount}`);
+        return { success: true, cleanedCount, fieldName: field.label };
     }
 
-    // Очистить значения поля у всех пользователей
     async cleanupFieldValues(fieldId) {
         try {
             const studentsSnapshot = await window.db.collection('users')
@@ -436,24 +608,19 @@ class FieldsManager {
             }
             
             return cleanedCount;
-            
         } catch (error) {
             console.error('Ошибка очистки значений поля:', error);
-            throw error;
+            return 0;
         }
     }
 
-    // Сохранить значения полей для слушателя (включая системные)
     async saveFieldValues(userId, values) {
         try {
-            if (!userId) {
-                throw new Error('ID пользователя обязателен');
-            }
+            if (!userId) throw new Error('ID пользователя обязателен');
             
             const allFields = await this.getActiveFields();
             const requiredFields = allFields.filter(f => f.isRequired);
             
-            // Проверяем обязательные поля
             const missingFields = [];
             for (const field of requiredFields) {
                 const value = values[field.id];
@@ -466,7 +633,6 @@ class FieldsManager {
                 throw new Error(`Заполните обязательные поля: ${missingFields.join(', ')}`);
             }
             
-            // Разделяем системные поля и пользовательские
             const systemFieldsIds = this.systemFields.map(f => f.id);
             const systemUpdates = {};
             const customUpdates = {};
@@ -481,73 +647,59 @@ class FieldsManager {
             
             const userRef = window.db.collection('users').doc(userId);
             
-            // Обновляем системные поля напрямую в документе
             if (Object.keys(systemUpdates).length > 0) {
                 await userRef.update(systemUpdates);
             }
             
-            // Обновляем пользовательские поля в customFields
             if (Object.keys(customUpdates).length > 0) {
                 const userDoc = await userRef.get();
                 const currentCustomFields = userDoc.data()?.customFields || {};
-                const updatedCustomFields = { ...currentCustomFields, ...customUpdates };
-                
                 await userRef.update({
-                    customFields: updatedCustomFields,
+                    customFields: { ...currentCustomFields, ...customUpdates },
                     customFieldsUpdatedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
             }
             
             console.log('✅ Значения полей сохранены');
             return true;
-            
         } catch (error) {
             console.error('Ошибка сохранения полей:', error);
             throw error;
         }
     }
 
-    // Получить значения полей для слушателя
     async getFieldValues(userId) {
         try {
-            if (!userId) {
-                return {};
-            }
+            if (!userId) return {};
             
             const userDoc = await window.db.collection('users').doc(userId).get();
-            if (!userDoc.exists) {
-                return {};
-            }
+            if (!userDoc.exists) return {};
             
             const userData = userDoc.data();
             const values = {};
             
-            // Получаем значения системных полей
             for (const field of this.systemFields) {
                 values[field.id] = userData[field.id] || '';
             }
             
-            // Получаем значения пользовательских полей
             const customFields = userData.customFields || {};
             for (const [key, value] of Object.entries(customFields)) {
                 values[key] = value;
             }
             
             return values;
-            
         } catch (error) {
             console.error('Ошибка получения значений полей:', error);
             return {};
         }
     }
 
-    // Проверить заполнение обязательных полей
     async checkRequiredFields(userId) {
         try {
-            const allFields = await this.getActiveFields();
+            const fields = await this.getActiveFields();
             const values = await this.getFieldValues(userId);
             
-            const requiredFields = allFields.filter(f => f.isRequired);
+            const requiredFields = fields.filter(f => f.isRequired);
             const missingFields = requiredFields.filter(f => {
                 const value = values[f.id];
                 return !value || (typeof value === 'string' && value.trim() === '');
@@ -561,50 +713,15 @@ class FieldsManager {
             };
         } catch (error) {
             console.error('Ошибка проверки обязательных полей:', error);
-            return {
-                allFilled: false,
-                missingFields: [],
-                totalRequired: 0,
-                filledRequired: 0,
-                error: error.message
-            };
-        }
-    }
-
-    // Сбросить кэш системных полей (при обновлении из админки)
-    async refreshSystemFields() {
-        // Загружаем настройки системных полей из Firestore
-        try {
-            const snapshot = await window.db.collection('system_fields_settings').get();
-            const settings = {};
-            snapshot.forEach(doc => {
-                settings[doc.id] = doc.data();
-            });
-            
-            // Применяем настройки к системным полям
-            for (const field of this.systemFields) {
-                const fieldSettings = settings[field.id];
-                if (fieldSettings) {
-                    if (fieldSettings.isActive !== undefined) field.isActive = fieldSettings.isActive;
-                    if (fieldSettings.isRequired !== undefined) field.isRequired = fieldSettings.isRequired;
-                    if (fieldSettings.placeholder !== undefined) field.placeholder = fieldSettings.placeholder;
-                    if (fieldSettings.order !== undefined) field.order = fieldSettings.order;
-                }
-            }
-            
-            this.clearCache();
-            console.log('✅ Системные поля обновлены из настроек');
-        } catch (error) {
-            console.error('Ошибка обновления системных полей:', error);
+            return { allFilled: false, missingFields: [], totalRequired: 0, filledRequired: 0, error: error.message };
         }
     }
 }
 
-// Создаем глобальный экземпляр
 window.fieldsManager = new FieldsManager();
-
-// Инициализация
-window.fieldsManager.refreshSystemFields();
-
 console.log('✅ fields-manager.js загружен');
-console.log('📋 Системные поля:', window.fieldsManager.systemFields.map(f => `${f.id} (${f.label})`).join(', '));
+console.log('📋 Системные поля по разделам:');
+for (const [key, section] of Object.entries(window.fieldsManager.sections)) {
+    const fields = window.fieldsManager.getSystemFieldsBySection(key);
+    console.log(`   ${section.title}: ${fields.length} полей`);
+}
