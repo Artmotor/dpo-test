@@ -2,10 +2,9 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Институт ДПО - Личный кабинет слушателя</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -14,7 +13,7 @@
             --secondary: #ffc107;
             --danger: #dc3545;
             --success: #28a745;
-            --warning: #ff9800;
+            --info: #17a2b8;
             --gray-light: #f5f5f5;
             --gray: #ddd;
             --dark: #333;
@@ -25,14 +24,13 @@
             --radius-sm: 10px;
         }
         body {
-            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Roboto', sans-serif;
             background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             min-height: 100vh;
-            color: var(--dark);
         }
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: var(--white);
+            color: white;
             padding: 20px 30px;
             display: flex;
             justify-content: space-between;
@@ -49,21 +47,21 @@
         .header h1 { font-size: clamp(18px, 5vw, 24px); font-weight: 500; }
         .user-info { display: flex; align-items: center; gap: 15px; }
         .user-name { background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 14px; }
-        .btn-logout { background: var(--danger); color: white; border: none; padding: 10px 24px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; }
-        .btn-logout:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+        .btn-logout { background: var(--danger); color: white; border: none; padding: 10px 24px; border-radius: var(--radius-sm); cursor: pointer; }
         .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        
+        /* Вкладки */
         .tabs {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
-            background: var(--white);
+            background: white;
             padding: 10px;
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             flex-wrap: wrap;
         }
         .tab-btn {
-            flex: 1;
             padding: 12px 20px;
             background: var(--gray-light);
             border: none;
@@ -71,14 +69,13 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
-            color: var(--dark);
             transition: all 0.3s;
         }
         .tab-btn:hover { background: var(--gray); transform: translateY(-2px); }
-        .tab-btn.active { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; }
+        .tab-btn.active { background: var(--primary); color: white; }
         .tab-content {
             display: none;
-            background: var(--white);
+            background: white;
             padding: 30px;
             border-radius: var(--radius);
             box-shadow: var(--shadow);
@@ -86,15 +83,54 @@
         }
         .tab-content.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Карточки и секции */
         .info-card { background: var(--gray-light); border-radius: var(--radius); padding: 25px; }
-        .info-card h3 { color: var(--primary); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--gray); font-weight: 500; }
-        .info-row { margin-bottom: 12px; padding: 12px; background: var(--white); border-radius: var(--radius-sm); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; }
-        .info-label { font-weight: bold; color: #555; min-width: 180px; }
+        .info-card h3 { color: var(--primary); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--gray); }
+        
+        .section-block {
+            margin-bottom: 30px;
+            background: white;
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            border: 1px solid var(--gray);
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--gray-light);
+        }
+        
+        .info-row {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: var(--gray-light);
+            border-radius: var(--radius-sm);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .info-label { font-weight: bold; color: #555; min-width: 220px; }
         .info-value { color: var(--dark); flex: 1; }
-        .edit-btn { background: var(--primary); color: white; border: none; padding: 8px 20px; border-radius: var(--radius-sm); cursor: pointer; margin-top: 15px; transition: all 0.3s; width: auto; }
+        
+        .edit-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s;
+        }
         .edit-btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #555; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
         .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 12px;
@@ -102,18 +138,16 @@
             border-radius: var(--radius-sm);
             font-size: 14px;
             font-family: inherit;
-            transition: all 0.3s;
         }
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(44,95,45,0.1);
         }
+        
         .form-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .save-btn { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; width: auto; }
-        .save-btn:hover { background: #1e7e34; }
-        .cancel-btn { background: var(--secondary); color: var(--dark); border: none; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; width: auto; }
-        .cancel-btn:hover { background: #e0a800; }
+        .save-btn { background: var(--success); color: white; border: none; padding: 12px 24px; border-radius: var(--radius-sm); cursor: pointer; }
+        .cancel-btn { background: var(--secondary); color: var(--dark); border: none; padding: 12px 24px; border-radius: var(--radius-sm); cursor: pointer; }
+        
         .success-message, .error-message {
             position: fixed;
             top: 20px;
@@ -124,33 +158,26 @@
             z-index: 1001;
             animation: slideIn 0.3s;
             box-shadow: var(--shadow-hover);
-            font-weight: 500;
         }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .success-message { background: var(--success); color: white; }
         .error-message { background: var(--danger); color: white; }
-        .custom-field { margin-bottom: 20px; padding: 15px; border: 1px solid var(--gray); border-radius: var(--radius-sm); background: #fafafa; transition: all 0.3s; }
-        .save-fields-btn { background: var(--success); color: white; border: none; padding: 12px 24px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; margin-top: 10px; }
-        .save-fields-btn:hover { background: #1e7e34; transform: translateY(-2px); }
+        
         .semantics-block {
             background: #e3f2fd;
             padding: 8px 12px;
             border-radius: 6px;
             font-size: 12px;
             margin-top: 8px;
-            word-break: break-all;
         }
         .semantics-block a { color: #1976d2; text-decoration: none; }
-        .semantics-block a:hover { text-decoration: underline; }
+        
         @media (max-width: 768px) {
-            .header { padding: 15px 20px; }
             .tabs { flex-direction: column; }
-            .tab-btn { width: 100%; text-align: center; }
+            .tab-btn { text-align: center; }
             .info-row { flex-direction: column; align-items: flex-start; gap: 5px; }
             .info-label { min-width: auto; }
             .form-actions { flex-direction: column; }
-            .form-actions button { width: 100%; }
-            .tab-content { padding: 20px; }
         }
     </style>
 </head>
@@ -158,7 +185,7 @@
     <div class="header">
         <div class="logo-area">
             <div class="logo">🎓</div>
-            <h1>Институт ДПО - Личный кабинет слушателя</h1>
+            <h1>Институт ДПО - Личный кабинет</h1>
         </div>
         <div class="user-info">
             <span class="user-name" id="userName">Загрузка...</span>
@@ -170,77 +197,439 @@
         <div id="successMessage" class="success-message"></div>
         <div id="errorMessage" class="error-message"></div>
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('profile')">👤 Мои данные</button>
-            <button class="tab-btn" onclick="switchTab('documents')">📄 Паспортные данные</button>
-            <button class="tab-btn" onclick="switchTab('address')">🏠 Адреса</button>
-            <button class="tab-btn" onclick="switchTab('additionalFields')">📋 Дополнительные поля</button>
-        </div>
-
-        <div id="profileTab" class="tab-content active">
-            <div class="info-card">
-                <h3>👤 Личная информация</h3>
-                <div id="profileInfo"></div>
-                <button class="edit-btn" onclick="editProfile()">✏️ Редактировать профиль</button>
-            </div>
-        </div>
-
-        <div id="documentsTab" class="tab-content">
-            <div class="info-card">
-                <h3>📄 Паспортные данные и СНИЛС</h3>
-                <div id="documentsInfo"></div>
-                <button class="edit-btn" onclick="editDocuments()">✏️ Редактировать документы</button>
-            </div>
-        </div>
-
-        <div id="addressTab" class="tab-content">
-            <div class="info-card">
-                <h3>🏠 Адреса проживания и прописки</h3>
-                <div id="addressInfo"></div>
-                <button class="edit-btn" onclick="editAddress()">✏️ Редактировать адреса</button>
-            </div>
-        </div>
-
-        <div id="additionalFieldsTab" class="tab-content">
-            <div class="info-card">
-                <h3>📋 Дополнительная информация</h3>
-                <div id="missingFieldsWarning" style="display:none;"></div>
-                <div id="customFieldsContainer">
-                    <div style="text-align:center; padding:40px; color:#999;">Загрузка дополнительных полей...</div>
-                </div>
-            </div>
-        </div>
+        <!-- Динамические вкладки будут создаваться скриптом -->
+        <div id="tabsContainer" class="tabs"></div>
+        <div id="contentContainer"></div>
     </div>
 
-    <!-- Подключение Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    
-    <!-- Конфиг и общие скрипты -->
     <script src="firebase-config.js"></script>
     <script src="common.js"></script>
     <script src="fields-manager.js"></script>
-    
-    <!-- Скрипты слушателя -->
-    <script src="student.js"></script>
-    <script src="student-fields.js"></script>
-    
+
     <script>
-        // Дополнительная инициализация
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 Страница student-cabinet.html загружена');
-        });
+        let currentUserData = null;
+        let currentEditSection = null;
+        let allActiveFields = [];
+
+        // Функции
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function formatDate(ts) {
+            if (!ts) return '—';
+            try {
+                const d = ts.toDate ? ts.toDate() : new Date(ts);
+                return d.toLocaleDateString('ru-RU');
+            } catch(e) { return '—'; }
+        }
+
+        function showSuccess(msg) {
+            const el = document.getElementById('successMessage');
+            if (el) { el.textContent = msg; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 3000); }
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMessage');
+            if (el) { el.textContent = msg; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 5000); }
+        }
+
+        async function logout() {
+            await window.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
+        // Загрузка данных пользователя
+        async function loadUserData() {
+            const user = window.auth.currentUser;
+            if (!user) return;
+
+            try {
+                const doc = await window.db.collection('users').doc(user.uid).get();
+                
+                if (!doc.exists) {
+                    const defaultData = {
+                        fullName: user.email.split('@')[0],
+                        email: user.email,
+                        phone: '',
+                        educationLevel: '',
+                        educationInstitution: '',
+                        workPlace: '',
+                        workAddress: '',
+                        position: '',
+                        birthDate: '',
+                        inn: '',
+                        diplomaSeries: '',
+                        diplomaNumber: '',
+                        diplomaIssueDate: '',
+                        diplomaLastName: '',
+                        passportSeries: '',
+                        passportNumber: '',
+                        passportIssueDate: '',
+                        passportIssuedBy: '',
+                        passportDepartmentCode: '',
+                        snils: '',
+                        actualAddress: '',
+                        registrationAddress: '',
+                        role: 'student',
+                        emailVerified: user.emailVerified,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        customFields: {}
+                    };
+                    await window.db.collection('users').doc(user.uid).set(defaultData);
+                    currentUserData = defaultData;
+                } else {
+                    currentUserData = doc.data();
+                    if (!currentUserData.customFields) currentUserData.customFields = {};
+                }
+                
+                const userNameSpan = document.getElementById('userName');
+                if (userNameSpan) userNameSpan.textContent = currentUserData.fullName || currentUserData.email;
+                
+                await loadAndDisplayFields();
+                
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+                showError('Ошибка загрузки данных: ' + error.message);
+            }
+        }
+
+        // Загрузка полей и отображение вкладок
+        async function loadAndDisplayFields() {
+            allActiveFields = await window.fieldsManager.getActiveFields();
+            const sections = window.fieldsManager.getSections();
+            
+            // Группируем поля по секциям
+            const fieldsBySection = {};
+            for (const field of allActiveFields) {
+                const section = field.section || 'custom';
+                if (!fieldsBySection[section]) fieldsBySection[section] = [];
+                fieldsBySection[section].push(field);
+            }
+            
+            // Сортируем секции
+            const orderedSections = Object.entries(sections).sort((a, b) => a[1].order - b[1].order);
+            
+            // Создаем вкладки и контент
+            const tabsContainer = document.getElementById('tabsContainer');
+            const contentContainer = document.getElementById('contentContainer');
+            
+            tabsContainer.innerHTML = '';
+            contentContainer.innerHTML = '';
+            
+            let isFirst = true;
+            for (const [sectionKey, sectionInfo] of orderedSections) {
+                const sectionFields = fieldsBySection[sectionKey] || [];
+                if (sectionFields.length === 0 && sectionKey !== 'custom') continue;
+                
+                // Создаем кнопку вкладки
+                const tabBtn = document.createElement('button');
+                tabBtn.className = `tab-btn ${isFirst ? 'active' : ''}`;
+                tabBtn.innerHTML = `${sectionInfo.icon} ${sectionInfo.title}`;
+                tabBtn.onclick = () => switchTab(sectionKey);
+                tabBtn.id = `tab_${sectionKey}`;
+                tabsContainer.appendChild(tabBtn);
+                
+                // Создаем контент вкладки
+                const tabContent = document.createElement('div');
+                tabContent.className = `tab-content ${isFirst ? 'active' : ''}`;
+                tabContent.id = `tabContent_${sectionKey}`;
+                
+                if (sectionFields.length > 0) {
+                    tabContent.innerHTML = renderSectionContent(sectionKey, sectionInfo, sectionFields);
+                } else {
+                    tabContent.innerHTML = `
+                        <div class="info-card">
+                            <h3>${sectionInfo.icon} ${sectionInfo.title}</h3>
+                            <div style="text-align:center; padding:40px; color:#999;">
+                                Нет активных полей в этом разделе
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                contentContainer.appendChild(tabContent);
+                isFirst = false;
+            }
+            
+            // Добавляем вкладку для пользовательских полей, если они есть
+            const customFields = allActiveFields.filter(f => !f.isSystem);
+            if (customFields.length > 0) {
+                const tabBtn = document.createElement('button');
+                tabBtn.className = `tab-btn ${isFirst ? 'active' : ''}`;
+                tabBtn.innerHTML = `📋 Дополнительные поля (${customFields.length})`;
+                tabBtn.onclick = () => switchTab('custom');
+                tabBtn.id = 'tab_custom';
+                tabsContainer.appendChild(tabBtn);
+                
+                const tabContent = document.createElement('div');
+                tabContent.className = `tab-content ${isFirst ? 'active' : ''}`;
+                tabContent.id = 'tabContent_custom';
+                tabContent.innerHTML = renderCustomFieldsContent(customFields);
+                contentContainer.appendChild(tabContent);
+            }
+        }
         
-        window.addEventListener('error', function(e) {
-            console.error('❌ Ошибка:', e.message);
-            const errorDiv = document.getElementById('errorMessage');
-            if (errorDiv) {
-                errorDiv.textContent = 'Ошибка: ' + e.message;
-                errorDiv.style.display = 'block';
-                setTimeout(() => errorDiv.style.display = 'none', 5000);
+        // Рендер секции с полями
+        function renderSectionContent(sectionKey, sectionInfo, fields) {
+            const values = {};
+            for (const field of fields) {
+                if (field.isSystem) {
+                    values[field.id] = currentUserData[field.id] || '';
+                } else {
+                    values[field.id] = currentUserData.customFields?.[field.id] || '';
+                }
+            }
+            
+            let html = `
+                <div class="info-card">
+                    <h3>${sectionInfo.icon} ${sectionInfo.title}</h3>
+                    <div id="display_${sectionKey}">
+            `;
+            
+            for (const field of fields) {
+                const value = values[field.id];
+                html += `
+                    <div class="info-row">
+                        <span class="info-label">${escapeHtml(field.label)}:</span>
+                        <span class="info-value">${formatDisplayValue(field, value)}</span>
+                    </div>
+                `;
+            }
+            
+            html += `
+                    </div>
+                    <button class="edit-btn" onclick="editSection('${sectionKey}')">✏️ Редактировать раздел</button>
+                </div>
+            `;
+            
+            return html;
+        }
+        
+        function formatDisplayValue(field, value) {
+            if (!value) return 'Не указано';
+            if (field.type === 'date' && value) {
+                try { return new Date(value).toLocaleDateString('ru-RU'); }
+                catch(e) { return value; }
+            }
+            return escapeHtml(value);
+        }
+        
+        // Рендер пользовательских полей
+        function renderCustomFieldsContent(fields) {
+            const values = {};
+            for (const field of fields) {
+                values[field.id] = currentUserData.customFields?.[field.id] || '';
+            }
+            
+            let html = `
+                <div class="info-card">
+                    <h3>📋 Дополнительная информация</h3>
+                    <div id="display_custom">
+            `;
+            
+            for (const field of fields) {
+                const value = values[field.id];
+                html += `
+                    <div class="info-row">
+                        <span class="info-label">${escapeHtml(field.label)}:</span>
+                        <span class="info-value">${formatDisplayValue(field, value)}</span>
+                    </div>
+                    ${field.semantics ? `
+                        <div class="semantics-block">
+                            🔗 Семантика: <a href="${escapeHtml(field.semantics)}" target="_blank">${escapeHtml(field.semantics)}</a>
+                            <span style="display:block; font-size:10px; color:#666;">ID: ${field.id}</span>
+                        </div>
+                    ` : ''}
+                `;
+            }
+            
+            html += `
+                    </div>
+                    <button class="edit-btn" onclick="editSection('custom')">✏️ Редактировать дополнительные поля</button>
+                </div>
+            `;
+            
+            return html;
+        }
+        
+        // Редактирование секции
+        async function editSection(sectionKey) {
+            currentEditSection = sectionKey;
+            
+            let fields = [];
+            if (sectionKey === 'custom') {
+                fields = allActiveFields.filter(f => !f.isSystem);
+            } else {
+                fields = allActiveFields.filter(f => f.section === sectionKey);
+            }
+            
+            const values = {};
+            for (const field of fields) {
+                if (field.isSystem) {
+                    values[field.id] = currentUserData[field.id] || '';
+                } else {
+                    values[field.id] = currentUserData.customFields?.[field.id] || '';
+                }
+            }
+            
+            let html = `
+                <div class="info-card">
+                    <h3>✏️ Редактирование</h3>
+                    <form id="editForm">
+            `;
+            
+            for (const field of fields) {
+                const value = values[field.id];
+                html += `
+                    <div class="form-group">
+                        <label>${escapeHtml(field.label)}${field.isRequired ? ' <span style="color:#dc3545;">*</span>' : ''}</label>
+                        ${renderEditField(field, value)}
+                        ${field.semantics ? `<small style="display:block; margin-top:5px; color:#667eea;">🔗 ${escapeHtml(field.semantics)}</small>` : ''}
+                        ${field.placeholder ? `<small style="display:block; margin-top:5px; color:#999;">💡 ${escapeHtml(field.placeholder)}</small>` : ''}
+                    </div>
+                `;
+            }
+            
+            html += `
+                        <div class="form-actions">
+                            <button type="button" class="save-btn" onclick="saveSection()">💾 Сохранить</button>
+                            <button type="button" class="cancel-btn" onclick="cancelEdit()">❌ Отмена</button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            const displayDiv = document.getElementById(`display_${sectionKey}`);
+            if (displayDiv) {
+                displayDiv.parentElement.innerHTML = html;
+            } else {
+                const customDiv = document.getElementById('display_custom');
+                if (customDiv) customDiv.parentElement.innerHTML = html;
+            }
+        }
+        
+        function renderEditField(field, value) {
+            const fieldId = `field_${field.id}`;
+            
+            switch (field.type) {
+                case 'select':
+                    if (!field.options?.length) return `<input type="text" id="${fieldId}" value="${escapeHtml(value)}">`;
+                    let selectHtml = `<select id="${fieldId}" style="width:100%; padding:12px;">`;
+                    selectHtml += `<option value="">-- Выберите --</option>`;
+                    for (const opt of field.options) {
+                        selectHtml += `<option value="${escapeHtml(opt)}" ${value === opt ? 'selected' : ''}>${escapeHtml(opt)}</option>`;
+                    }
+                    selectHtml += `</select>`;
+                    return selectHtml;
+                    
+                case 'textarea':
+                    return `<textarea id="${fieldId}" rows="3" style="width:100%; padding:12px;">${escapeHtml(value)}</textarea>`;
+                    
+                case 'date':
+                    return `<input type="date" id="${fieldId}" value="${value}" style="width:100%; padding:12px;">`;
+                    
+                default:
+                    return `<input type="${field.type || 'text'}" id="${fieldId}" value="${escapeHtml(value)}" style="width:100%; padding:12px;">`;
+            }
+        }
+        
+        async function saveSection() {
+            const user = window.auth.currentUser;
+            if (!user) return;
+            
+            let fields = [];
+            if (currentEditSection === 'custom') {
+                fields = allActiveFields.filter(f => !f.isSystem);
+            } else {
+                fields = allActiveFields.filter(f => f.section === currentEditSection);
+            }
+            
+            const systemUpdates = {};
+            const customUpdates = {};
+            
+            for (const field of fields) {
+                const element = document.getElementById(`field_${field.id}`);
+                if (element) {
+                    const value = element.value;
+                    if (field.isSystem) {
+                        systemUpdates[field.id] = value;
+                    } else {
+                        customUpdates[field.id] = value;
+                    }
+                }
+            }
+            
+            try {
+                if (Object.keys(systemUpdates).length > 0) {
+                    await window.db.collection('users').doc(user.uid).update(systemUpdates);
+                    Object.assign(currentUserData, systemUpdates);
+                }
+                
+                if (Object.keys(customUpdates).length > 0) {
+                    const updatedCustom = { ...currentUserData.customFields, ...customUpdates };
+                    await window.db.collection('users').doc(user.uid).update({ customFields: updatedCustom });
+                    currentUserData.customFields = updatedCustom;
+                }
+                
+                showSuccess('✅ Данные успешно сохранены!');
+                await loadAndDisplayFields();
+                currentEditSection = null;
+                
+            } catch (error) {
+                console.error('Ошибка сохранения:', error);
+                showError('❌ Ошибка: ' + error.message);
+            }
+        }
+        
+        function cancelEdit() {
+            currentEditSection = null;
+            loadAndDisplayFields();
+        }
+        
+        function switchTab(sectionKey) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            const content = document.getElementById(`tabContent_${sectionKey}`);
+            if (content) content.classList.add('active');
+            
+            const tab = document.getElementById(`tab_${sectionKey}`);
+            if (tab) tab.classList.add('active');
+        }
+        
+        // Инициализация
+        window.auth.onAuthStateChanged(async (user) => {
+            console.log('Auth state changed:', user?.email);
+            
+            if (user) {
+                if (!user.emailVerified) {
+                    showError('Пожалуйста, подтвердите email перед входом');
+                    setTimeout(async () => { await window.auth.signOut(); window.location.href = 'index.html'; }, 3000);
+                } else {
+                    await loadUserData();
+                }
+            } else {
+                window.location.href = 'index.html';
             }
         });
+        
+        window.editSection = editSection;
+        window.saveSection = saveSection;
+        window.cancelEdit = cancelEdit;
+        window.switchTab = switchTab;
+        window.logout = logout;
+        
+        console.log('✅ student-cabinet.js загружен');
     </script>
 </body>
 </html>
