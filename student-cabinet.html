@@ -2,182 +2,519 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Институт ДПО - Личный кабинет слушателя</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
             --primary: #2c5f2d;
             --primary-dark: #1e3a1f;
+            --primary-light: #4a7c4b;
             --secondary: #ffc107;
+            --secondary-dark: #e0a800;
             --danger: #dc3545;
             --success: #28a745;
             --info: #17a2b8;
-            --gray-light: #f5f5f5;
-            --gray: #ddd;
-            --dark: #333;
+            --warning: #ff9800;
+            --gray-light: #f8f9fa;
+            --gray: #dee2e6;
+            --gray-dark: #6c757d;
+            --dark: #343a40;
             --white: #fff;
-            --shadow: 0 4px 6px rgba(0,0,0,0.1);
-            --shadow-hover: 0 10px 20px rgba(0,0,0,0.15);
-            --radius: 16px;
-            --radius-sm: 10px;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+            --radius: 20px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
         }
+
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Roboto', 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
             min-height: 100vh;
+            color: var(--dark);
         }
+
+        /* Header */
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            padding: 20px 30px;
+            color: var(--white);
+            padding: 16px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-lg);
             position: sticky;
             top: 0;
             z-index: 100;
         }
-        .logo-area { display: flex; align-items: center; gap: 15px; }
-        .logo { font-size: 36px; background: var(--secondary); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .header h1 { font-size: clamp(18px, 5vw, 24px); font-weight: 500; }
-        .user-info { display: flex; align-items: center; gap: 15px; }
-        .user-name { background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 14px; }
-        .btn-logout { background: var(--danger); color: white; border: none; padding: 10px 24px; border-radius: var(--radius-sm); cursor: pointer; }
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        
-        /* Вкладки */
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            font-size: 32px;
+            background: var(--secondary);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .logo-area h1 {
+            font-size: clamp(16px, 4vw, 22px);
+            font-weight: 500;
+            letter-spacing: -0.3px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255,255,255,0.15);
+            padding: 6px 16px 6px 20px;
+            border-radius: 40px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-logout {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: var(--danger);
+            transform: translateY(-1px);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1300px;
+            margin: 24px auto;
+            padding: 0 24px;
+        }
+
+        /* Tabs - современный дизайн */
+        .tabs-wrapper {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 8px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+        }
+
         .tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            background: white;
-            padding: 10px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
+            gap: 6px;
             flex-wrap: wrap;
         }
+
         .tab-btn {
-            padding: 12px 20px;
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-dark);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
             background: var(--gray-light);
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-header-icon {
+            font-size: 28px;
+        }
+
+        .card-header h2 {
+            font-size: 18px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .info-item {
+            background: var(--gray-light);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .info-item:hover {
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .info-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-label .semantics-badge {
+            font-size: 10px;
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 8px;
+            border-radius: 20px;
+            text-transform: none;
+        }
+
+        .info-value {
+            font-size: 15px;
+            color: var(--dark);
+            word-break: break-word;
+            line-height: 1.4;
+        }
+
+        .info-value.empty {
+            color: var(--gray-dark);
+            font-style: italic;
+        }
+
+        /* Edit Form */
+        .edit-form {
+            background: var(--gray-light);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .form-group label .required {
+            color: var(--danger);
+            margin-left: 4px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s;
+            background: var(--white);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
+        }
+
+        .form-hint {
+            display: block;
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--gray-dark);
+        }
+
+        .form-hint a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 24px;
             border: none;
             border-radius: var(--radius-sm);
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
             transition: all 0.3s;
-        }
-        .tab-btn:hover { background: var(--gray); transform: translateY(-2px); }
-        .tab-btn.active { background: var(--primary); color: white; }
-        .tab-content {
-            display: none;
-            background: white;
-            padding: 30px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            animation: fadeIn 0.3s;
-        }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Карточки и секции */
-        .info-card { background: var(--gray-light); border-radius: var(--radius); padding: 25px; }
-        .info-card h3 { color: var(--primary); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--gray); }
-        
-        .section-block {
-            margin-bottom: 30px;
-            background: white;
-            border-radius: var(--radius-sm);
-            padding: 20px;
-            border: 1px solid var(--gray);
-        }
-        .section-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid var(--gray-light);
-        }
-        
-        .info-row {
-            margin-bottom: 12px;
-            padding: 12px;
-            background: var(--gray-light);
-            border-radius: var(--radius-sm);
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
+            display: inline-flex;
             align-items: center;
+            gap: 8px;
         }
-        .info-label { font-weight: bold; color: #555; min-width: 220px; }
-        .info-value { color: var(--dark); flex: 1; }
-        
-        .edit-btn {
-            background: var(--primary);
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            margin-top: 15px;
-            transition: all 0.3s;
         }
-        .edit-btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
-        
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid var(--gray);
-            border-radius: var(--radius-sm);
-            font-size: 14px;
-            font-family: inherit;
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
         }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary);
+
+        .btn-success {
+            background: var(--success);
+            color: white;
         }
-        
-        .form-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .save-btn { background: var(--success); color: white; border: none; padding: 12px 24px; border-radius: var(--radius-sm); cursor: pointer; }
-        .cancel-btn { background: var(--secondary); color: var(--dark); border: none; padding: 12px 24px; border-radius: var(--radius-sm); cursor: pointer; }
-        
-        .success-message, .error-message {
+
+        .btn-success:hover {
+            background: #1e7e34;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--gray);
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-dark);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #e68900;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        /* Toast Messages */
+        .toast-message {
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 15px 25px;
-            border-radius: var(--radius-sm);
+            padding: 14px 24px;
+            border-radius: var(--radius-md);
             display: none;
             z-index: 1001;
-            animation: slideIn 0.3s;
-            box-shadow: var(--shadow-hover);
+            animation: slideInRight 0.3s ease;
+            box-shadow: var(--shadow-lg);
+            font-weight: 500;
+            font-size: 14px;
         }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .success-message { background: var(--success); color: white; }
-        .error-message { background: var(--danger); color: white; }
-        
-        .semantics-block {
-            background: #e3f2fd;
-            padding: 8px 12px;
-            border-radius: 6px;
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .toast-error {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Course Section */
+        .course-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            color: white;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+
+        .course-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .course-card h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
+        .course-card p {
+            opacity: 0.9;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .course-status {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
             font-size: 12px;
-            margin-top: 8px;
+            margin-top: 12px;
         }
-        .semantics-block a { color: #1976d2; text-decoration: none; }
-        
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray-dark);
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 15px;
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .tabs { flex-direction: column; }
-            .tab-btn { text-align: center; }
-            .info-row { flex-direction: column; align-items: flex-start; gap: 5px; }
-            .info-label { min-width: auto; }
-            .form-actions { flex-direction: column; }
+            .header {
+                padding: 12px 20px;
+            }
+            
+            .user-info {
+                padding: 4px 12px 4px 16px;
+            }
+            
+            .user-name {
+                display: none;
+            }
+            
+            .container {
+                padding: 0 16px;
+                margin: 16px auto;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab-btn {
+                justify-content: center;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -194,11 +531,12 @@
     </div>
 
     <div class="container">
-        <div id="successMessage" class="success-message"></div>
-        <div id="errorMessage" class="error-message"></div>
+        <div id="toastSuccess" class="toast-message toast-success"></div>
+        <div id="toastError" class="toast-message toast-error"></div>
 
-        <!-- Динамические вкладки будут создаваться скриптом -->
-        <div id="tabsContainer" class="tabs"></div>
+        <div class="tabs-wrapper">
+            <div class="tabs" id="tabsContainer"></div>
+        </div>
         <div id="contentContainer"></div>
     </div>
 
@@ -212,35 +550,58 @@
     <script>
         let currentUserData = null;
         let currentEditSection = null;
-        let allActiveFields = [];
+        let allFields = [];
 
-        // Функции
+        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById(`toast${type.charAt(0).toUpperCase() + type.slice(1)}`);
+            if (toast) {
+                toast.textContent = message;
+                toast.style.display = 'block';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 3000);
+            }
+        }
+
         function escapeHtml(str) {
             if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
         }
 
-        function formatDate(ts) {
-            if (!ts) return '—';
+        function formatDateValue(value) {
+            if (!value) return '';
+            if (value.toDate) {
+                return value.toDate().toISOString().split('T')[0];
+            }
+            if (typeof value === 'string' && value.includes('-')) {
+                return value;
+            }
             try {
-                const d = ts.toDate ? ts.toDate() : new Date(ts);
-                return d.toLocaleDateString('ru-RU');
-            } catch(e) { return '—'; }
+                return new Date(value).toISOString().split('T')[0];
+            } catch(e) {
+                return '';
+            }
         }
 
-        function showSuccess(msg) {
-            const el = document.getElementById('successMessage');
-            if (el) { el.textContent = msg; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 3000); }
-        }
-
-        function showError(msg) {
-            const el = document.getElementById('errorMessage');
-            if (el) { el.textContent = msg; el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 5000); }
+        function formatDisplayValue(field, value) {
+            if (!value || value === '') return '<span class="empty">Не указано</span>';
+            if (field.type === 'date') {
+                try {
+                    return new Date(value).toLocaleDateString('ru-RU');
+                } catch(e) {
+                    return escapeHtml(value);
+                }
+            }
+            if (field.type === 'textarea') {
+                return escapeHtml(value).replace(/\n/g, '<br>');
+            }
+            return escapeHtml(value);
         }
 
         async function logout() {
@@ -248,30 +609,30 @@
             window.location.href = 'index.html';
         }
 
-        // Загрузка данных пользователя
+        // ========== ЗАГРУЗКА ДАННЫХ ==========
         async function loadUserData() {
             const user = window.auth.currentUser;
             if (!user) return;
 
             try {
                 const doc = await window.db.collection('users').doc(user.uid).get();
-                
+
                 if (!doc.exists) {
                     const defaultData = {
                         fullName: user.email.split('@')[0],
                         email: user.email,
                         phone: '',
-                        educationLevel: '',
-                        educationInstitution: '',
-                        workPlace: '',
-                        workAddress: '',
-                        position: '',
                         birthDate: '',
                         inn: '',
+                        educationLevel: '',
+                        educationInstitution: '',
                         diplomaSeries: '',
                         diplomaNumber: '',
                         diplomaIssueDate: '',
                         diplomaLastName: '',
+                        workPlace: '',
+                        workAddress: '',
+                        position: '',
                         passportSeries: '',
                         passportNumber: '',
                         passportIssueDate: '',
@@ -291,188 +652,210 @@
                     currentUserData = doc.data();
                     if (!currentUserData.customFields) currentUserData.customFields = {};
                 }
-                
-                const userNameSpan = document.getElementById('userName');
-                if (userNameSpan) userNameSpan.textContent = currentUserData.fullName || currentUserData.email;
-                
-                await loadAndDisplayFields();
-                
+
+                document.getElementById('userName').textContent = currentUserData.fullName || currentUserData.email;
+                await loadAndDisplaySections();
+
             } catch (error) {
-                console.error('Ошибка загрузки данных:', error);
-                showError('Ошибка загрузки данных: ' + error.message);
+                console.error('Ошибка загрузки:', error);
+                showToast('Ошибка загрузки данных: ' + error.message, 'error');
             }
         }
 
-        // Загрузка полей и отображение вкладок
-        async function loadAndDisplayFields() {
-            allActiveFields = await window.fieldsManager.getActiveFields();
-            const sections = window.fieldsManager.getSections();
+        // ========== ЗАГРУЗКА И ОТОБРАЖЕНИЕ РАЗДЕЛОВ ==========
+        async function loadAndDisplaySections() {
+            allFields = await window.fieldsManager.getActiveFields();
             
-            // Группируем поля по секциям
-            const fieldsBySection = {};
-            for (const field of allActiveFields) {
-                const section = field.section || 'custom';
-                if (!fieldsBySection[section]) fieldsBySection[section] = [];
-                fieldsBySection[section].push(field);
+            // Определение разделов
+            const sections = {
+                personal: {
+                    title: 'Личная информация',
+                    icon: '👤',
+                    color: '#2c5f2d',
+                    fields: []
+                },
+                education: {
+                    title: 'Образование',
+                    icon: '🎓',
+                    color: '#4a7c4b',
+                    fields: []
+                },
+                work: {
+                    title: 'Место работы',
+                    icon: '💼',
+                    color: '#17a2b8',
+                    fields: []
+                },
+                documents: {
+                    title: 'Паспортные данные',
+                    icon: '📄',
+                    color: '#6c757d',
+                    fields: []
+                },
+                address: {
+                    title: 'Адреса',
+                    icon: '🏠',
+                    color: '#ff9800',
+                    fields: []
+                },
+                training: {
+                    title: 'Обучение',
+                    icon: '📚',
+                    color: '#667eea',
+                    fields: [],
+                    isDynamic: true
+                }
+            };
+
+            // Разбираем поля по разделам (включая пользовательские)
+            for (const field of allFields) {
+                const section = field.section || 'personal';
+                if (sections[section]) {
+                    sections[section].fields.push(field);
+                } else {
+                    // Пользовательские поля с нестандартной категорией
+                    if (!sections.custom) {
+                        sections.custom = {
+                            title: 'Дополнительная информация',
+                            icon: '📋',
+                            color: '#9c27b0',
+                            fields: []
+                        };
+                    }
+                    sections.custom.fields.push(field);
+                }
             }
-            
-            // Сортируем секции
-            const orderedSections = Object.entries(sections).sort((a, b) => a[1].order - b[1].order);
-            
+
             // Создаем вкладки и контент
             const tabsContainer = document.getElementById('tabsContainer');
             const contentContainer = document.getElementById('contentContainer');
             
             tabsContainer.innerHTML = '';
             contentContainer.innerHTML = '';
-            
+
             let isFirst = true;
-            for (const [sectionKey, sectionInfo] of orderedSections) {
-                const sectionFields = fieldsBySection[sectionKey] || [];
-                if (sectionFields.length === 0 && sectionKey !== 'custom') continue;
-                
-                // Создаем кнопку вкладки
+            for (const [sectionKey, section] of Object.entries(sections)) {
+                // Показываем раздел только если есть поля ИЛИ это раздел "Обучение"
+                if (section.fields.length === 0 && sectionKey !== 'training') continue;
+
+                // Кнопка вкладки
                 const tabBtn = document.createElement('button');
                 tabBtn.className = `tab-btn ${isFirst ? 'active' : ''}`;
-                tabBtn.innerHTML = `${sectionInfo.icon} ${sectionInfo.title}`;
+                tabBtn.innerHTML = `${section.icon} ${section.title}`;
+                tabBtn.setAttribute('data-section', sectionKey);
                 tabBtn.onclick = () => switchTab(sectionKey);
-                tabBtn.id = `tab_${sectionKey}`;
                 tabsContainer.appendChild(tabBtn);
-                
-                // Создаем контент вкладки
+
+                // Контент вкладки
                 const tabContent = document.createElement('div');
                 tabContent.className = `tab-content ${isFirst ? 'active' : ''}`;
-                tabContent.id = `tabContent_${sectionKey}`;
+                tabContent.id = `tab_${sectionKey}`;
                 
-                if (sectionFields.length > 0) {
-                    tabContent.innerHTML = renderSectionContent(sectionKey, sectionInfo, sectionFields);
+                if (sectionKey === 'training') {
+                    tabContent.innerHTML = renderTrainingSection();
                 } else {
-                    tabContent.innerHTML = `
-                        <div class="info-card">
-                            <h3>${sectionInfo.icon} ${sectionInfo.title}</h3>
-                            <div style="text-align:center; padding:40px; color:#999;">
-                                Нет активных полей в этом разделе
-                            </div>
-                        </div>
-                    `;
+                    tabContent.innerHTML = renderDataSection(sectionKey, section);
                 }
                 
                 contentContainer.appendChild(tabContent);
                 isFirst = false;
             }
-            
-            // Добавляем вкладку для пользовательских полей, если они есть
-            const customFields = allActiveFields.filter(f => !f.isSystem);
-            if (customFields.length > 0) {
-                const tabBtn = document.createElement('button');
-                tabBtn.className = `tab-btn ${isFirst ? 'active' : ''}`;
-                tabBtn.innerHTML = `📋 Дополнительные поля (${customFields.length})`;
-                tabBtn.onclick = () => switchTab('custom');
-                tabBtn.id = 'tab_custom';
-                tabsContainer.appendChild(tabBtn);
-                
-                const tabContent = document.createElement('div');
-                tabContent.className = `tab-content ${isFirst ? 'active' : ''}`;
-                tabContent.id = 'tabContent_custom';
-                tabContent.innerHTML = renderCustomFieldsContent(customFields);
-                contentContainer.appendChild(tabContent);
-            }
         }
-        
-        // Рендер секции с полями
-        function renderSectionContent(sectionKey, sectionInfo, fields) {
+
+        // Рендер секции с данными
+        function renderDataSection(sectionKey, section) {
             const values = {};
-            for (const field of fields) {
+            for (const field of section.fields) {
                 if (field.isSystem) {
                     values[field.id] = currentUserData[field.id] || '';
                 } else {
                     values[field.id] = currentUserData.customFields?.[field.id] || '';
                 }
             }
-            
-            let html = `
-                <div class="info-card">
-                    <h3>${sectionInfo.icon} ${sectionInfo.title}</h3>
-                    <div id="display_${sectionKey}">
-            `;
-            
-            for (const field of fields) {
-                const value = values[field.id];
-                html += `
-                    <div class="info-row">
-                        <span class="info-label">${escapeHtml(field.label)}:</span>
-                        <span class="info-value">${formatDisplayValue(field, value)}</span>
-                    </div>
-                `;
-            }
-            
-            html += `
-                    </div>
-                    <button class="edit-btn" onclick="editSection('${sectionKey}')">✏️ Редактировать раздел</button>
-                </div>
-            `;
-            
-            return html;
-        }
-        
-        function formatDisplayValue(field, value) {
-            if (!value) return 'Не указано';
-            if (field.type === 'date' && value) {
-                try { return new Date(value).toLocaleDateString('ru-RU'); }
-                catch(e) { return value; }
-            }
-            return escapeHtml(value);
-        }
-        
-        // Рендер пользовательских полей
-        function renderCustomFieldsContent(fields) {
-            const values = {};
-            for (const field of fields) {
-                values[field.id] = currentUserData.customFields?.[field.id] || '';
-            }
-            
-            let html = `
-                <div class="info-card">
-                    <h3>📋 Дополнительная информация</h3>
-                    <div id="display_custom">
-            `;
-            
-            for (const field of fields) {
-                const value = values[field.id];
-                html += `
-                    <div class="info-row">
-                        <span class="info-label">${escapeHtml(field.label)}:</span>
-                        <span class="info-value">${formatDisplayValue(field, value)}</span>
-                    </div>
-                    ${field.semantics ? `
-                        <div class="semantics-block">
-                            🔗 Семантика: <a href="${escapeHtml(field.semantics)}" target="_blank">${escapeHtml(field.semantics)}</a>
-                            <span style="display:block; font-size:10px; color:#666;">ID: ${field.id}</span>
+
+            let fieldsHtml = '';
+            for (const field of section.fields) {
+                fieldsHtml += `
+                    <div class="info-item" data-field-id="${field.id}">
+                        <div class="info-label">
+                            ${escapeHtml(field.label)}
+                            ${field.semantics ? `<span class="semantics-badge">🔗 семантика</span>` : ''}
+                            ${field.isRequired ? '<span style="color:#dc3545;">*</span>' : ''}
                         </div>
-                    ` : ''}
+                        <div class="info-value">${formatDisplayValue(field, values[field.id])}</div>
+                        ${field.semantics ? `
+                            <div style="font-size: 10px; color: #999; margin-top: 8px;">
+                                <a href="${escapeHtml(field.semantics)}" target="_blank" style="color: #667eea;">${escapeHtml(field.semantics)}</a>
+                            </div>
+                        ` : ''}
+                    </div>
                 `;
             }
-            
-            html += `
+
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-header-icon">${section.icon}</span>
+                        <h2>${section.title}</h2>
                     </div>
-                    <button class="edit-btn" onclick="editSection('custom')">✏️ Редактировать дополнительные поля</button>
+                    <div class="card-body">
+                        <div id="display_${sectionKey}">
+                            <div class="info-grid">${fieldsHtml}</div>
+                            <button class="btn btn-primary" onclick="editSection('${sectionKey}')">
+                                ✏️ Редактировать раздел
+                            </button>
+                        </div>
+                    </div>
                 </div>
             `;
-            
-            return html;
         }
-        
-        // Редактирование секции
+
+        // Рендер раздела "Обучение"
+        function renderTrainingSection() {
+            // Здесь будет загрузка курсов из Firestore
+            // Пока заглушка, но можно расширить
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-header-icon">📚</span>
+                        <h2>Моё обучение</h2>
+                    </div>
+                    <div class="card-body">
+                        <div id="trainingContent">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📖</div>
+                                <p>Информация о курсах и обучении будет отображаться здесь</p>
+                                <p style="font-size: 13px; margin-top: 8px;">Следите за обновлениями</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ========== РЕДАКТИРОВАНИЕ ==========
         async function editSection(sectionKey) {
             currentEditSection = sectionKey;
             
+            // Получаем поля раздела
             let fields = [];
-            if (sectionKey === 'custom') {
-                fields = allActiveFields.filter(f => !f.isSystem);
-            } else {
-                fields = allActiveFields.filter(f => f.section === sectionKey);
+            if (sectionKey === 'training') {
+                showToast('Раздел обучения пока не доступен для редактирования', 'warning');
+                return;
             }
             
+            for (const field of allFields) {
+                if ((field.section === sectionKey) || (sectionKey === 'custom' && !field.section)) {
+                    fields.push(field);
+                }
+            }
+            
+            if (fields.length === 0) {
+                showToast('Нет полей для редактирования', 'warning');
+                return;
+            }
+
+            // Собираем значения
             const values = {};
             for (const field of fields) {
                 if (field.isSystem) {
@@ -481,50 +864,57 @@
                     values[field.id] = currentUserData.customFields?.[field.id] || '';
                 }
             }
-            
-            let html = `
-                <div class="info-card">
-                    <h3>✏️ Редактирование</h3>
+
+            // Форма редактирования
+            let formHtml = `
+                <div class="edit-form">
+                    <h3 style="margin-bottom: 20px; color: var(--primary);">✏️ Редактирование</h3>
                     <form id="editForm">
             `;
-            
+
             for (const field of fields) {
                 const value = values[field.id];
-                html += `
+                formHtml += `
                     <div class="form-group">
-                        <label>${escapeHtml(field.label)}${field.isRequired ? ' <span style="color:#dc3545;">*</span>' : ''}</label>
-                        ${renderEditField(field, value)}
-                        ${field.semantics ? `<small style="display:block; margin-top:5px; color:#667eea;">🔗 ${escapeHtml(field.semantics)}</small>` : ''}
-                        ${field.placeholder ? `<small style="display:block; margin-top:5px; color:#999;">💡 ${escapeHtml(field.placeholder)}</small>` : ''}
+                        <label>
+                            ${escapeHtml(field.label)}
+                            ${field.isRequired ? '<span class="required">*</span>' : ''}
+                        </label>
+                        ${renderFieldInput(field, value)}
+                        ${field.semantics ? `
+                            <small class="form-hint">
+                                🔗 Семантика: <a href="${escapeHtml(field.semantics)}" target="_blank">${escapeHtml(field.semantics)}</a>
+                            </small>
+                        ` : ''}
+                        ${field.placeholder ? `<small class="form-hint">💡 ${escapeHtml(field.placeholder)}</small>` : ''}
                     </div>
                 `;
             }
-            
-            html += `
+
+            formHtml += `
                         <div class="form-actions">
-                            <button type="button" class="save-btn" onclick="saveSection()">💾 Сохранить</button>
-                            <button type="button" class="cancel-btn" onclick="cancelEdit()">❌ Отмена</button>
+                            <button type="button" class="btn btn-success" onclick="saveSection()">💾 Сохранить</button>
+                            <button type="button" class="btn btn-secondary" onclick="cancelEdit()">❌ Отмена</button>
                         </div>
                     </form>
                 </div>
             `;
-            
+
             const displayDiv = document.getElementById(`display_${sectionKey}`);
             if (displayDiv) {
-                displayDiv.parentElement.innerHTML = html;
-            } else {
-                const customDiv = document.getElementById('display_custom');
-                if (customDiv) customDiv.parentElement.innerHTML = html;
+                displayDiv.innerHTML = formHtml;
             }
         }
-        
-        function renderEditField(field, value) {
+
+        function renderFieldInput(field, value) {
             const fieldId = `field_${field.id}`;
             
             switch (field.type) {
                 case 'select':
-                    if (!field.options?.length) return `<input type="text" id="${fieldId}" value="${escapeHtml(value)}">`;
-                    let selectHtml = `<select id="${fieldId}" style="width:100%; padding:12px;">`;
+                    if (!field.options?.length) {
+                        return `<input type="text" id="${fieldId}" value="${escapeHtml(value)}" class="form-control">`;
+                    }
+                    let selectHtml = `<select id="${fieldId}" class="form-control">`;
                     selectHtml += `<option value="">-- Выберите --</option>`;
                     for (const opt of field.options) {
                         selectHtml += `<option value="${escapeHtml(opt)}" ${value === opt ? 'selected' : ''}>${escapeHtml(opt)}</option>`;
@@ -533,88 +923,122 @@
                     return selectHtml;
                     
                 case 'textarea':
-                    return `<textarea id="${fieldId}" rows="3" style="width:100%; padding:12px;">${escapeHtml(value)}</textarea>`;
+                    return `<textarea id="${fieldId}" rows="4" class="form-control">${escapeHtml(value)}</textarea>`;
                     
                 case 'date':
-                    return `<input type="date" id="${fieldId}" value="${value}" style="width:100%; padding:12px;">`;
+                    return `<input type="date" id="${fieldId}" value="${formatDateValue(value)}" class="form-control">`;
+                    
+                case 'radio':
+                    if (!field.options?.length) return `<input type="text" id="${fieldId}" value="${escapeHtml(value)}" class="form-control">`;
+                    let radioHtml = `<div class="radio-group" style="display: flex; flex-wrap: wrap; gap: 16px;">`;
+                    for (const opt of field.options) {
+                        radioHtml += `
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="radio" name="${fieldId}" value="${escapeHtml(opt)}" ${value === opt ? 'checked' : ''}>
+                                <span>${escapeHtml(opt)}</span>
+                            </label>
+                        `;
+                    }
+                    radioHtml += `</div>`;
+                    return radioHtml;
                     
                 default:
-                    return `<input type="${field.type || 'text'}" id="${fieldId}" value="${escapeHtml(value)}" style="width:100%; padding:12px;">`;
+                    return `<input type="${field.type || 'text'}" id="${fieldId}" value="${escapeHtml(value)}" class="form-control" placeholder="${escapeHtml(field.placeholder || '')}">`;
             }
         }
-        
+
         async function saveSection() {
             const user = window.auth.currentUser;
-            if (!user) return;
-            
+            if (!user || !currentEditSection) return;
+
+            // Получаем поля раздела
             let fields = [];
-            if (currentEditSection === 'custom') {
-                fields = allActiveFields.filter(f => !f.isSystem);
-            } else {
-                fields = allActiveFields.filter(f => f.section === currentEditSection);
-            }
-            
-            const systemUpdates = {};
-            const customUpdates = {};
-            
-            for (const field of fields) {
-                const element = document.getElementById(`field_${field.id}`);
-                if (element) {
-                    const value = element.value;
-                    if (field.isSystem) {
-                        systemUpdates[field.id] = value;
-                    } else {
-                        customUpdates[field.id] = value;
-                    }
+            for (const field of allFields) {
+                if ((field.section === currentEditSection) || (currentEditSection === 'custom' && !field.section)) {
+                    fields.push(field);
                 }
             }
-            
+
+            const systemUpdates = {};
+            const customUpdates = {};
+            const missingRequired = [];
+
+            for (const field of fields) {
+                let value;
+                if (field.type === 'radio') {
+                    const selected = document.querySelector(`input[name="field_${field.id}"]:checked`);
+                    value = selected ? selected.value : '';
+                } else {
+                    const element = document.getElementById(`field_${field.id}`);
+                    value = element ? element.value : '';
+                }
+                
+                // Проверка обязательных полей
+                if (field.isRequired && (!value || value.trim() === '')) {
+                    missingRequired.push(field.label);
+                }
+                
+                if (field.isSystem) {
+                    systemUpdates[field.id] = value;
+                } else {
+                    customUpdates[field.id] = value;
+                }
+            }
+
+            if (missingRequired.length > 0) {
+                showToast(`⚠️ Заполните обязательные поля: ${missingRequired.join(', ')}`, 'warning');
+                return;
+            }
+
             try {
                 if (Object.keys(systemUpdates).length > 0) {
                     await window.db.collection('users').doc(user.uid).update(systemUpdates);
                     Object.assign(currentUserData, systemUpdates);
                 }
-                
+
                 if (Object.keys(customUpdates).length > 0) {
                     const updatedCustom = { ...currentUserData.customFields, ...customUpdates };
                     await window.db.collection('users').doc(user.uid).update({ customFields: updatedCustom });
                     currentUserData.customFields = updatedCustom;
                 }
-                
-                showSuccess('✅ Данные успешно сохранены!');
-                await loadAndDisplayFields();
+
+                showToast('✅ Данные успешно сохранены!', 'success');
+                await loadAndDisplaySections();
                 currentEditSection = null;
-                
+
             } catch (error) {
                 console.error('Ошибка сохранения:', error);
-                showError('❌ Ошибка: ' + error.message);
+                showToast('❌ Ошибка: ' + error.message, 'error');
             }
         }
-        
+
         function cancelEdit() {
             currentEditSection = null;
-            loadAndDisplayFields();
+            loadAndDisplaySections();
         }
-        
+
         function switchTab(sectionKey) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             
-            const content = document.getElementById(`tabContent_${sectionKey}`);
-            if (content) content.classList.add('active');
+            const targetContent = document.getElementById(`tab_${sectionKey}`);
+            if (targetContent) targetContent.classList.add('active');
             
-            const tab = document.getElementById(`tab_${sectionKey}`);
-            if (tab) tab.classList.add('active');
+            const targetBtn = document.querySelector(`.tab-btn[data-section="${sectionKey}"]`);
+            if (targetBtn) targetBtn.classList.add('active');
         }
-        
-        // Инициализация
+
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
         window.auth.onAuthStateChanged(async (user) => {
             console.log('Auth state changed:', user?.email);
             
             if (user) {
                 if (!user.emailVerified) {
-                    showError('Пожалуйста, подтвердите email перед входом');
-                    setTimeout(async () => { await window.auth.signOut(); window.location.href = 'index.html'; }, 3000);
+                    showToast('Пожалуйста, подтвердите email перед входом', 'warning');
+                    setTimeout(async () => {
+                        await window.auth.signOut();
+                        window.location.href = 'index.html';
+                    }, 3000);
                 } else {
                     await loadUserData();
                 }
@@ -622,14 +1046,15 @@
                 window.location.href = 'index.html';
             }
         });
-        
+
+        // Глобальные функции
         window.editSection = editSection;
         window.saveSection = saveSection;
         window.cancelEdit = cancelEdit;
         window.switchTab = switchTab;
         window.logout = logout;
-        
-        console.log('✅ student-cabinet.js загружен');
+
+        console.log('✅ student-cabinet.html загружен');
     </script>
 </body>
 </html>
