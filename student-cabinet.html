@@ -18,7 +18,6 @@
             --primary-dark: #1e3a1f;
             --primary-light: #4a7c4b;
             --secondary: #ffc107;
-            --secondary-dark: #e0a800;
             --danger: #dc3545;
             --success: #28a745;
             --info: #17a2b8;
@@ -47,12 +46,12 @@
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: var(--white);
-            padding: 16px 32px;
+            padding: 16px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 12px;
             box-shadow: var(--shadow-lg);
             position: sticky;
             top: 0;
@@ -62,14 +61,14 @@
         .logo-area {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
         }
 
         .logo {
-            font-size: 32px;
+            font-size: 28px;
             background: var(--secondary);
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -78,30 +77,33 @@
         }
 
         .logo-area h1 {
-            font-size: clamp(16px, 4vw, 22px);
+            font-size: clamp(14px, 4vw, 20px);
             font-weight: 500;
-            letter-spacing: -0.3px;
         }
 
         .user-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
             background: rgba(255,255,255,0.15);
-            padding: 6px 16px 6px 20px;
+            padding: 5px 15px 5px 18px;
             border-radius: 40px;
         }
 
         .user-name {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .btn-logout {
             background: rgba(255,255,255,0.2);
             color: white;
             border: none;
-            padding: 8px 20px;
+            padding: 6px 16px;
             border-radius: 30px;
             cursor: pointer;
             font-size: 13px;
@@ -117,38 +119,42 @@
         /* Container */
         .container {
             max-width: 1300px;
-            margin: 24px auto;
-            padding: 0 24px;
+            margin: 20px auto;
+            padding: 0 20px;
         }
 
-        /* Tabs - современный дизайн */
+        /* Tabs - адаптивные */
         .tabs-wrapper {
             background: var(--white);
             border-radius: var(--radius);
             padding: 8px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             box-shadow: var(--shadow);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .tabs {
             display: flex;
             gap: 6px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            min-width: min-content;
         }
 
         .tab-btn {
-            padding: 12px 24px;
+            padding: 10px 18px;
             background: transparent;
             border: none;
             border-radius: var(--radius-md);
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             color: var(--gray-dark);
             transition: all 0.3s;
             display: flex;
             align-items: center;
             gap: 8px;
+            white-space: nowrap;
         }
 
         .tab-btn:hover {
@@ -165,7 +171,7 @@
         /* Tab Content */
         .tab-content {
             display: none;
-            animation: fadeInUp 0.4s ease;
+            animation: fadeInUp 0.3s ease;
         }
 
         .tab-content.active {
@@ -175,7 +181,7 @@
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(15px);
             }
             to {
                 opacity: 1;
@@ -189,49 +195,44 @@
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
         }
 
         .card-header {
-            padding: 20px 24px;
+            padding: 18px 20px;
             background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
             color: white;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
         .card-header-icon {
-            font-size: 28px;
+            font-size: 24px;
         }
 
         .card-header h2 {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 500;
             margin: 0;
         }
 
         .card-body {
-            padding: 24px;
+            padding: 20px;
         }
 
-        /* Info Grid */
+        /* Info Grid - адаптивная */
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
         }
 
         .info-item {
             background: var(--gray-light);
             border-radius: var(--radius-md);
-            padding: 16px;
+            padding: 14px;
             transition: all 0.3s;
             border: 1px solid transparent;
         }
@@ -242,28 +243,25 @@
         }
 
         .info-label {
-            font-size: 12px;
-            font-weight: 500;
+            font-size: 11px;
+            font-weight: 600;
             color: var(--gray-dark);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            flex-wrap: wrap;
+            gap: 6px;
         }
 
-        .info-label .semantics-badge {
-            font-size: 10px;
-            background: #e3f2fd;
-            color: #1976d2;
-            padding: 2px 8px;
-            border-radius: 20px;
-            text-transform: none;
+        .info-label .required-badge {
+            color: var(--danger);
+            font-size: 12px;
         }
 
         .info-value {
-            font-size: 15px;
+            font-size: 14px;
             color: var(--dark);
             word-break: break-word;
             line-height: 1.4;
@@ -272,18 +270,26 @@
         .info-value.empty {
             color: var(--gray-dark);
             font-style: italic;
+            font-size: 13px;
         }
 
         /* Edit Form */
         .edit-form {
             background: var(--gray-light);
             border-radius: var(--radius-md);
-            padding: 24px;
-            margin-bottom: 24px;
+            padding: 20px;
+            margin-bottom: 0;
+        }
+
+        .edit-form h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-weight: 500;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
         .form-group label {
@@ -291,7 +297,7 @@
             margin-bottom: 8px;
             font-weight: 500;
             color: var(--dark);
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .form-group label .required {
@@ -303,7 +309,7 @@
         .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border: 2px solid var(--gray);
             border-radius: var(--radius-sm);
             font-size: 14px;
@@ -320,21 +326,42 @@
             box-shadow: 0 0 0 3px rgba(44, 95, 45, 0.1);
         }
 
-        .form-hint {
-            display: block;
-            margin-top: 6px;
-            font-size: 12px;
-            color: var(--gray-dark);
+        .form-group input.error,
+        .form-group select.error,
+        .form-group textarea.error {
+            border-color: var(--danger);
         }
 
-        .form-hint a {
-            color: var(--primary);
-            text-decoration: none;
+        /* Radio group */
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            background: var(--white);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            border: 2px solid var(--gray);
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+
+        .radio-group input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary);
         }
 
         /* Buttons */
         .btn {
-            padding: 10px 24px;
+            padding: 10px 20px;
             border: none;
             border-radius: var(--radius-sm);
             cursor: pointer;
@@ -343,6 +370,7 @@
             transition: all 0.3s;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
         }
 
@@ -389,6 +417,7 @@
             display: flex;
             gap: 12px;
             margin-top: 24px;
+            flex-wrap: wrap;
         }
 
         /* Toast Messages */
@@ -396,14 +425,16 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            padding: 14px 24px;
+            left: auto;
+            padding: 12px 20px;
             border-radius: var(--radius-md);
             display: none;
             z-index: 1001;
             animation: slideInRight 0.3s ease;
             box-shadow: var(--shadow-lg);
             font-weight: 500;
-            font-size: 14px;
+            font-size: 13px;
+            max-width: calc(100% - 40px);
         }
 
         @keyframes slideInRight {
@@ -427,64 +458,76 @@
             color: white;
         }
 
-        /* Course Section */
-        .course-card {
+        .toast-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        /* Training Section */
+        .training-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: var(--radius-md);
-            padding: 24px;
+            padding: 20px;
             color: white;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             transition: transform 0.3s;
         }
 
-        .course-card:hover {
-            transform: translateY(-3px);
+        .training-card:hover {
+            transform: translateY(-2px);
         }
 
-        .course-card h3 {
-            font-size: 18px;
-            margin-bottom: 12px;
+        .training-card h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
         }
 
-        .course-card p {
+        .training-card p {
             opacity: 0.9;
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.5;
         }
 
-        .course-status {
+        .training-status {
             display: inline-block;
             background: rgba(255,255,255,0.2);
             padding: 4px 12px;
             border-radius: 20px;
-            font-size: 12px;
-            margin-top: 12px;
+            font-size: 11px;
+            margin-top: 10px;
         }
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 50px 20px;
             color: var(--gray-dark);
         }
 
         .empty-state-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
+            font-size: 56px;
+            margin-bottom: 12px;
             opacity: 0.5;
         }
 
         .empty-state p {
-            font-size: 15px;
+            font-size: 14px;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray-dark);
         }
 
         /* Responsive */
         @media (max-width: 768px) {
             .header {
-                padding: 12px 20px;
+                padding: 12px 16px;
             }
             
             .user-info {
-                padding: 4px 12px 4px 16px;
+                padding: 4px 12px 4px 14px;
             }
             
             .user-name {
@@ -492,20 +535,43 @@
             }
             
             .container {
-                padding: 0 16px;
-                margin: 16px auto;
+                padding: 0 12px;
+                margin: 12px auto;
             }
             
-            .tabs {
-                flex-direction: column;
+            .tabs-wrapper {
+                padding: 6px;
+                margin-bottom: 16px;
             }
             
             .tab-btn {
-                justify-content: center;
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+            
+            .card-header {
+                padding: 14px 16px;
+            }
+            
+            .card-header-icon {
+                font-size: 20px;
+            }
+            
+            .card-header h2 {
+                font-size: 14px;
+            }
+            
+            .card-body {
+                padding: 16px;
             }
             
             .info-grid {
                 grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .info-item {
+                padding: 12px;
             }
             
             .form-actions {
@@ -513,7 +579,44 @@
             }
             
             .btn {
+                width: 100%;
                 justify-content: center;
+            }
+            
+            .edit-form {
+                padding: 16px;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .toast-message {
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+                left: 20px;
+                max-width: none;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo {
+                width: 36px;
+                height: 36px;
+                font-size: 22px;
+            }
+            
+            .tab-btn {
+                padding: 6px 12px;
+                font-size: 11px;
+            }
+            
+            .btn {
+                padding: 8px 16px;
+                font-size: 13px;
             }
         }
     </style>
@@ -522,17 +625,18 @@
     <div class="header">
         <div class="logo-area">
             <div class="logo">🎓</div>
-            <h1>Институт ДПО - Личный кабинет</h1>
+            <h1>Институт ДПО</h1>
         </div>
         <div class="user-info">
             <span class="user-name" id="userName">Загрузка...</span>
-            <button class="btn-logout" onclick="logout()">🚪 Выйти</button>
+            <button class="btn-logout" onclick="logout()">🚪</button>
         </div>
     </div>
 
     <div class="container">
         <div id="toastSuccess" class="toast-message toast-success"></div>
         <div id="toastError" class="toast-message toast-error"></div>
+        <div id="toastWarning" class="toast-message toast-warning"></div>
 
         <div class="tabs-wrapper">
             <div class="tabs" id="tabsContainer"></div>
@@ -576,7 +680,7 @@
 
         function formatDateValue(value) {
             if (!value) return '';
-            if (value.toDate) {
+            if (value && value.toDate) {
                 return value.toDate().toISOString().split('T')[0];
             }
             if (typeof value === 'string' && value.includes('-')) {
@@ -653,7 +757,12 @@
                     if (!currentUserData.customFields) currentUserData.customFields = {};
                 }
 
-                document.getElementById('userName').textContent = currentUserData.fullName || currentUserData.email;
+                const nameSpan = document.getElementById('userName');
+                if (nameSpan) {
+                    const displayName = currentUserData.fullName || currentUserData.email;
+                    nameSpan.textContent = displayName.length > 20 ? displayName.substring(0, 20) + '...' : displayName;
+                }
+                
                 await loadAndDisplaySections();
 
             } catch (error) {
@@ -671,58 +780,61 @@
                 personal: {
                     title: 'Личная информация',
                     icon: '👤',
-                    color: '#2c5f2d',
+                    order: 1,
                     fields: []
                 },
                 education: {
                     title: 'Образование',
                     icon: '🎓',
-                    color: '#4a7c4b',
+                    order: 2,
                     fields: []
                 },
                 work: {
                     title: 'Место работы',
                     icon: '💼',
-                    color: '#17a2b8',
+                    order: 3,
                     fields: []
                 },
                 documents: {
                     title: 'Паспортные данные',
                     icon: '📄',
-                    color: '#6c757d',
+                    order: 4,
                     fields: []
                 },
                 address: {
                     title: 'Адреса',
                     icon: '🏠',
-                    color: '#ff9800',
+                    order: 5,
                     fields: []
                 },
                 training: {
                     title: 'Обучение',
                     icon: '📚',
-                    color: '#667eea',
+                    order: 6,
                     fields: [],
-                    isDynamic: true
+                    isTraining: true
                 }
             };
 
-            // Разбираем поля по разделам (включая пользовательские)
+            // Разбираем поля по разделам
             for (const field of allFields) {
-                const section = field.section || 'personal';
+                // Пропускаем системные поля с семантикой (скрываем)
+                if (field.isSystem && (field.id === 'email' || field.id === 'createdAt')) continue;
+                
+                let section = field.section || 'personal';
                 if (sections[section]) {
                     sections[section].fields.push(field);
                 } else {
-                    // Пользовательские поля с нестандартной категорией
-                    if (!sections.custom) {
-                        sections.custom = {
-                            title: 'Дополнительная информация',
-                            icon: '📋',
-                            color: '#9c27b0',
-                            fields: []
-                        };
-                    }
-                    sections.custom.fields.push(field);
+                    // Пользовательские поля попадают в соответствующий раздел по категории
+                    const categoryMap = {
+                        'personal': 'personal',
+                        'education': 'education', 
+                        'work': 'work',
+                        'documents': 'documents',
+                        'address': 'address'
+                    };
+                    const targetSection = categoryMap[field.category] || 'personal';
+                    sections[targetSection].fields.push(field);
                 }
             }
 
@@ -733,10 +845,12 @@
             tabsContainer.innerHTML = '';
             contentContainer.innerHTML = '';
 
+            const sortedSections = Object.entries(sections).sort((a, b) => (a[1].order || 99) - (b[1].order || 99));
+
             let isFirst = true;
-            for (const [sectionKey, section] of Object.entries(sections)) {
+            for (const [sectionKey, section] of sortedSections) {
                 // Показываем раздел только если есть поля ИЛИ это раздел "Обучение"
-                if (section.fields.length === 0 && sectionKey !== 'training') continue;
+                if (section.fields.length === 0 && !section.isTraining) continue;
 
                 // Кнопка вкладки
                 const tabBtn = document.createElement('button');
@@ -751,7 +865,7 @@
                 tabContent.className = `tab-content ${isFirst ? 'active' : ''}`;
                 tabContent.id = `tab_${sectionKey}`;
                 
-                if (sectionKey === 'training') {
+                if (section.isTraining) {
                     tabContent.innerHTML = renderTrainingSection();
                 } else {
                     tabContent.innerHTML = renderDataSection(sectionKey, section);
@@ -775,19 +889,14 @@
 
             let fieldsHtml = '';
             for (const field of section.fields) {
+                // Скрываем семантику от слушателя
                 fieldsHtml += `
                     <div class="info-item" data-field-id="${field.id}">
                         <div class="info-label">
                             ${escapeHtml(field.label)}
-                            ${field.semantics ? `<span class="semantics-badge">🔗 семантика</span>` : ''}
-                            ${field.isRequired ? '<span style="color:#dc3545;">*</span>' : ''}
+                            ${field.isRequired ? '<span class="required-badge">*</span>' : ''}
                         </div>
                         <div class="info-value">${formatDisplayValue(field, values[field.id])}</div>
-                        ${field.semantics ? `
-                            <div style="font-size: 10px; color: #999; margin-top: 8px;">
-                                <a href="${escapeHtml(field.semantics)}" target="_blank" style="color: #667eea;">${escapeHtml(field.semantics)}</a>
-                            </div>
-                        ` : ''}
                     </div>
                 `;
             }
@@ -802,7 +911,7 @@
                         <div id="display_${sectionKey}">
                             <div class="info-grid">${fieldsHtml}</div>
                             <button class="btn btn-primary" onclick="editSection('${sectionKey}')">
-                                ✏️ Редактировать раздел
+                                ✏️ Редактировать
                             </button>
                         </div>
                     </div>
@@ -812,8 +921,6 @@
 
         // Рендер раздела "Обучение"
         function renderTrainingSection() {
-            // Здесь будет загрузка курсов из Firestore
-            // Пока заглушка, но можно расширить
             return `
                 <div class="card">
                     <div class="card-header">
@@ -824,8 +931,7 @@
                         <div id="trainingContent">
                             <div class="empty-state">
                                 <div class="empty-state-icon">📖</div>
-                                <p>Информация о курсах и обучении будет отображаться здесь</p>
-                                <p style="font-size: 13px; margin-top: 8px;">Следите за обновлениями</p>
+                                <p>Информация о курсах будет отображаться здесь</p>
                             </div>
                         </div>
                     </div>
@@ -839,13 +945,20 @@
             
             // Получаем поля раздела
             let fields = [];
-            if (sectionKey === 'training') {
-                showToast('Раздел обучения пока не доступен для редактирования', 'warning');
-                return;
-            }
-            
             for (const field of allFields) {
-                if ((field.section === sectionKey) || (sectionKey === 'custom' && !field.section)) {
+                if (field.isSystem && (field.id === 'email' || field.id === 'createdAt')) continue;
+                
+                let fieldSection = field.section || 'personal';
+                const categoryMap = {
+                    'personal': 'personal',
+                    'education': 'education', 
+                    'work': 'work',
+                    'documents': 'documents',
+                    'address': 'address'
+                };
+                fieldSection = categoryMap[field.category] || fieldSection;
+                
+                if (fieldSection === sectionKey) {
                     fields.push(field);
                 }
             }
@@ -865,10 +978,10 @@
                 }
             }
 
-            // Форма редактирования
+            // Форма редактирования (без семантики)
             let formHtml = `
                 <div class="edit-form">
-                    <h3 style="margin-bottom: 20px; color: var(--primary);">✏️ Редактирование</h3>
+                    <h3>✏️ Редактирование</h3>
                     <form id="editForm">
             `;
 
@@ -881,12 +994,6 @@
                             ${field.isRequired ? '<span class="required">*</span>' : ''}
                         </label>
                         ${renderFieldInput(field, value)}
-                        ${field.semantics ? `
-                            <small class="form-hint">
-                                🔗 Семантика: <a href="${escapeHtml(field.semantics)}" target="_blank">${escapeHtml(field.semantics)}</a>
-                            </small>
-                        ` : ''}
-                        ${field.placeholder ? `<small class="form-hint">💡 ${escapeHtml(field.placeholder)}</small>` : ''}
                     </div>
                 `;
             }
@@ -903,6 +1010,8 @@
             const displayDiv = document.getElementById(`display_${sectionKey}`);
             if (displayDiv) {
                 displayDiv.innerHTML = formHtml;
+                // Прокручиваем к форме
+                displayDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
@@ -930,10 +1039,10 @@
                     
                 case 'radio':
                     if (!field.options?.length) return `<input type="text" id="${fieldId}" value="${escapeHtml(value)}" class="form-control">`;
-                    let radioHtml = `<div class="radio-group" style="display: flex; flex-wrap: wrap; gap: 16px;">`;
+                    let radioHtml = `<div class="radio-group">`;
                     for (const opt of field.options) {
                         radioHtml += `
-                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <label>
                                 <input type="radio" name="${fieldId}" value="${escapeHtml(opt)}" ${value === opt ? 'checked' : ''}>
                                 <span>${escapeHtml(opt)}</span>
                             </label>
@@ -954,7 +1063,19 @@
             // Получаем поля раздела
             let fields = [];
             for (const field of allFields) {
-                if ((field.section === currentEditSection) || (currentEditSection === 'custom' && !field.section)) {
+                if (field.isSystem && (field.id === 'email' || field.id === 'createdAt')) continue;
+                
+                let fieldSection = field.section || 'personal';
+                const categoryMap = {
+                    'personal': 'personal',
+                    'education': 'education', 
+                    'work': 'work',
+                    'documents': 'documents',
+                    'address': 'address'
+                };
+                fieldSection = categoryMap[field.category] || fieldSection;
+                
+                if (fieldSection === currentEditSection) {
                     fields.push(field);
                 }
             }
@@ -973,7 +1094,6 @@
                     value = element ? element.value : '';
                 }
                 
-                // Проверка обязательных полей
                 if (field.isRequired && (!value || value.trim() === '')) {
                     missingRequired.push(field.label);
                 }
@@ -986,7 +1106,17 @@
             }
 
             if (missingRequired.length > 0) {
-                showToast(`⚠️ Заполните обязательные поля: ${missingRequired.join(', ')}`, 'warning');
+                showToast(`⚠️ Заполните: ${missingRequired.join(', ')}`, 'warning');
+                // Подсвечиваем пустые поля
+                for (const field of fields) {
+                    if (field.isRequired) {
+                        const element = document.getElementById(`field_${field.id}`);
+                        if (element && (!element.value || element.value.trim() === '')) {
+                            element.classList.add('error');
+                            setTimeout(() => element.classList.remove('error'), 2000);
+                        }
+                    }
+                }
                 return;
             }
 
@@ -1002,7 +1132,7 @@
                     currentUserData.customFields = updatedCustom;
                 }
 
-                showToast('✅ Данные успешно сохранены!', 'success');
+                showToast('✅ Данные сохранены!', 'success');
                 await loadAndDisplaySections();
                 currentEditSection = null;
 
@@ -1030,11 +1160,9 @@
 
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
         window.auth.onAuthStateChanged(async (user) => {
-            console.log('Auth state changed:', user?.email);
-            
             if (user) {
                 if (!user.emailVerified) {
-                    showToast('Пожалуйста, подтвердите email перед входом', 'warning');
+                    showToast('Подтвердите email перед входом', 'warning');
                     setTimeout(async () => {
                         await window.auth.signOut();
                         window.location.href = 'index.html';
@@ -1053,8 +1181,6 @@
         window.cancelEdit = cancelEdit;
         window.switchTab = switchTab;
         window.logout = logout;
-
-        console.log('✅ student-cabinet.html загружен');
     </script>
 </body>
 </html>
