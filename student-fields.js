@@ -1,6 +1,6 @@
-// student-fields.js - для личного кабинета слушателя
+// student-fields.js - для личного кабинета слушателя (только пользовательские поля)
 
-// Загрузка полей (только пользовательские + системные, которые не в основных вкладках)
+// Загрузка полей (только пользовательские)
 async function loadCustomFields() {
     try {
         const userId = window.auth.currentUser?.uid;
@@ -11,12 +11,9 @@ async function loadCustomFields() {
         
         console.log('🔄 Загрузка дополнительных полей...');
         
-        // Получаем ВСЕ активные поля через fieldsManager
-        const allFields = await window.fieldsManager.getActiveFields();
-        
-        // Фильтруем: показываем только пользовательские поля (isSystem !== true)
-        // Плюс возможно какие-то системные поля, которые мы хотим показывать в доп. полях
-        const customFields = allFields.filter(f => !f.isSystem);
+        // Получаем только пользовательские поля (не системные)
+        const allFields = await window.fieldsManager.getAllFields(true);
+        const customFields = allFields.filter(f => !f.isSystem && f.isActive !== false);
         
         // Получаем сохраненные значения пользователя
         const values = await window.fieldsManager.getFieldValues(userId);
@@ -28,7 +25,10 @@ async function loadCustomFields() {
         // Проверяем обязательные поля
         const check = await window.fieldsManager.checkRequiredFields(userId);
         if (!check.allFilled) {
-            showMissingWarning(check.missingFields);
+            const missingCustom = check.missingFields.filter(f => !f.isSystem);
+            if (missingCustom.length > 0) {
+                showMissingWarning(missingCustom);
+            }
         } else {
             hideMissingWarning();
         }
@@ -45,7 +45,7 @@ async function loadCustomFields() {
     }
 }
 
-// Отображение полей (только пользовательские, с семантикой и ID)
+// Отображение полей (БЕЗ семантики и ID)
 function displayCustomFields(fields, values) {
     const container = document.getElementById('customFieldsContainer');
     if (!container) return;
@@ -53,8 +53,7 @@ function displayCustomFields(fields, values) {
     if (!fields || fields.length === 0) {
         container.innerHTML = `
             <div style="text-align:center; padding:40px; color:#999;">
-                📭 Нет дополнительных полей для заполнения<br>
-                <small style="font-size:12px;">Методист может добавить поля в разделе управления</small>
+                📭 Нет дополнительных полей для заполнения
             </div>
         `;
         return;
@@ -78,16 +77,6 @@ function displayCustomFields(fields, values) {
                     ${isMissing ? '<span style="background:#ff9800; color:white; padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px;">Не заполнено</span>' : ''}
                 </label>
                 ${renderFieldInput(field, value)}
-                ${field.semantics ? `
-                    <div style="margin-top:8px; padding:8px 12px; background:#e3f2fd; border-radius:6px; font-size:12px;">
-                        🔗 <strong>Семантика:</strong> <a href="${escapeHtml(field.semantics)}" target="_blank" style="color:#1976d2; text-decoration:none;">${escapeHtml(field.semantics)}</a>
-                        <span style="display:block; font-size:11px; color:#666; margin-top:4px;">ID поля: <code>${field.id}</code></span>
-                    </div>
-                ` : `
-                    <div style="margin-top:8px; padding:4px 8px; font-size:11px; color:#999;">
-                        ID поля: <code>${escapeHtml(field.id)}</code>
-                    </div>
-                `}
                 ${field.placeholder ? `<small style="display:block; margin-top:5px; color:#999;">💡 ${escapeHtml(field.placeholder)}</small>` : ''}
             </div>
         `;
@@ -98,20 +87,21 @@ function displayCustomFields(fields, values) {
     container.innerHTML = html;
 }
 
-// Рендер поля в зависимости от типа
+// Рендер поля (ИСПРАВЛЕН для radio)
 function renderFieldInput(field, value) {
     const fieldId = `field_${field.id}`;
     
     switch (field.type) {
         case 'radio':
             if (!field.options || !field.options.length) {
-                return '<p style="color:red; font-size:12px;">❌ Нет вариантов для выбора. Обратитесь к администратору.</p>';
+                return '<p style="color:red; font-size:12px;">❌ Нет вариантов для выбора</p>';
             }
             let radioHtml = '<div style="display:flex; flex-wrap:wrap; gap:15px;">';
             for (const opt of field.options) {
+                const isChecked = value === opt;
                 radioHtml += `
                     <label style="display:flex; align-items:center; cursor:pointer;">
-                        <input type="radio" name="${fieldId}" value="${escapeHtml(opt)}" ${value === opt ? 'checked' : ''} style="width:16px; height:16px; margin-right:8px; cursor:pointer;">
+                        <input type="radio" name="${fieldId}" value="${escapeHtml(opt)}" ${isChecked ? 'checked' : ''} style="width:16px; height:16px; margin-right:8px; cursor:pointer; accent-color:var(--primary);">
                         <span>${escapeHtml(opt)}</span>
                     </label>
                 `;
@@ -121,7 +111,7 @@ function renderFieldInput(field, value) {
             
         case 'select':
             if (!field.options || !field.options.length) {
-                return '<p style="color:red; font-size:12px;">❌ Нет вариантов для выбора. Обратитесь к администратору.</p>';
+                return '<p style="color:red; font-size:12px;">❌ Нет вариантов для выбора</p>';
             }
             let selectHtml = `<select id="${fieldId}" style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px; font-size:14px;">`;
             selectHtml += `<option value="">-- Выберите --</option>`;
@@ -161,12 +151,10 @@ async function saveCustomFields() {
         return;
     }
     
-    // Получаем только пользовательские поля
-    const allFields = await window.fieldsManager.getActiveFields();
-    const customFields = allFields.filter(f => !f.isSystem);
+    const allFields = await window.fieldsManager.getAllFields(true);
+    const customFields = allFields.filter(f => !f.isSystem && f.isActive !== false);
     const values = {};
     
-    // Собираем значения
     for (const field of customFields) {
         if (field.type === 'radio') {
             const selected = document.querySelector(`input[name="field_${field.id}"]:checked`);
@@ -198,7 +186,6 @@ async function saveCustomFields() {
             alert(message);
         }
         
-        // Подсвечиваем первое незаполненное поле
         const firstMissingField = customFields.find(f => missingRequired.includes(f.label));
         if (firstMissingField) {
             const container = document.querySelector(`.custom-field[data-field-id="${firstMissingField.id}"]`);
@@ -227,26 +214,14 @@ async function saveCustomFields() {
         
         if (typeof showSuccess === 'function') {
             showSuccess('✅ Данные успешно сохранены!');
-        } else {
-            const successDiv = document.getElementById('successMessage');
-            if (successDiv) {
-                successDiv.textContent = '✅ Данные успешно сохранены!';
-                successDiv.style.display = 'block';
-                setTimeout(() => {
-                    successDiv.style.display = 'none';
-                }, 3000);
-            }
         }
         
-        // Обновляем отображение
         await loadCustomFields();
         
     } catch (error) {
         console.error('Ошибка сохранения:', error);
         if (typeof showError === 'function') {
             showError('errorMessage', '❌ Ошибка: ' + error.message);
-        } else {
-            alert('❌ Ошибка: ' + error.message);
         }
     } finally {
         if (btn) {
@@ -257,13 +232,10 @@ async function saveCustomFields() {
     }
 }
 
-// Обновление полей (при переключении вкладки)
 function refreshCustomFields() {
-    console.log('🔄 Обновление полей...');
     loadCustomFields();
 }
 
-// Предупреждение о незаполненных полях
 function showMissingWarning(missingFields) {
     const container = document.getElementById('missingFieldsWarning');
     if (!container) return;
@@ -289,7 +261,6 @@ function hideMissingWarning() {
     }
 }
 
-// Экранирование HTML
 function escapeHtml(str) {
     if (!str) return '';
     return str
@@ -300,55 +271,12 @@ function escapeHtml(str) {
         .replace(/'/g, '&#39;');
 }
 
-// Ручная очистка устаревших полей
-async function cleanupOrphanedCustomFields() {
-    const userId = window.auth.currentUser?.uid;
-    if (!userId) {
-        console.log('Пользователь не авторизован');
-        return;
-    }
-    
-    try {
-        const fields = await window.fieldsManager.getActiveFields();
-        const values = await window.fieldsManager.getFieldValues(userId);
-        const existingFieldIds = new Set(fields.map(f => f.id));
-        
-        let cleanedCount = 0;
-        const cleanedValues = {};
-        
-        for (const [key, value] of Object.entries(values)) {
-            if (existingFieldIds.has(key)) {
-                cleanedValues[key] = value;
-            } else {
-                console.log(`🧹 Удаление устаревшего поля: ${key}`);
-                cleanedCount++;
-            }
-        }
-        
-        if (cleanedCount > 0) {
-            await window.db.collection('users').doc(userId).update({
-                customFields: cleanedValues
-            });
-            console.log(`✅ Очищено ${cleanedCount} устаревших полей`);
-            await loadCustomFields();
-        } else {
-            console.log('✅ Нет устаревших полей для очистки');
-        }
-        
-        return { cleaned: cleanedCount };
-    } catch (error) {
-        console.error('Ошибка очистки полей:', error);
-        throw error;
-    }
-}
-
-// Экспорт в глобальную область
+// Экспорт
 window.loadCustomFields = loadCustomFields;
 window.refreshCustomFields = refreshCustomFields;
 window.saveCustomFields = saveCustomFields;
 window.showMissingWarning = showMissingWarning;
 window.hideMissingWarning = hideMissingWarning;
-window.cleanupOrphanedCustomFields = cleanupOrphanedCustomFields;
 
 // Инициализация
 if (document.getElementById('customFieldsContainer')) {
@@ -364,9 +292,7 @@ if (document.getElementById('customFieldsContainer')) {
 if (window.auth) {
     window.auth.onAuthStateChanged((user) => {
         if (user && user.emailVerified && document.getElementById('customFieldsContainer')) {
-            setTimeout(() => {
-                loadCustomFields();
-            }, 500);
+            setTimeout(() => loadCustomFields(), 500);
         }
     });
 }
