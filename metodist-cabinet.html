@@ -186,6 +186,7 @@
         .toast-success { background: var(--success); color: white; }
         .toast-error { background: var(--danger); color: white; }
         .toast-warning { background: var(--warning); color: white; }
+        .toast-info { background: var(--info); color: white; }
         .field-category {
             background: #f8f9fa;
             padding: 15px;
@@ -201,7 +202,7 @@
             border: 1px solid var(--gray);
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             flex-wrap: wrap;
             gap: 10px;
         }
@@ -221,17 +222,106 @@
             font-size: 10px;
             margin-left: 8px;
         }
-        .semantics-link { font-size: 11px; color: #667eea; word-break: break-all; }
+        .semantics-link { font-size: 11px; color: #667eea; word-break: break-all; margin-top: 5px; }
         .semantics-link a { color: #667eea; text-decoration: none; }
         .semantics-link a:hover { text-decoration: underline; }
         .field-id-code { font-family: monospace; font-size: 11px; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; }
+        .category-select {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--gray);
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .field-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .field-actions button {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .field-actions button:hover { opacity: 0.8; transform: scale(1.02); }
         .radio-group { display: flex; flex-wrap: wrap; gap: 15px; padding: 10px 0; }
         .radio-group label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: normal; margin-bottom: 0; }
+        
+        /* Стили для справки */
+        .semantics-help {
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .semantics-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .semantics-header:hover { opacity: 0.95; }
+        .semantics-content {
+            padding: 20px;
+            display: none;
+        }
+        .semantics-content.active { display: block; }
+        .semantics-table {
+            width: 100%;
+            font-size: 13px;
+        }
+        .semantics-table th, .semantics-table td {
+            padding: 10px;
+            vertical-align: top;
+        }
+        .semantics-table th {
+            background: var(--gray-light);
+            font-weight: 600;
+        }
+        .copy-btn {
+            background: var(--info);
+            color: white;
+            border: none;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+        .copy-btn:hover { background: #138496; }
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 6px 16px;
+            background: var(--gray-light);
+            border: 1px solid var(--gray);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
         @media (max-width: 768px) {
             .tabs { flex-direction: column; }
             .tab-btn { width: 100%; text-align: center; }
             .stats-grid { grid-template-columns: 1fr; }
             .form-actions { flex-direction: column; }
+            .field-item { flex-direction: column; }
+            .field-actions { width: 100%; justify-content: flex-end; }
         }
     </style>
 </head>
@@ -245,6 +335,7 @@
         <div id="toastSuccess" class="toast-message toast-success"></div>
         <div id="toastError" class="toast-message toast-error"></div>
         <div id="toastWarning" class="toast-message toast-warning"></div>
+        <div id="toastInfo" class="toast-message toast-info"></div>
 
         <div class="stats-grid">
             <div class="stat-card" onclick="switchTab('students')">
@@ -265,13 +356,14 @@
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('students')">👥 Слушатели</button>
-            <button class="tab-btn" onclick="switchTab('fields')">⚙️ Управление полями</button>
+            <button class="tab-btn" onclick="switchTab('students')">👥 Слушатели</button>
             <button class="tab-btn" onclick="switchTab('createStudent')">➕ Создать слушателя</button>
+            <button class="tab-btn active" onclick="switchTab('fields')">⚙️ Управление полями</button>
+            <button class="tab-btn" onclick="switchTab('semantics')">📖 Справка по семантике</button>
         </div>
 
         <!-- Вкладка слушателей -->
-        <div id="studentsTab" class="tab-content active">
+        <div id="studentsTab" class="tab-content">
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="🔍 Поиск по ФИО, email или телефону..." onkeyup="searchStudents()">
             </div>
@@ -283,20 +375,6 @@
                     <tbody id="studentsTableBody"><tr><td colspan="6" style="text-align:center;">Загрузка...</td></tr></tbody>
                 </table>
             </div>
-        </div>
-
-        <!-- Вкладка управления полями -->
-        <div id="fieldsTab" class="tab-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-                <h3>⚙️ Управление системой полей</h3>
-                <button class="create-btn" onclick="openFieldEditor()">➕ Создать пользовательское поле</button>
-            </div>
-            <p style="color: #666; margin-bottom: 20px;">
-                🔵 <strong>Системные поля</strong> - предустановлены в системе, имеют фиксированные ID.<br>
-                🟠 <strong>Пользовательские поля</strong> - создаются методистом, можно редактировать и удалять.<br>
-                ⚠️ <strong>Email</strong> - нельзя отключить, так как необходим для авторизации.
-            </p>
-            <div id="fieldsListContainer"></div>
         </div>
 
         <!-- Вкладка создания слушателя -->
@@ -333,11 +411,76 @@
                 </div>
                 <button class="save-btn" onclick="createNewStudent()" style="max-width: 300px;">✅ Создать слушателя</button>
             </div>
+        </div>
+
+        <!-- Вкладка управления полями -->
+        <div id="fieldsTab" class="tab-content active">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <h3>⚙️ Управление системой полей</h3>
+                <button class="create-btn" onclick="openFieldEditor()">➕ Создать пользовательское поле</button>
+            </div>
             
+            <!-- Фильтр по категориям -->
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all" onclick="filterFieldsByCategory('all')">📋 Все поля</button>
+                <button class="filter-btn" data-filter="personal" onclick="filterFieldsByCategory('personal')">👤 Личные данные</button>
+                <button class="filter-btn" data-filter="education" onclick="filterFieldsByCategory('education')">🎓 Образование</button>
+                <button class="filter-btn" data-filter="work" onclick="filterFieldsByCategory('work')">💼 Работа</button>
+                <button class="filter-btn" data-filter="documents" onclick="filterFieldsByCategory('documents')">📄 Документы</button>
+                <button class="filter-btn" data-filter="address" onclick="filterFieldsByCategory('address')">🏠 Адреса</button>
+                <button class="filter-btn" data-filter="custom" onclick="filterFieldsByCategory('custom')">📌 Пользовательские</button>
+            </div>
+            
+            <p style="color: #666; margin-bottom: 20px;">
+                🔵 <strong>Системные поля</strong> - предустановлены в системе, имеют фиксированные ID.<br>
+                🟠 <strong>Пользовательские поля</strong> - создаются методистом, можно редактировать и удалять.<br>
+                ⚠️ <strong>Email</strong> - нельзя отключить, так как необходим для авторизации.
+            </p>
+            <div id="fieldsListContainer"></div>
+        </div>
+
+        <!-- Вкладка справки по семантике -->
+        <div id="semanticsTab" class="tab-content">
+            <h3>📖 Справочник семантики и ID полей</h3>
+            <p style="color: #666; margin-bottom: 20px;">
+                Здесь собрана информация о всех полях системы, их ID и семантических ссылках.
+                Семантика используется для стандартизации данных и интеграции с внешними системами.
+            </p>
+            
+            <!-- Системные поля -->
+            <div class="semantics-help">
+                <div class="semantics-header" onclick="toggleSemanticsContent('systemSemantics')">
+                    <span>🔵 Системные поля (предустановленные)</span>
+                    <span>▼</span>
+                </div>
+                <div id="systemSemantics" class="semantics-content">
+                    <table class="semantics-table">
+                        <thead>
+                            <tr><th>ID поля</th><th>Название</th><th>Категория</th><th>Семантика (URL)</th><th>Обязательное</th></tr>
+                        </thead>
+                        <tbody id="systemSemanticsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Пользовательские поля -->
+            <div class="semantics-help">
+                <div class="semantics-header" onclick="toggleSemanticsContent('customSemantics')">
+                    <span>🟠 Пользовательские поля</span>
+                    <span>▼</span>
+                </div>
+                <div id="customSemantics" class="semantics-content">
+                    <div id="customSemanticsContainer"></div>
+                </div>
+            </div>
+            
+            <!-- Быстрый поиск ID -->
             <div class="field-category" style="margin-top: 20px;">
-                <h4>📋 Синхронизация пользователей</h4>
-                <p style="color: #666; margin-bottom: 15px;">Если пользователь есть в Firebase Auth, но отсутствует в Firestore, можно синхронизировать.</p>
-                <button class="edit-btn" onclick="syncMissingUsers()" style="background: #17a2b8;">🔄 Синхронизировать отсутствующих</button>
+                <h4>🔍 Быстрый поиск ID поля</h4>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <input type="text" id="searchFieldId" placeholder="Введите ID или название поля..." onkeyup="searchFieldInSemantics()" style="max-width: 400px;">
+                </div>
+                <div id="searchResult" style="margin-top: 15px;"></div>
             </div>
         </div>
     </div>
@@ -392,28 +535,31 @@
                                 <button type="button" onclick="removeOption(this)" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:5px;">✖</button>
                             </div>
                         </div>
-                        <button type="button" onclick="addOptionField()" style="background:#28a745; color:white; border:none; padding:8px 15px; border-radius:5px;">➕ Добавить вариант</button>
+                        <button type="button" onclick="addOptionField()" style="background:#28a745; color:white; border:none; padding:8px 15px; border-radius:5px; margin-top:5px;">➕ Добавить вариант</button>
                     </div>
+                </div>
+                <div class="form-group">
+                    <label>Категория поля</label>
+                    <select id="fieldCategory">
+                        <option value="personal">👤 Личные данные</option>
+                        <option value="education">🎓 Образование</option>
+                        <option value="work">💼 Место работы</option>
+                        <option value="documents">📄 Паспортные данные</option>
+                        <option value="address">🏠 Адреса</option>
+                        <option value="custom">📌 Пользовательские</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Семантика (URL)</label>
                     <input type="url" id="fieldSemantics" placeholder="http://schemas.titul24.ru/simplex/...">
+                    <small>Ссылка на схему данных. Используйте: http://schemas.titul24.ru/simplex/название</small>
                 </div>
                 <div class="form-group">
-                    <label>Placeholder</label>
+                    <label>Placeholder (подсказка)</label>
                     <input type="text" id="fieldPlaceholder" placeholder="Пример ввода...">
                 </div>
                 <div class="form-group">
-                    <label>Категория</label>
-                    <select id="fieldCategory">
-                        <option value="custom">📌 Пользовательские</option>
-                        <option value="personal">👤 Личные данные</option>
-                        <option value="documents">📄 Документы</option>
-                        <option value="address">🏠 Адреса</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Порядок</label>
+                    <label>Порядок отображения</label>
                     <input type="number" id="fieldOrder" value="0">
                 </div>
                 <div class="form-group">
@@ -441,6 +587,7 @@
         let allStudents = [];
         let allFields = [];
         let currentEditStudentId = null;
+        let currentFieldCategoryFilter = 'all';
 
         // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
         function showToast(message, type) {
@@ -475,9 +622,28 @@
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`${tabName}Tab`).classList.add('active');
-            if (window.event && window.event.target) window.event.target.classList.add('active');
+            
+            const btns = document.querySelectorAll('.tab-btn');
+            for (let btn of btns) {
+                if (btn.textContent.includes(getTabTitle(tabName))) {
+                    btn.classList.add('active');
+                    break;
+                }
+            }
+            
             if (tabName === 'students') loadStudents();
             if (tabName === 'fields') loadAllFields();
+            if (tabName === 'semantics') loadSemanticsHelp();
+        }
+        
+        function getTabTitle(tabName) {
+            const titles = {
+                students: 'Слушатели',
+                createStudent: 'Создать',
+                fields: 'Управление',
+                semantics: 'Справка'
+            };
+            return titles[tabName] || tabName;
         }
 
         // ========== УПРАВЛЕНИЕ СЛУШАТЕЛЯМИ ==========
@@ -562,14 +728,9 @@
             }
             
             try {
-                // Создаем пользователя в Auth
                 const userCredential = await window.auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
-                
-                // Отправляем письмо для подтверждения
                 await user.sendEmailVerification();
-                
-                // Сохраняем в Firestore
                 await window.db.collection('users').doc(user.uid).set({
                     fullName: fullName,
                     email: email,
@@ -578,26 +739,15 @@
                     role: 'student',
                     emailVerified: false,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    actualAddress: '',
-                    registrationAddress: '',
-                    passportNumber: '',
-                    passportIssuedBy: '',
-                    passportIssueDate: '',
-                    snils: '',
                     customFields: {}
                 });
                 
                 showToast(`✅ Слушатель ${fullName} создан! Письмо отправлено на ${email}`, 'success');
-                
-                // Очищаем форму
                 document.getElementById('newFullName').value = '';
                 document.getElementById('newEmail').value = '';
                 document.getElementById('newPhone').value = '';
                 document.getElementById('newEducation').value = '';
-                
-                // Обновляем список
                 await loadStudents();
-                
             } catch (error) {
                 console.error('Ошибка создания:', error);
                 if (error.code === 'auth/email-already-in-use') {
@@ -605,34 +755,6 @@
                 } else {
                     showToast('Ошибка: ' + error.message, 'error');
                 }
-            }
-        }
-
-        // ========== СИНХРОНИЗАЦИЯ ОТСУТСТВУЮЩИХ ПОЛЬЗОВАТЕЛЕЙ ==========
-        async function syncMissingUsers() {
-            showToast('🔄 Поиск пользователей в Auth...', 'info');
-            
-            try {
-                // Получаем всех пользователей из Firestore с ролью student
-                const firestoreSnapshot = await window.db.collection('users')
-                    .where('role', '==', 'student')
-                    .get();
-                
-                const existingEmails = new Set();
-                firestoreSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.email) existingEmails.add(data.email);
-                });
-                
-                // Примечание: Firebase Auth API на клиенте не позволяет получить список всех пользователей
-                // Поэтому мы можем только предложить создать отсутствующих вручную
-                // Или добавить кнопку для восстановления по конкретному email
-                
-                showToast('ℹ️ Для восстановления пользователя используйте кнопку "Создать слушателя" с тем же email. Документ в Firestore будет создан, но Auth уже существует.', 'info');
-                
-            } catch (error) {
-                console.error('Ошибка синхронизации:', error);
-                showToast('Ошибка синхронизации', 'error');
             }
         }
 
@@ -655,11 +777,12 @@
                 }
             }
             
-            // Группировка по категориям
             const categories = {
                 personal: { title: '👤 Личная информация', fields: [] },
                 address: { title: '🏠 Адреса', fields: [] },
                 documents: { title: '📄 Паспортные данные', fields: [] },
+                education: { title: '🎓 Образование', fields: [] },
+                work: { title: '💼 Место работы', fields: [] },
                 custom: { title: '📋 Дополнительные поля', fields: [] }
             };
             
@@ -693,16 +816,15 @@
                             </label>
                             ${renderFieldInput(field, value, fieldId, isEmail)}
                             ${field.semantics ? `
-                                <div class="semantics-link" style="margin-top:5px;">
+                                <div class="semantics-link">
                                     🔗 Семантика: <a href="${escapeHtml(field.semantics)}" target="_blank">${escapeHtml(field.semantics)}</a>
                                     <span class="field-id-code">ID: ${field.id}</span>
                                 </div>
                             ` : `
-                                <div class="semantics-link" style="margin-top:5px;">
+                                <div class="semantics-link">
                                     <span class="field-id-code">ID: ${field.id}</span>
                                 </div>
                             `}
-                            ${field.placeholder ? `<small style="display:block; margin-top:5px; color:#999;">💡 ${escapeHtml(field.placeholder)}</small>` : ''}
                         </div>
                     `;
                 }
@@ -722,7 +844,7 @@
 
         function renderFieldInput(field, value, fieldId, isEmail = false) {
             if (isEmail) {
-                return `<input type="email" id="${fieldId}" value="${escapeHtml(value)}" readonly style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px; background:#f5f5f5;" class="readonly-field">`;
+                return `<input type="email" id="${fieldId}" value="${escapeHtml(value)}" readonly style="width:100%; padding:10px; border:2px solid #ddd; border-radius:8px; background:#f5f5f5;">`;
             }
             
             switch (field.type) {
@@ -771,7 +893,7 @@
             const customUpdates = {};
             
             for (const field of activeFields) {
-                if (field.id === 'email') continue; // Email не редактируем
+                if (field.id === 'email') continue;
                 
                 let value;
                 if (field.type === 'radio') {
@@ -798,8 +920,7 @@
                     const userDoc = await window.db.collection('users').doc(currentEditStudentId).get();
                     const currentCustom = userDoc.data()?.customFields || {};
                     await window.db.collection('users').doc(currentEditStudentId).update({
-                        customFields: { ...currentCustom, ...customUpdates },
-                        updatedByMetodist: firebase.firestore.FieldValue.serverTimestamp()
+                        customFields: { ...currentCustom, ...customUpdates }
                     });
                 }
                 
@@ -826,36 +947,75 @@
             }
         }
 
+        function filterFieldsByCategory(category) {
+            currentFieldCategoryFilter = category;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-filter') === category) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            displayFieldsList();
+        }
+
         function displayFieldsList() {
             const container = document.getElementById('fieldsListContainer');
             if (!container) return;
             
-            const systemFields = allFields.filter(f => f.isSystem);
-            const customFields = allFields.filter(f => !f.isSystem);
+            let filteredFields = allFields;
+            if (currentFieldCategoryFilter !== 'all') {
+                filteredFields = allFields.filter(f => f.category === currentFieldCategoryFilter);
+            }
+            
+            const systemFields = filteredFields.filter(f => f.isSystem);
+            const customFields = filteredFields.filter(f => !f.isSystem);
             
             let html = '';
             
-            html += `<div class="field-category">
-                <h4>🔵 Системные поля</h4>
-                <p style="font-size:12px; color:#666; margin-bottom:10px;">Предустановленные поля. Email нельзя отключить.</p>`;
-            for (const field of systemFields) {
-                html += renderFieldItem(field, true);
-            }
-            html += `</div>`;
-            
-            html += `<div class="field-category">
-                <h4>🟠 Пользовательские поля</h4>
-                <p style="font-size:12px; color:#666; margin-bottom:10px;">Создаются методистом. Можно редактировать и удалять.</p>`;
-            if (customFields.length === 0) {
-                html += `<p style="color:#999; text-align:center; padding:20px;">Нет пользовательских полей. Нажмите "Создать пользовательское поле"</p>`;
-            } else {
-                for (const field of customFields) {
-                    html += renderFieldItem(field, false);
+            if (systemFields.length > 0) {
+                html += `<div class="field-category">
+                    <h4>🔵 Системные поля ${currentFieldCategoryFilter !== 'all' ? `(${getCategoryName(currentFieldCategoryFilter)})` : ''}</h4>
+                    <p style="font-size:12px; color:#666; margin-bottom:10px;">Предустановленные поля. Email нельзя отключить.</p>`;
+                for (const field of systemFields) {
+                    html += renderFieldItem(field, true);
                 }
+                html += `</div>`;
             }
-            html += `</div>`;
+            
+            if (customFields.length > 0 || (systemFields.length === 0 && currentFieldCategoryFilter !== 'all')) {
+                html += `<div class="field-category">
+                    <h4>🟠 Пользовательские поля ${currentFieldCategoryFilter !== 'all' ? `(${getCategoryName(currentFieldCategoryFilter)})` : ''}</h4>
+                    <p style="font-size:12px; color:#666; margin-bottom:10px;">Создаются методистом. Можно редактировать и удалять.</p>`;
+                if (customFields.length === 0) {
+                    html += `<p style="color:#999; text-align:center; padding:20px;">Нет пользовательских полей в этой категории</p>`;
+                } else {
+                    for (const field of customFields) {
+                        html += renderFieldItem(field, false);
+                    }
+                }
+                html += `</div>`;
+            }
+            
+            if (systemFields.length === 0 && customFields.length === 0) {
+                html = '<p style="text-align:center; padding:40px; color:#999;">📭 Нет полей в выбранной категории</p>';
+            }
             
             container.innerHTML = html;
+        }
+        
+        function getCategoryName(category) {
+            const names = {
+                personal: 'Личные данные',
+                education: 'Образование',
+                work: 'Работа',
+                documents: 'Документы',
+                address: 'Адреса',
+                custom: 'Пользовательские',
+                all: 'Все'
+            };
+            return names[category] || category;
         }
 
         function renderFieldItem(field, isSystem) {
@@ -871,6 +1031,7 @@
                 default: typeIcon = '📝 Текст';
             }
             
+            let categoryName = getCategoryName(field.category || 'custom');
             let optionsHtml = '';
             if ((field.type === 'radio' || field.type === 'select') && field.options?.length) {
                 optionsHtml = `<div style="font-size:12px; color:#666; margin-top:5px;">📌 Варианты: ${field.options.join(', ')}</div>`;
@@ -890,18 +1051,19 @@
                     actions = `<div><span style="background:#17a2b8; color:white; padding:5px 10px; border-radius:5px; font-size:12px;">🔒 Системное (обязательно)</span></div>`;
                 } else {
                     actions = `
-                        <div>
-                            <button class="edit-btn" onclick="toggleSystemField('${field.id}')" style="background:${isActive ? '#dc3545' : '#28a745'};">
+                        <div class="field-actions">
+                            <button onclick="toggleSystemField('${field.id}')" style="background:${isActive ? '#dc3545' : '#28a745'}; color:white;">
                                 ${isActive ? '🔘 Отключить' : '✅ Включить'}
                             </button>
+                            <button onclick="editFieldCategory('${field.id}')" style="background:#667eea; color:white;">📁 Категория</button>
                         </div>
                     `;
                 }
             } else {
                 actions = `
-                    <div>
-                        <button class="edit-btn" onclick="editCustomField('${field.id}')" style="background:#667eea;">✏️ Редактировать</button>
-                        <button class="edit-btn" onclick="deleteCustomField('${field.id}')" style="background:#dc3545;">🗑️ Удалить</button>
+                    <div class="field-actions">
+                        <button onclick="editCustomField('${field.id}')" style="background:#667eea; color:white;">✏️ Редактировать</button>
+                        <button onclick="deleteCustomField('${field.id}')" style="background:#dc3545; color:white;">🗑️ Удалить</button>
                     </div>
                 `;
             }
@@ -913,6 +1075,7 @@
                         <span style="margin-left:10px; font-size:12px;">${typeIcon}</span>
                         <span style="margin-left:10px; font-size:12px; background:${field.isRequired ? '#dc3545' : '#28a745'}; color:white; padding:2px 8px; border-radius:12px;">${field.isRequired ? 'Обязательное' : 'Необязательное'}</span>
                         <span style="margin-left:10px; font-size:12px; background:${field.isActive !== false ? '#28a745' : '#dc3545'}; color:white; padding:2px 8px; border-radius:12px;">${field.isActive !== false ? 'Активно' : 'Отключено'}</span>
+                        <span style="margin-left:10px; font-size:12px; background:#6c757d; color:white; padding:2px 8px; border-radius:12px;">📁 ${categoryName}</span>
                         <div style="margin-top:5px; font-size:12px; color:#666;">
                             <span class="field-id-code">ID: ${field.id}</span>
                             ${optionsHtml}
@@ -945,6 +1108,25 @@
                 showToast('Ошибка: ' + error.message, 'error');
             }
         }
+        
+        async function editFieldCategory(fieldId) {
+            const field = allFields.find(f => f.id === fieldId);
+            if (!field) return;
+            
+            const newCategory = prompt(`Выберите категорию для поля "${field.label}"\n\nДоступные категории:\n- personal (Личные данные)\n- education (Образование)\n- work (Работа)\n- documents (Документы)\n- address (Адреса)\n- custom (Пользовательские)\n\nВведите ID категории:`, field.category || 'custom');
+            
+            if (newCategory && ['personal', 'education', 'work', 'documents', 'address', 'custom'].includes(newCategory)) {
+                try {
+                    await window.fieldsManager.updateSystemField(fieldId, { category: newCategory });
+                    showToast(`Категория поля "${field.label}" изменена на ${getCategoryName(newCategory)}`, 'success');
+                    await loadAllFields();
+                } catch (error) {
+                    showToast('Ошибка: ' + error.message, 'error');
+                }
+            } else if (newCategory) {
+                showToast('Некорректная категория', 'warning');
+            }
+        }
 
         function openFieldEditor(fieldId = null) {
             document.getElementById('fieldEditorTitle').textContent = fieldId ? '✏️ Редактирование поля' : '➕ Создание пользовательского поля';
@@ -964,6 +1146,7 @@
             document.getElementById('fieldOrder').value = '0';
             document.getElementById('fieldRequired').checked = false;
             document.getElementById('fieldActive').checked = true;
+            document.getElementById('fieldCategory').value = 'custom';
             document.getElementById('optionsList').innerHTML = '<div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" placeholder="Вариант 1" class="option-input" style="flex:1;"><button type="button" onclick="removeOption(this)" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:5px;">✖</button></div>';
             toggleOptionsFields();
         }
@@ -1016,6 +1199,7 @@
                 }
                 closeFieldEditor();
                 await loadAllFields();
+                await loadSemanticsHelp();
             } catch (error) {
                 showToast('❌ Ошибка: ' + error.message, 'error');
             }
@@ -1061,9 +1245,111 @@
                 showToast('✅ Поле удалено', 'success');
                 await loadAllFields();
                 await loadStudents();
+                await loadSemanticsHelp();
             } catch (error) {
                 showToast('❌ Ошибка: ' + error.message, 'error');
             }
+        }
+
+        // ========== СПРАВКА ПО СЕМАНТИКЕ ==========
+        function toggleSemanticsContent(id) {
+            const content = document.getElementById(id);
+            if (content) {
+                content.classList.toggle('active');
+                const header = content.previousElementSibling;
+                const arrow = header.querySelector('span:last-child');
+                if (arrow) {
+                    arrow.textContent = content.classList.contains('active') ? '▲' : '▼';
+                }
+            }
+        }
+
+        async function loadSemanticsHelp() {
+            await loadAllFields();
+            
+            // Системные поля
+            const systemFields = allFields.filter(f => f.isSystem);
+            const systemTable = document.getElementById('systemSemanticsTable');
+            if (systemTable) {
+                systemTable.innerHTML = systemFields.map(f => `
+                    <tr>
+                        <td><code>${escapeHtml(f.id)}</code><button class="copy-btn" onclick="copyToClipboard('${escapeHtml(f.id)}')">📋</button></td>
+                        <td>${escapeHtml(f.label)}</td>
+                        <td>${getCategoryName(f.category || 'personal')}</td>
+                        <td>${f.semantics ? `<a href="${escapeHtml(f.semantics)}" target="_blank">${escapeHtml(f.semantics)}</a>` : '—'}</td>
+                        <td>${f.isRequired ? '✅ Да' : '❌ Нет'}</td>
+                    </tr>
+                `).join('');
+            }
+            
+            // Пользовательские поля
+            const customFields = allFields.filter(f => !f.isSystem);
+            const customContainer = document.getElementById('customSemanticsContainer');
+            if (customContainer) {
+                if (customFields.length === 0) {
+                    customContainer.innerHTML = '<p style="text-align:center; padding:20px; color:#999;">📭 Нет пользовательских полей</p>';
+                } else {
+                    customContainer.innerHTML = `
+                        <table class="semantics-table">
+                            <thead>
+                                <tr><th>ID поля</th><th>Название</th><th>Категория</th><th>Семантика (URL)</th><th>Обязательное</th><th>Активно</th></tr>
+                            </thead>
+                            <tbody>
+                                ${customFields.map(f => `
+                                    <tr>
+                                        <td><code>${escapeHtml(f.id)}</code><button class="copy-btn" onclick="copyToClipboard('${escapeHtml(f.id)}')">📋</button></td>
+                                        <td>${escapeHtml(f.label)}</td>
+                                        <td>${getCategoryName(f.category || 'custom')}</td>
+                                        <td>${f.semantics ? `<a href="${escapeHtml(f.semantics)}" target="_blank">${escapeHtml(f.semantics)}</a>` : '—'}</td>
+                                        <td>${f.isRequired ? '✅ Да' : '❌ Нет'}</td>
+                                        <td>${f.isActive !== false ? '✅ Активно' : '❌ Отключено'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                }
+            }
+        }
+
+        function searchFieldInSemantics() {
+            const searchTerm = document.getElementById('searchFieldId').value.toLowerCase();
+            if (!searchTerm) {
+                document.getElementById('searchResult').innerHTML = '';
+                return;
+            }
+            
+            const foundFields = allFields.filter(f => 
+                f.id.toLowerCase().includes(searchTerm) || 
+                f.label.toLowerCase().includes(searchTerm)
+            );
+            
+            if (foundFields.length === 0) {
+                document.getElementById('searchResult').innerHTML = '<p style="color:#999;">❌ Поле не найдено</p>';
+                return;
+            }
+            
+            document.getElementById('searchResult').innerHTML = `
+                <h5>🔍 Найдено полей: ${foundFields.length}</h5>
+                <table class="semantics-table">
+                    <thead><tr><th>ID</th><th>Название</th><th>Категория</th><th>Семантика</th></tr></thead>
+                    <tbody>
+                        ${foundFields.map(f => `
+                            <tr>
+                                <td><code>${escapeHtml(f.id)}</code><button class="copy-btn" onclick="copyToClipboard('${escapeHtml(f.id)}')">📋</button></td>
+                                <td>${escapeHtml(f.label)}</td>
+                                <td>${getCategoryName(f.category || 'custom')}</td>
+                                <td>${f.semantics ? escapeHtml(f.semantics).substring(0, 50) + '...' : '—'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            showToast(`✅ Скопировано: ${text}`, 'info');
         }
 
         // ========== ВЫХОД ==========
@@ -1089,6 +1375,7 @@
             document.getElementById('userName').textContent = userDoc.data()?.fullName || user.email;
             await loadStudents();
             await loadAllFields();
+            await loadSemanticsHelp();
         });
     </script>
 </body>
