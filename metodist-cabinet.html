@@ -108,16 +108,16 @@
         .btn-export, .btn-import { padding: 12px 20px; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; }
         .btn-export { background: linear-gradient(135deg, #28a745, #1e7e34); color: white; }
         .btn-import { background: linear-gradient(135deg, #17a2b8, #0d818f); color: white; }
+        .btn-delete { background: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; margin: 2px; }
         .btn-export:hover, .btn-import:hover { transform: translateY(-2px); }
         .table-responsive { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 800px; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--gray); }
         th { background: var(--gray-light); font-weight: 600; position: sticky; top: 0; }
         tr:hover { background: var(--gray-light); }
-        .edit-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; transition: all 0.3s; margin: 2px; }
-        .edit-btn:hover { transform: scale(1.05); }
+        .edit-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; margin: 2px; }
+        .edit-btn:hover, .btn-delete:hover { transform: scale(1.05); }
         .email-btn { background: var(--info); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; margin: 2px; }
-        .email-btn:hover { transform: scale(1.05); }
         .create-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; }
         .modal {
             display: none;
@@ -214,8 +214,10 @@
         .status-verified { background: #d4edda; color: #155724; }
         .status-unverified { background: #fff3cd; color: #856404; }
         .action-buttons { display: flex; gap: 5px; flex-wrap: wrap; }
-        .import-preview { max-height: 300px; overflow-y: auto; border: 1px solid var(--gray); border-radius: 8px; margin-top: 15px; font-size: 12px; }
+        .import-preview { max-height: 400px; overflow-y: auto; border: 1px solid var(--gray); border-radius: 8px; margin-top: 15px; font-size: 12px; }
         .import-preview table { font-size: 11px; }
+        .mapping-row { margin-bottom: 10px; padding: 10px; background: #f8f9fa; border-radius: 6px; }
+        .mapping-select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-top: 5px; }
         @media (max-width: 768px) {
             .tabs { flex-direction: column; }
             .tab-btn { width: 100%; text-align: center; }
@@ -236,10 +238,10 @@
         <div id="toastWarning" class="toast-message toast-warning"></div>
 
         <div class="stats-grid">
-            <div class="stat-card" id="statStudents"><div class="stat-icon">🎓</div><div class="stat-number" id="totalStudents">0</div><div class="stat-label">Всего слушателей</div></div>
-            <div class="stat-card" id="statVerified"><div class="stat-icon">✅</div><div class="stat-number" id="verifiedStudents">0</div><div class="stat-label">Подтвердили email</div></div>
-            <div class="stat-card" id="statUnverified"><div class="stat-icon">📧</div><div class="stat-number" id="unverifiedStudents">0</div><div class="stat-label">Не подтвердили</div></div>
-            <div class="stat-card" id="statFields"><div class="stat-icon">📋</div><div class="stat-number" id="totalFields">0</div><div class="stat-label">Всего полей</div></div>
+            <div class="stat-card" data-tab="students"><div class="stat-icon">🎓</div><div class="stat-number" id="totalStudents">0</div><div class="stat-label">Всего слушателей</div></div>
+            <div class="stat-card" data-tab="students"><div class="stat-icon">✅</div><div class="stat-number" id="verifiedStudents">0</div><div class="stat-label">Подтвердили email</div></div>
+            <div class="stat-card" data-tab="students"><div class="stat-icon">📧</div><div class="stat-number" id="unverifiedStudents">0</div><div class="stat-label">Не подтвердили</div></div>
+            <div class="stat-card" data-tab="fields"><div class="stat-icon">📋</div><div class="stat-number" id="totalFields">0</div><div class="stat-label">Всего полей</div></div>
         </div>
 
         <div class="tabs">
@@ -253,10 +255,10 @@
         <div id="studentsTab" class="tab-content active">
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="🔍 Поиск по ФИО, email или телефону...">
-                <button class="btn-export" id="exportBtn">📥 Экспорт в CSV</button>
+                <button class="btn-export" id="exportBtn">📥 Экспорт в Excel</button>
             </div>
             <div class="table-responsive">
-                <table id="studentsTable">
+                <table>
                     <thead><tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Образование</th><th>Статус</th><th>Действия</th></tr></thead>
                     <tbody id="studentsTableBody"><tr><td colspan="6" style="text-align:center;">Загрузка...</td></tr></tbody>
                 </table>
@@ -269,7 +271,7 @@
                 <h3>⚙️ Справочник полей</h3>
                 <button class="create-btn" id="createFieldBtn">➕ Создать поле</button>
             </div>
-            <p style="color: #666; margin-bottom: 20px;">🔵 <strong>Системные поля</strong> - предустановлены, имеют фиксированные ID и семантику.<br>🟠 <strong>Пользовательские поля</strong> - создаются методистом.<br>📌 Каждое поле имеет <strong>семантику</strong> (URL схемы).</p>
+            <p style="color: #666; margin-bottom: 20px;">🔵 <strong>Системные поля</strong> - предустановлены, имеют фиксированные ID и семантику.<br>🟠 <strong>Пользовательские поля</strong> - создаются методистом.<br>📌 Каждое поле имеет <strong>семантику</strong> (URL схемы) для сопоставления при импорте.</p>
             <div id="fieldsListContainer"></div>
         </div>
 
@@ -290,19 +292,32 @@
         <!-- Вкладка импорта/экспорта -->
         <div id="importExportTab" class="tab-content">
             <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                <div class="field-category" style="flex: 1;"><h4>📥 Экспорт слушателей</h4><p>Экспорт всех данных слушателей в CSV файл</p><button class="btn-export" id="exportCsvBtn" style="margin-top: 10px;">📥 Экспорт в CSV</button></div>
-                <div class="field-category" style="flex: 1;"><h4>📤 Импорт слушателей из CSV</h4><p>Загрузите файл CSV с данными слушателей (первая строка - заголовки)</p><input type="file" id="importFileInput" accept=".csv" style="margin: 10px 0;"><button class="btn-import" id="previewImportBtn">👁️ Предпросмотр</button><button class="save-btn" id="confirmImportBtn" style="margin-top: 10px; max-width: 200px;">✅ Подтвердить импорт</button><div id="importPreview" class="import-preview" style="display: none;"></div></div>
+                <div class="field-category" style="flex: 1;">
+                    <h4>📥 Экспорт слушателей</h4>
+                    <p>Экспорт всех данных слушателей в Excel файл (XLSX)</p>
+                    <button class="btn-export" id="exportXlsxBtn" style="margin-top: 10px;">📥 Экспорт в Excel (XLSX)</button>
+                </div>
+                <div class="field-category" style="flex: 1;">
+                    <h4>📤 Импорт слушателей из Excel</h4>
+                    <p>Загрузите файл Excel (XLSX). Сопоставление идет по семантике полей.</p>
+                    <input type="file" id="importFileInput" accept=".xlsx, .xls" style="margin: 10px 0;">
+                    <button class="btn-import" id="previewImportBtn">👁️ Предпросмотр и сопоставление полей</button>
+                    <div id="mappingContainer" style="margin-top: 15px; display: none;"></div>
+                    <button class="save-btn" id="confirmImportBtn" style="margin-top: 10px; max-width: 200px; display: none;">✅ Подтвердить импорт</button>
+                    <div id="importPreview" class="import-preview" style="display: none;"></div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Модальные окна -->
     <div id="editModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>✏️ Редактирование данных слушателя</h3><span class="close" id="closeEditModal">&times;</span></div><div class="modal-body" id="editModalBody"></div></div></div>
-    <div id="fieldEditorModal" class="modal"><div class="modal-content" style="max-width: 650px;"><div class="modal-header"><h3 id="fieldEditorTitle">Создание поля</h3><span class="close" id="closeFieldEditor">&times;</span></div><div class="modal-body"><div class="form-group"><label>Название поля *</label><input type="text" id="fieldLabel" placeholder="Например: Отчество"></div><div class="form-group"><label>ID поля (латиницей) *</label><input type="text" id="fieldId" placeholder="Например: patronymic"><small>Уникальный ID, только латиница</small></div><div class="form-group"><label>Тип поля</label><select id="fieldType"><option value="text">📝 Текст</option><option value="textarea">📄 Многострочный текст</option><option value="email">📧 Email</option><option value="tel">📞 Телефон</option><option value="date">📅 Дата</option><option value="number">#️⃣ Число</option><option value="radio">🔘 Радиокнопка</option><option value="select">📋 Выпадающий список</option></select></div><div id="optionsBlock" style="display:none;"><div class="form-group"><label>Варианты ответов</label><div id="optionsList"><div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" placeholder="Вариант 1" class="option-input" style="flex:1;"><button type="button" class="removeOptionBtn" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:5px;">✖</button></div></div><button type="button" id="addOptionBtn" style="background:#28a745; color:white; border:none; padding:8px 15px; border-radius:5px;">➕ Добавить вариант</button></div></div><div class="form-group"><label>Семантика (URL)</label><input type="url" id="fieldSemantics" placeholder="http://schemas.titul24.ru/simplex/..."><small>Ссылка на схему данных</small></div><div class="form-group"><label>Placeholder</label><input type="text" id="fieldPlaceholder" placeholder="Пример ввода..."></div><div class="form-group"><label>Категория</label><select id="fieldCategory"><option value="custom">📌 Пользовательские</option><option value="personal">👤 Личные</option><option value="documents">📄 Документы</option><option value="address">🏠 Адреса</option></select></div><div class="form-group"><label>Порядок</label><input type="number" id="fieldOrder" value="0"></div><div class="form-group"><label><input type="checkbox" id="fieldRequired"> Обязательное поле</label></div><div class="form-group"><label><input type="checkbox" id="fieldActive" checked> Активно</label></div><div class="form-actions"><button class="save-btn" id="saveFieldBtn">💾 Сохранить</button><button class="cancel-btn" id="cancelFieldBtn">❌ Отмена</button></div></div></div></div>
+    <div id="fieldEditorModal" class="modal"><div class="modal-content" style="max-width: 650px;"><div class="modal-header"><h3 id="fieldEditorTitle">Создание поля</h3><span class="close" id="closeFieldEditor">&times;</span></div><div class="modal-body"><div class="form-group"><label>Название поля *</label><input type="text" id="fieldLabel" placeholder="Например: Отчество"></div><div class="form-group"><label>ID поля (латиницей) *</label><input type="text" id="fieldId" placeholder="Например: patronymic"><small>Уникальный ID, только латиница</small></div><div class="form-group"><label>Тип поля</label><select id="fieldType"><option value="text">📝 Текст</option><option value="textarea">📄 Многострочный текст</option><option value="email">📧 Email</option><option value="tel">📞 Телефон</option><option value="date">📅 Дата</option><option value="number">#️⃣ Число</option><option value="radio">🔘 Радиокнопка</option><option value="select">📋 Выпадающий список</option></select></div><div id="optionsBlock" style="display:none;"><div class="form-group"><label>Варианты ответов</label><div id="optionsList"><div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" placeholder="Вариант 1" class="option-input" style="flex:1;"><button type="button" class="removeOptionBtn" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:5px;">✖</button></div></div><button type="button" id="addOptionBtn" style="background:#28a745; color:white; border:none; padding:8px 15px; border-radius:5px;">➕ Добавить вариант</button></div></div><div class="form-group"><label>Семантика (URL)</label><input type="url" id="fieldSemantics" placeholder="http://schemas.titul24.ru/simplex/..."><small>Ссылка на схему данных - используется для сопоставления при импорте</small></div><div class="form-group"><label>Placeholder</label><input type="text" id="fieldPlaceholder" placeholder="Пример ввода..."></div><div class="form-group"><label>Категория</label><select id="fieldCategory"><option value="custom">📌 Пользовательские</option><option value="personal">👤 Личные</option><option value="documents">📄 Документы</option><option value="address">🏠 Адреса</option></select></div><div class="form-group"><label>Порядок</label><input type="number" id="fieldOrder" value="0"></div><div class="form-group"><label><input type="checkbox" id="fieldRequired"> Обязательное поле</label></div><div class="form-group"><label><input type="checkbox" id="fieldActive" checked> Активно</label></div><div class="form-actions"><button class="save-btn" id="saveFieldBtn">💾 Сохранить</button><button class="cancel-btn" id="cancelFieldBtn">❌ Отмена</button></div></div></div></div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="firebase-config.js"></script>
     <script src="fields-manager.js"></script>
 
@@ -312,7 +327,8 @@
         let allFields = [];
         let currentEditStudentId = null;
         let importData = [];
-        let currentUserRole = null;
+        let fieldMapping = {}; // { excelColumn: fieldId }
+        let excelHeaders = [];
 
         // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
         function showToast(message, type) {
@@ -334,11 +350,7 @@
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`${tabName}Tab`).classList.add('active');
-            const btns = document.querySelectorAll('.tab-btn');
-            const names = { students: 'Слушатели', fields: 'Справочник', createStudent: 'Создать', importExport: 'Импорт' };
-            for (let i = 0; i < btns.length; i++) {
-                if (btns[i].innerText.includes(names[tabName])) { btns[i].classList.add('active'); break; }
-            }
+            document.querySelectorAll(`.tab-btn[data-tab="${tabName}"]`).forEach(b => b.classList.add('active'));
             if (tabName === 'students') loadStudents();
             if (tabName === 'fields') loadAllFields();
         }
@@ -369,15 +381,18 @@
                     <td>${escapeHtml(s.education || '—')}</td>
                     <td><span class="status-badge ${s.emailVerified ? 'status-verified' : 'status-unverified'}">${s.emailVerified ? '✅ Подтвержден' : '⏳ Не подтвержден'}</span></td>
                     <td class="action-buttons">
-                        <button class="edit-btn" data-student-id="${s.id}" data-action="edit">✏️ Редактировать</button>
-                        ${!s.emailVerified ? `<button class="email-btn" data-student-id="${s.id}" data-email="${escapeHtml(s.email)}" data-action="email">📧 Отправить письмо</button>` : ''}
+                        <button class="edit-btn" data-student-id="${s.id}" data-action="edit">✏️</button>
+                        <button class="btn-delete" data-student-id="${s.id}" data-action="delete">🗑️</button>
+                        ${!s.emailVerified ? `<button class="email-btn" data-student-id="${s.id}" data-email="${escapeHtml(s.email)}" data-action="email">📧</button>` : ''}
                     </td>
                 </tr>
             `).join('');
             
-            // Привязываем события
             document.querySelectorAll('[data-action="edit"]').forEach(btn => {
                 btn.addEventListener('click', () => openEditModal(btn.dataset.studentId));
+            });
+            document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+                btn.addEventListener('click', () => deleteStudent(btn.dataset.studentId));
             });
             document.querySelectorAll('[data-action="email"]').forEach(btn => {
                 btn.addEventListener('click', () => resendVerificationEmail(btn.dataset.studentId, btn.dataset.email));
@@ -396,125 +411,248 @@
             document.getElementById('totalFields').textContent = allFields.length;
         }
 
-        // ========== ЭКСПОРТ В CSV ==========
-        function exportToCSV() {
+        // ========== УДАЛЕНИЕ СЛУШАТЕЛЯ ==========
+        async function deleteStudent(studentId) {
+            const student = allStudents.find(s => s.id === studentId);
+            if (!student) return;
+            
+            if (!confirm(`Удалить слушателя "${student.fullName}" (${student.email})?\n\nВсе данные будут безвозвратно потеряны!`)) return;
+            if (prompt('Для подтверждения введите "УДАЛИТЬ"') !== 'УДАЛИТЬ') return;
+            
             try {
-                const headers = ['ФИО', 'Email', 'Телефон', 'Образование', 'Email подтвержден', 'Дата регистрации', 'Фактический адрес', 'Адрес прописки', 'Номер паспорта', 'Кем выдан', 'Дата выдачи', 'СНИЛС'];
-                const rows = allStudents.map(s => [
-                    s.fullName || '', s.email || '', s.phone || '', s.education || '',
-                    s.emailVerified ? 'Да' : 'Нет', formatDate(s.createdAt),
-                    s.actualAddress || '', s.registrationAddress || '',
-                    s.passportNumber || '', s.passportIssuedBy || '',
-                    s.passportIssueDate || '', s.snils || ''
-                ]);
+                // Удаляем документ из Firestore
+                await window.db.collection('users').doc(studentId).delete();
                 
-                let csvContent = headers.join(',') + '\n';
-                rows.forEach(row => {
-                    const escapedRow = row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',');
-                    csvContent += escapedRow + '\n';
+                // Удаляем пользователя из Auth (через Admin SDK требуется, но на клиенте нельзя)
+                // Поэтому просто удаляем из Firestore
+                showToast(`✅ Слушатель "${student.fullName}" удален`, 'success');
+                await loadStudents();
+            } catch (error) {
+                showToast('Ошибка удаления: ' + error.message, 'error');
+            }
+        }
+
+        // ========== ЭКСПОРТ В EXCEL (XLSX) ==========
+        async function exportToExcel() {
+            try {
+                // Загружаем все поля для экспорта
+                await loadAllFields();
+                const activeFields = allFields.filter(f => f.isActive !== false);
+                
+                // Создаем заголовки: label + семантика в скобках
+                const headers = activeFields.map(f => `${f.label} (${f.semantics || f.id})`);
+                
+                // Создаем строки данных
+                const rows = allStudents.map(s => {
+                    return activeFields.map(f => {
+                        if (f.isSystem) {
+                            return s[f.id] || '';
+                        } else {
+                            return s.customFields?.[f.id] || '';
+                        }
+                    });
                 });
                 
-                const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                const url = URL.createObjectURL(blob);
-                link.href = url;
-                link.setAttribute('download', `Слушатели_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+                // Создаем workbook
+                const wsData = [headers, ...rows];
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Слушатели');
+                XLSX.writeFile(wb, `Слушатели_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`);
                 showToast(`✅ Экспортировано ${allStudents.length} слушателей`, 'success');
-            } catch (error) { showToast('Ошибка экспорта: ' + error.message, 'error'); }
-        }
-
-        // ========== ИМПОРТ ИЗ CSV ==========
-        function parseCSV(text) {
-            const lines = text.split(/\r\n|\n/);
-            if (lines.length < 2) return [];
-            const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
-            const result = [];
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                const values = [];
-                let inQuote = false;
-                let currentValue = '';
-                for (let j = 0; j < lines[i].length; j++) {
-                    const char = lines[i][j];
-                    if (char === '"') {
-                        if (lines[i][j+1] === '"') { currentValue += '"'; j++; }
-                        else { inQuote = !inQuote; }
-                    } else if (char === ',' && !inQuote) {
-                        values.push(currentValue.replace(/^"|"$/g, ''));
-                        currentValue = '';
-                    } else { currentValue += char; }
-                }
-                values.push(currentValue.replace(/^"|"$/g, ''));
-                const row = {};
-                headers.forEach((h, idx) => { row[h] = values[idx] || ''; });
-                result.push(row);
+            } catch (error) { 
+                console.error(error);
+                showToast('Ошибка экспорта: ' + error.message, 'error'); 
             }
-            return result;
         }
 
+        // ========== ИМПОРТ ИЗ EXCEL (XLSX) С СОПОСТАВЛЕНИЕМ ПО СЕМАНТИКЕ ==========
         function previewImport() {
             const fileInput = document.getElementById('importFileInput');
-            if (!fileInput.files[0]) { showToast('Выберите CSV файл', 'warning'); return; }
+            if (!fileInput.files[0]) { showToast('Выберите файл Excel', 'warning'); return; }
+            
             const file = fileInput.files[0];
             const reader = new FileReader();
             reader.onload = function(e) {
-                const content = e.target.result;
-                importData = parseCSV(content);
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                
+                if (!jsonData.length) { showToast('Файл пуст', 'warning'); return; }
+                
+                excelHeaders = jsonData[0].map(h => String(h || '').trim());
+                const rawData = jsonData.slice(1).filter(row => row.some(cell => cell && String(cell).trim()));
+                
+                // Сопоставление полей по семантике
+                const mappingHtml = buildMappingInterface(excelHeaders);
+                document.getElementById('mappingContainer').innerHTML = mappingHtml;
+                document.getElementById('mappingContainer').style.display = 'block';
+                document.getElementById('confirmImportBtn').style.display = 'block';
+                
+                // Показываем предпросмотр данных
                 const previewDiv = document.getElementById('importPreview');
-                if (importData.length === 0) { previewDiv.innerHTML = '<p>Нет данных для импорта</p>'; previewDiv.style.display = 'block'; return; }
-                let previewHtml = '<table><thead><tr>';
-                Object.keys(importData[0]).forEach(key => { previewHtml += `<th>${escapeHtml(key)}</th>`; });
+                let previewHtml = '<h5>Предпросмотр данных (первые 5 строк):</h5><div class="table-responsive"><table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">';
+                previewHtml += '<thead><tr>';
+                excelHeaders.forEach(h => { previewHtml += `<th>${escapeHtml(h)}</th>`; });
                 previewHtml += '</tr></thead><tbody>';
-                importData.slice(0, 5).forEach(row => {
+                rawData.slice(0, 5).forEach(row => {
                     previewHtml += '<tr>';
-                    Object.values(row).forEach(val => { previewHtml += `<td>${escapeHtml(String(val || ''))}</td>`; });
+                    row.forEach(cell => { previewHtml += `<td>${escapeHtml(String(cell || ''))}</td>`; });
                     previewHtml += '</tr>';
                 });
-                if (importData.length > 5) previewHtml += `<tr><td colspan="100" style="text-align:center;">... и еще ${importData.length - 5} строк</td></tr>`;
-                previewHtml += '</tbody></table>';
+                if (rawData.length > 5) previewHtml += `<tr><td colspan="${excelHeaders.length}" style="text-align:center;">... и еще ${rawData.length - 5} строк</td></tr>`;
+                previewHtml += '</tbody></table></div>';
                 previewDiv.innerHTML = previewHtml;
                 previewDiv.style.display = 'block';
-                showToast(`Загружено ${importData.length} записей для импорта`, 'info');
+                
+                // Сохраняем данные для импорта
+                importData = rawData.map(row => {
+                    const obj = {};
+                    excelHeaders.forEach((h, idx) => { obj[h] = row[idx] || ''; });
+                    return obj;
+                });
+                
+                showToast(`Загружено ${importData.length} записей. Настройте сопоставление полей.`, 'info');
             };
-            reader.readAsText(file, 'UTF-8');
+            reader.readAsArrayBuffer(file);
+        }
+
+        function buildMappingInterface(excelHeaders) {
+            // Получаем все поля для сопоставления
+            const availableFields = allFields.filter(f => f.isActive !== false);
+            
+            let html = '<h5>Сопоставление столбцов Excel с полями системы:</h5>';
+            html += '<p style="font-size:12px; color:#666;">Сопоставление происходит по семантике полей. Выберите соответствие для каждого столбца.</p>';
+            
+            for (const header of excelHeaders) {
+                // Ищем поле по семантике (URL в заголовке или точное совпадение)
+                let matchedFieldId = '';
+                let matchedField = availableFields.find(f => {
+                    const headerLower = header.toLowerCase();
+                    const semanticsLower = (f.semantics || '').toLowerCase();
+                    const labelLower = f.label.toLowerCase();
+                    const idLower = f.id.toLowerCase();
+                    return semanticsLower === headerLower || 
+                           labelLower === headerLower || 
+                           idLower === headerLower ||
+                           headerLower.includes(semanticsLower) ||
+                           semanticsLower.includes(headerLower);
+                });
+                
+                if (matchedField) matchedFieldId = matchedField.id;
+                
+                html += `<div class="mapping-row">
+                    <div style="font-weight:500;">📊 Столбец: "${escapeHtml(header)}"</div>
+                    <select class="mapping-select" data-excel-column="${escapeHtml(header)}">
+                        <option value="">-- Не импортировать --</option>`;
+                
+                for (const field of availableFields) {
+                    const selected = matchedFieldId === field.id ? 'selected' : '';
+                    const semanticsInfo = field.semantics ? ` (${field.semantics})` : '';
+                    html += `<option value="${field.id}" ${selected}>${escapeHtml(field.label)}${semanticsInfo} [${field.id}]</option>`;
+                }
+                
+                html += `</select>
+                </div>`;
+            }
+            return html;
         }
 
         async function confirmImport() {
-            if (importData.length === 0) { showToast('Нет данных для импорта', 'warning'); return; }
+            // Собираем сопоставление
+            const selects = document.querySelectorAll('.mapping-select');
+            fieldMapping = {};
+            selects.forEach(select => {
+                const excelColumn = select.dataset.excelColumn;
+                const fieldId = select.value;
+                if (fieldId) {
+                    fieldMapping[excelColumn] = fieldId;
+                }
+            });
+            
+            if (Object.keys(fieldMapping).length === 0) {
+                showToast('Не выбрано ни одного поля для импорта', 'warning');
+                return;
+            }
+            
             showToast(`⏳ Импорт ${importData.length} слушателей...`, 'info');
             let successCount = 0, errorCount = 0;
+            let skippedCount = 0;
+            
             for (const row of importData) {
                 try {
-                    const email = row.Email || row.email || '';
-                    const fullName = row['ФИО'] || row.fullName || row.фио || '';
-                    if (!email || !fullName) { errorCount++; continue; }
-                    const phone = row.Телефон || row.phone || row.телефон || '';
-                    const education = row.Образование || row.education || '';
+                    // Получаем email и ФИО из сопоставленных полей
+                    let email = '';
+                    let fullName = '';
+                    const updates = {};
+                    
+                    for (const [excelCol, fieldId] of Object.entries(fieldMapping)) {
+                        const value = row[excelCol] || '';
+                        const field = allFields.find(f => f.id === fieldId);
+                        
+                        if (fieldId === 'email') {
+                            email = String(value).trim();
+                        } else if (fieldId === 'fullName') {
+                            fullName = String(value).trim();
+                        } else if (field.isSystem) {
+                            updates[fieldId] = value;
+                        } else {
+                            // Пользовательские поля
+                            if (!updates.customFields) updates.customFields = {};
+                            updates.customFields[fieldId] = value;
+                        }
+                    }
+                    
+                    if (!email || !fullName) {
+                        skippedCount++;
+                        continue;
+                    }
+                    
+                    // Проверяем существование пользователя
                     const existing = await window.db.collection('users').where('email', '==', email).get();
-                    if (!existing.empty) { errorCount++; continue; }
+                    if (!existing.empty) {
+                        skippedCount++;
+                        continue;
+                    }
+                    
+                    // Создаем пользователя
                     const userCred = await window.auth.createUserWithEmailAndPassword(email, 'student123');
                     await userCred.user.sendEmailVerification();
-                    await window.db.collection('users').doc(userCred.user.uid).set({
-                        fullName, email, phone, education, role: 'student', emailVerified: false,
+                    
+                    const userData = {
+                        fullName, email, role: 'student', emailVerified: false,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        actualAddress: row['Фактический адрес'] || row.actualAddress || '',
-                        registrationAddress: row['Адрес прописки'] || row.registrationAddress || '',
-                        passportNumber: row['Номер паспорта'] || row.passportNumber || '',
-                        passportIssuedBy: row['Кем выдан'] || row.passportIssuedBy || '',
-                        passportIssueDate: row['Дата выдачи'] || row.passportIssueDate || '',
-                        snils: row.СНИЛС || row.snils || '', customFields: {}
-                    });
+                        actualAddress: updates.actualAddress || '',
+                        registrationAddress: updates.registrationAddress || '',
+                        passportNumber: updates.passportNumber || '',
+                        passportIssuedBy: updates.passportIssuedBy || '',
+                        passportIssueDate: updates.passportIssueDate || '',
+                        snils: updates.snils || '',
+                        phone: updates.phone || '',
+                        education: updates.education || '',
+                        customFields: updates.customFields || {}
+                    };
+                    
+                    await window.db.collection('users').doc(userCred.user.uid).set(userData);
                     successCount++;
-                } catch (error) { errorCount++; }
+                } catch (error) {
+                    errorCount++;
+                    console.error(error);
+                }
             }
-            showToast(`✅ Импорт завершен: успешно ${successCount}, ошибок ${errorCount}`, 'success');
+            
+            showToast(`✅ Импорт завершен: успешно ${successCount}, пропущено ${skippedCount}, ошибок ${errorCount}`, 'success');
+            
+            // Сброс состояния импорта
             importData = [];
+            fieldMapping = {};
+            excelHeaders = [];
+            document.getElementById('mappingContainer').style.display = 'none';
             document.getElementById('importPreview').style.display = 'none';
+            document.getElementById('confirmImportBtn').style.display = 'none';
             document.getElementById('importFileInput').value = '';
+            
             await loadStudents();
         }
 
@@ -657,9 +795,8 @@
             if (isSystem) {
                 if (field.id === 'email') actions = '<div><span style="background:#17a2b8; color:white; padding:5px 10px; border-radius:5px;">🔒 Системное</span></div>';
                 else actions = `<div><button class="edit-btn" data-field-id="${field.id}" data-action="toggle">${field.isActive !== false ? '🔘 Отключить' : '✅ Включить'}</button></div>`;
-            } else actions = `<div><button class="edit-btn" data-field-id="${field.id}" data-action="edit">✏️</button><button class="edit-btn" data-field-id="${field.id}" data-action="delete" style="background:#dc3545;">🗑️</button></div>`;
-            const result = `<div class="field-item"><div><strong>${escapeHtml(field.label)}</strong> <span>${typeIcon}</span> <span style="background:${field.isRequired ? '#dc3545' : '#28a745'}; color:white; padding:2px 8px; border-radius:12px;">${field.isRequired ? 'Обязательное' : 'Необязательное'}</span> <span style="background:${field.isActive !== false ? '#28a745' : '#dc3545'}; color:white; padding:2px 8px; border-radius:12px;">${field.isActive !== false ? 'Активно' : 'Отключено'}</span><div style="margin-top:5px;"><span class="field-id-code">ID: ${field.id}</span> ${optionsHtml} ${semanticsHtml} ${field.placeholder ? `<div>💡 ${escapeHtml(field.placeholder)}</div>` : ''}</div></div>${actions}</div>`;
-            return result;
+            } else actions = `<div><button class="edit-btn" data-field-id="${field.id}" data-action="editField">✏️</button><button class="btn-delete" data-field-id="${field.id}" data-action="deleteField">🗑️</button></div>`;
+            return `<div class="field-item"><div><strong>${escapeHtml(field.label)}</strong> <span>${typeIcon}</span> <span style="background:${field.isRequired ? '#dc3545' : '#28a745'}; color:white; padding:2px 8px; border-radius:12px;">${field.isRequired ? 'Обязательное' : 'Необязательное'}</span> <span style="background:${field.isActive !== false ? '#28a745' : '#dc3545'}; color:white; padding:2px 8px; border-radius:12px;">${field.isActive !== false ? 'Активно' : 'Отключено'}</span><div style="margin-top:5px;"><span class="field-id-code">ID: ${field.id}</span> ${optionsHtml} ${semanticsHtml} ${field.placeholder ? `<div>💡 ${escapeHtml(field.placeholder)}</div>` : ''}</div></div>${actions}</div>`;
         }
 
         async function toggleSystemField(fieldId) {
@@ -750,7 +887,7 @@
         async function deleteCustomField(id) {
             const field = allFields.find(f => f.id === id);
             if (!field || field.isSystem) return;
-            if (!confirm(`Удалить поле "${field.label}"? Все данные будут потеряны!`)) return;
+            if (!confirm(`Удалить поле "${field.label}"? Все данные слушателей для этого поля будут потеряны!`)) return;
             if (prompt('Введите "УДАЛИТЬ" для подтверждения') !== 'УДАЛИТЬ') return;
             try {
                 await window.fieldsManager.deleteField(id);
@@ -770,10 +907,9 @@
 
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
         document.addEventListener('DOMContentLoaded', () => {
-            // Обработчики для статических элементов
             document.getElementById('logoutBtn')?.addEventListener('click', logout);
-            document.getElementById('exportBtn')?.addEventListener('click', exportToCSV);
-            document.getElementById('exportCsvBtn')?.addEventListener('click', exportToCSV);
+            document.getElementById('exportBtn')?.addEventListener('click', exportToExcel);
+            document.getElementById('exportXlsxBtn')?.addEventListener('click', exportToExcel);
             document.getElementById('createStudentBtn')?.addEventListener('click', createNewStudent);
             document.getElementById('createFieldBtn')?.addEventListener('click', () => openFieldEditor());
             document.getElementById('previewImportBtn')?.addEventListener('click', previewImport);
@@ -786,18 +922,17 @@
             document.getElementById('addOptionBtn')?.addEventListener('click', () => addOptionField());
             document.getElementById('fieldType')?.addEventListener('change', toggleOptionsFields);
             
-            // Обработчики для динамических кнопок полей
             document.addEventListener('click', async (e) => {
                 if (e.target.closest('[data-action="toggle"]')) {
                     const btn = e.target.closest('[data-action="toggle"]');
                     await toggleSystemField(btn.dataset.fieldId);
                 }
-                if (e.target.closest('[data-action="edit"]') && e.target.closest('[data-action="edit"]').dataset.fieldId) {
-                    const btn = e.target.closest('[data-action="edit"]');
+                if (e.target.closest('[data-action="editField"]')) {
+                    const btn = e.target.closest('[data-action="editField"]');
                     await editCustomField(btn.dataset.fieldId);
                 }
-                if (e.target.closest('[data-action="delete"]')) {
-                    const btn = e.target.closest('[data-action="delete"]');
+                if (e.target.closest('[data-action="deleteField"]')) {
+                    const btn = e.target.closest('[data-action="deleteField"]');
                     await deleteCustomField(btn.dataset.fieldId);
                 }
                 if (e.target.closest('.removeOptionBtn')) {
@@ -805,24 +940,18 @@
                 }
             });
             
-            // Обработчики табов
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.addEventListener('click', () => switchTab(btn.dataset.tab));
             });
             document.querySelectorAll('.stat-card').forEach(card => {
-                card.addEventListener('click', () => switchTab('students'));
+                card.addEventListener('click', () => switchTab(card.dataset.tab));
             });
         });
 
-        // Проверка авторизации
         window.auth.onAuthStateChanged(async (user) => {
             console.log('Auth state changed:', user?.email);
             
-            if (!user) { 
-                window.location.href = 'index.html'; 
-                return; 
-            }
-            
+            if (!user) { window.location.href = 'index.html'; return; }
             if (!user.emailVerified) {
                 showToast('Подтвердите email перед входом', 'warning');
                 setTimeout(async () => { await window.auth.signOut(); window.location.href = 'index.html'; }, 3000);
@@ -842,7 +971,7 @@
                 await loadStudents();
                 await loadAllFields();
             } catch (error) {
-                console.error('Ошибка загрузки данных пользователя:', error);
+                console.error('Ошибка загрузки:', error);
                 showToast('Ошибка загрузки данных', 'error');
             }
         });
