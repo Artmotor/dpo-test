@@ -432,7 +432,7 @@
             <div class="table-responsive">
                 <table>
                     <thead><tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Статус</th><th>Инициалы</th><th>Действия</th></tr></thead>
-                    <tbody id="studentsTableBody"><tr><td colspan="6" style="text-align:center;">Загрузка...</td></tr></table>
+                    <tbody id="studentsTableBody"><tr><td colspan="6" style="text-align:center;">Загрузка...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -458,7 +458,7 @@
             </div>
         </div>
 
-        <!-- Вкладка полей (ИСПРАВЛЕНА) -->
+        <!-- Вкладка полей -->
         <div id="fieldsTab" class="tab-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;">
                 <h3 style="color: var(--primary);">⚙️ Управление полями</h3>
@@ -604,7 +604,7 @@
     <script src="fields-manager.js"></script>
 
     <script>
-        let allStudents = [], allFields = [], currentEditStudentId = null, importData = null;
+        let allStudents = [], allFields = [], currentEditStudentId = null;
 
         function showToast(msg, type) {
             const el = document.getElementById(`toast${type.charAt(0).toUpperCase() + type.slice(1)}`);
@@ -744,7 +744,48 @@
 
         function closeEditModal() { document.getElementById('editModal').style.display = 'none'; currentEditStudentId = null; }
 
-        // ========== ИМПОРТ ==========
+        // ========== ИМПОРТ ИЗ EXCEL (ПОЛНОСТЬЮ ПЕРЕРАБОТАН) ==========
+        // Словарь соответствия семантики -> системное поле
+        const semanticsToSystemField = {
+            'http://schemas.titul24.ru/simplex/фамилия': 'lastName',
+            'http://schemas.titul24.ru/simplex/имя': 'firstName',
+            'http://schemas.titul24.ru/simplex/отчество': 'patronymic',
+            'http://schemas.titul24.ru/simplex/датаРождения': 'birthDate',
+            'http://schemas.titul24.ru/simplex/адрес': 'actualAddress',
+            'http://schemas.titul24.ru/simplex/номерПаспорта': 'passportNumber',
+            'http://schemas.titul24.ru/simplex/кемВыданПаспорт': 'passportIssuedBy',
+            'http://schemas.titul24.ru/simplex/когдаВыданПаспорт': 'passportIssueDate',
+            'http://schemas.titul24.ru/simplex/кодПодразделенияВыдачиПаспорта': 'passportDivisionCode',
+            'http://schemas.titul24.ru/simplex/названиеОрганизации': 'organizationName',
+            'http://schemas.titul24.ru/simplex/стоимостьОбученияЦифра': 'courseCost',
+            'mail': 'email',
+            'tel': 'phone',
+            'СНИЛС': 'snils'
+        };
+
+        // Поля, которые не импортируем (вычисляемые)
+        const ignoredFields = [
+            'инициалыСлушателя', 'инициалы слушателя', 'Инициалы слушателя (автоматически)',
+            'стоимостьОбученияСлово', 'Стоимость обучения полностью',
+            'ФИО (автоматически)', 'ФИО', 'фио'
+        ];
+
+        function normalizeString(str) {
+            if (!str || typeof str !== 'string') return '';
+            return str.trim().toLowerCase().replace(/\s+/g, ' ');
+        }
+
+        function excelDateToJSDate(excelDate) {
+            if (!excelDate) return '';
+            if (typeof excelDate === 'string') return excelDate.split(' ')[0];
+            if (typeof excelDate === 'number') {
+                const utcDays = excelDate - 25569;
+                const date = new Date(utcDays * 86400000);
+                return date.toISOString().split('T')[0];
+            }
+            return '';
+        }
+
         function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -753,71 +794,140 @@
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
                 const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                importData = XLSX.utils.sheet_to_json(sheet);
-                showImportPreview(importData);
+                const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+                if (!rawRows || rawRows.length < 3) {
+                    showToast('Файл должен содержать минимум 3 строки: семантика, названия, данные', 'warning');
+                    return;
+                }
+                const semanticsRow = rawRows[0].map(cell => (cell && typeof cell === 'string') ? cell.trim() : '');
+                const namesRow = rawRows[1].map(cell => (cell && typeof cell === 'string') ? cell.trim() : '');
+                const dataRows = rawRows.slice(2).filter(row => row.some(cell => cell !== undefined && cell !== null && cell !== ''));
+                if (!dataRows.length) { showToast('Нет данных', 'warning'); return; }
+
+                const columnMapping = [];
+                for (let i = 0; i < semanticsRow.length; i++) {
+                    const sem = semanticsRow[i];
+                    const name = namesRow[i];
+                    let isIgnored = false;
+                    const lowerName = normalizeString(name);
+                    for (const ign of ignoredFields) {
+                        if (lowerName.includes(normalizeString(ign)) || normalizeString(ign).includes(lowerName)) {
+                            isIgnored = true;
+                            break;
+                        }
+                    }
+                    if (sem && (sem.includes('стоимостьОбученияСлово') || sem.includes('инициалы') || sem.includes('Слово'))) isIgnored = true;
+                    let systemId = null;
+                    if (sem && semanticsToSystemField[sem]) systemId = semanticsToSystemField[sem];
+                    else if (name) {
+                        const ln = normalizeString(name);
+                        if (ln === 'e-mail' || ln === 'email') systemId = 'email';
+                        else if (ln === 'телефон' || ln === 'phone') systemId = 'phone';
+                        else if (ln === 'снилс') systemId = 'snils';
+                    }
+                    columnMapping.push({ index: i, systemId, customName: name || `col_${i}`, isIgnored });
+                }
+
+                const importedUsers = [];
+                for (const row of dataRows) {
+                    const userObj = {};
+                    const customFields = {};
+                    for (const map of columnMapping) {
+                        let rawValue = row[map.index];
+                        if (rawValue === undefined || rawValue === null || rawValue === '') continue;
+                        if (map.systemId === 'birthDate' || map.systemId === 'passportIssueDate' ||
+                            (map.customName && (map.customName.includes('дата') || map.customName.includes('рождения') || map.customName.includes('когда')))) {
+                            rawValue = excelDateToJSDate(rawValue);
+                        } else if (typeof rawValue === 'number') rawValue = rawValue.toString();
+                        else if (typeof rawValue === 'string') rawValue = rawValue.trim();
+                        if (!rawValue) continue;
+                        if (map.isIgnored) continue;
+                        if (map.systemId) userObj[map.systemId] = rawValue;
+                        else customFields[map.customName] = rawValue;
+                    }
+                    if (!userObj.email) userObj.email = `temp_${Date.now()}_${Math.random().toString(36).substring(2,8)}@import.ru`;
+                    if (userObj.lastName || userObj.firstName || userObj.patronymic) {
+                        if (!userObj.fullName) userObj.fullName = [userObj.lastName, userObj.firstName, userObj.patronymic].filter(Boolean).join(' ');
+                        if (!userObj.initials) {
+                            const firstInit = userObj.firstName ? userObj.firstName.charAt(0).toUpperCase() + '.' : '';
+                            const patronInit = userObj.patronymic ? userObj.patronymic.charAt(0).toUpperCase() + '.' : '';
+                            userObj.initials = `${userObj.lastName || ''} ${firstInit}${patronInit}`.trim();
+                        }
+                    }
+                    userObj.customFields = customFields;
+                    importedUsers.push(userObj);
+                }
+                window.importedUsersData = importedUsers;
+                showImportPreview(importedUsers);
             };
             reader.readAsArrayBuffer(file);
         }
 
-        function showImportPreview(data) {
-            if (!data?.length) { showToast('Нет данных', 'warning'); return; }
-            const preview = data.slice(0, 8);
+        function showImportPreview(users) {
+            if (!users.length) { showToast('Нет данных', 'warning'); return; }
+            const allKeys = new Set();
+            users.forEach(u => {
+                Object.keys(u).forEach(k => { if (k !== 'customFields') allKeys.add(k); });
+                if (u.customFields) Object.keys(u.customFields).forEach(k => allKeys.add(`[Доп] ${k}`));
+            });
+            const keys = Array.from(allKeys).slice(0, 10);
             let html = '<table style="width:100%; border-collapse:collapse; font-size:12px;"><thead><tr>';
-            Object.keys(preview[0]).forEach(key => { html += `<th style="padding:8px; border:1px solid #ddd;">${escapeHtml(key)}</th>`; });
+            keys.forEach(k => html += `<th style="padding:8px; border:1px solid #ddd;">${escapeHtml(k)}</th>`);
             html += '</tr></thead><tbody>';
-            preview.forEach(row => {
+            users.slice(0,5).forEach(u => {
                 html += '<tr>';
-                Object.values(row).forEach(val => { html += `<td style="padding:8px; border:1px solid #ddd;">${escapeHtml(String(val || '').substring(0, 40))}</td>`; });
+                keys.forEach(k => {
+                    let val = '';
+                    if (k.startsWith('[Доп] ')) val = u.customFields?.[k.replace('[Доп] ', '')] || '';
+                    else val = u[k] || '';
+                    if (val && val.length > 40) val = val.substring(0,40)+'...';
+                    html += `<td style="padding:8px; border:1px solid #ddd;">${escapeHtml(String(val))}</td>`;
+                });
                 html += '</tr>';
             });
             html += '</tbody></table>';
             document.getElementById('previewTable').innerHTML = html;
             document.getElementById('importPreview').style.display = 'block';
-            document.getElementById('importStats').innerHTML = `<p>📊 Найдено записей: <strong>${data.length}</strong></p>`;
+            document.getElementById('importStats').innerHTML = `<p>📊 Найдено записей: <strong>${users.length}</strong></p>`;
         }
 
         async function confirmImport() {
-            if (!importData?.length) { showToast('Нет данных для импорта', 'warning'); return; }
+            const users = window.importedUsersData;
+            if (!users?.length) { showToast('Нет данных', 'warning'); return; }
             const progressFill = document.getElementById('progressFill');
             let successCount = 0, errorCount = 0;
-            for (let i = 0; i < importData.length; i++) {
-                const row = importData[i];
-                progressFill.style.width = `${((i + 1) / importData.length) * 100}%`;
+            for (let i = 0; i < users.length; i++) {
+                const u = users[i];
+                progressFill.style.width = `${((i+1)/users.length)*100}%`;
                 try {
-                    const email = row.email || row['e-mail'] || row['Email'] || `${Date.now()}_${i}@temp.ru`;
-                    const phone = row.phone || row['телефон'] || '';
-                    const lastName = row.lastName || row['фамилия'] || row['Фамилия'] || '';
-                    const firstName = row.firstName || row['имя'] || row['Имя'] || '';
-                    const patronymic = row.patronymic || row['отчество'] || row['Отчество'] || '';
-                    const initials = window.fieldsManager.generateInitials(lastName, firstName, patronymic);
-                    const fullName = [lastName, firstName, patronymic].filter(Boolean).join(' ');
-                    
-                    const customFields = {};
-                    const systemFieldIds = ['email','phone','lastName','firstName','patronymic','fullName','initials','snils','passportNumber','passportIssuedBy','passportIssueDate','actualAddress','birthDate'];
-                    for (const [key, val] of Object.entries(row)) {
-                        if (!systemFieldIds.includes(key) && val && String(val).trim()) customFields[key] = String(val).trim();
-                    }
-                    
+                    const email = u.email;
                     const existing = await window.db.collection('users').where('email', '==', email).get();
                     if (!existing.empty) { errorCount++; continue; }
-                    
-                    const tempPassword = `Temp${Date.now()}${i}`;
+                    const tempPassword = `Temp${Date.now()}${Math.random().toString(36).substring(2,8)}`;
                     const userCred = await window.auth.createUserWithEmailAndPassword(email, tempPassword);
-                    await window.db.collection('users').doc(userCred.user.uid).set({
-                        email, phone, lastName, firstName, patronymic, fullName, initials,
-                        role: 'student', emailVerified: false,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        customFields, importSource: 'excel'
-                    });
+                    const userId = userCred.user.uid;
+                    const firestoreData = { role: 'student', emailVerified: false, createdAt: firebase.firestore.FieldValue.serverTimestamp(), importSource: 'excel', ...u };
+                    delete firestoreData.customFields; // отдельно
+                    if (u.customFields && Object.keys(u.customFields).length) firestoreData.customFields = u.customFields;
+                    Object.keys(firestoreData).forEach(k => { if (firestoreData[k] === undefined || firestoreData[k] === null) delete firestoreData[k]; });
+                    await window.db.collection('users').doc(userId).set(firestoreData);
                     successCount++;
-                } catch (e) { errorCount++; }
+                } catch (err) { errorCount++; }
             }
-            showToast(`✅ Импорт: +${successCount}, ошибок: ${errorCount}`, 'success');
+            showToast(`✅ Импорт: успешно ${successCount}, ошибок ${errorCount}`, 'success');
             document.getElementById('importStats').innerHTML = `<p>✅ Успешно: ${successCount} | ❌ Ошибок: ${errorCount}</p>`;
-            await loadStudents();
+            document.getElementById('progressFill').style.width = '0%';
+            if (successCount) await loadStudents();
         }
 
-        function clearImport() { importData = null; document.getElementById('importPreview').style.display = 'none'; document.getElementById('fileInput').value = ''; document.getElementById('progressFill').style.width = '0%'; }
+        function clearImport() {
+            window.importedUsersData = null;
+            document.getElementById('importPreview').style.display = 'none';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('previewTable').innerHTML = '';
+            document.getElementById('importStats').innerHTML = '';
+        }
 
         function exportToExcel() {
             const exportData = allStudents.map(s => ({
@@ -832,7 +942,7 @@
             showToast('📎 Экспорт выполнен', 'success');
         }
 
-        // ========== УПРАВЛЕНИЕ ПОЛЯМИ (ИСПРАВЛЕНО) ==========
+        // ========== УПРАВЛЕНИЕ ПОЛЯМИ ==========
         async function loadAllFields() {
             allFields = await window.fieldsManager.getAllFields(true);
             return allFields;
@@ -840,107 +950,49 @@
 
         async function renderFieldsTab() {
             await loadAllFields();
-            
-            // Системные поля
             const systemFields = allFields.filter(f => f.isSystem === true);
-            const systemContainer = document.getElementById('systemFieldsContainer');
-            if (systemContainer) {
-                if (!systemFields.length) {
-                    systemContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">Нет системных полей</div>';
-                } else {
-                    systemContainer.innerHTML = systemFields.map(field => renderFieldCard(field, true)).join('');
-                }
-            }
-            
-            // Пользовательские поля
             const customFields = allFields.filter(f => !f.isSystem);
-            const customContainer = document.getElementById('customFieldsContainer');
-            if (customContainer) {
-                if (!customFields.length) {
-                    customContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">Нет пользовательских полей. Нажмите "Создать новое поле"</div>';
-                } else {
-                    customContainer.innerHTML = customFields.map(field => renderFieldCard(field, false)).join('');
-                }
-            }
+            document.getElementById('systemFieldsContainer').innerHTML = systemFields.map(f => renderFieldCard(f, true)).join('') || '<div style="text-align:center; padding:20px;">Нет системных полей</div>';
+            document.getElementById('customFieldsContainer').innerHTML = customFields.map(f => renderFieldCard(f, false)).join('') || '<div style="text-align:center; padding:20px;">Нет пользовательских полей</div>';
         }
 
         function renderFieldCard(field, isSystem) {
             const typeIcons = { text:'📝', textarea:'📄', email:'📧', tel:'📞', date:'📅', number:'#️⃣', radio:'🔘', select:'📋' };
             const typeIcon = typeIcons[field.type] || '📝';
-            
             let optionsHtml = '';
             if ((field.type === 'radio' || field.type === 'select') && field.options?.length) {
                 optionsHtml = `<div class="field-options">📌 Варианты: ${field.options.join(', ')}</div>`;
             }
-            
             let semanticsHtml = '';
             if (field.semantics) {
                 semanticsHtml = `<div class="field-semantics">🔗 Семантика: <a href="${escapeHtml(field.semantics)}" target="_blank">${escapeHtml(field.semantics)}</a></div>`;
             }
-            
             let actions = '';
             if (isSystem) {
-                actions = `
-                    <div class="field-actions">
-                        <button class="btn-icon" onclick="toggleField('${field.id}')" title="${field.isActive !== false ? 'Отключить' : 'Включить'}">
-                            ${field.isActive !== false ? '🔘 Отключить' : '✅ Включить'}
-                        </button>
-                    </div>
-                `;
+                actions = `<div class="field-actions"><button class="btn-icon" onclick="toggleField('${field.id}')">${field.isActive !== false ? '🔘 Отключить' : '✅ Включить'}</button></div>`;
             } else {
-                actions = `
-                    <div class="field-actions">
-                        <button class="btn-icon" onclick="editCustomField('${field.id}')" title="Редактировать">✏️</button>
-                        <button class="btn-icon" onclick="toggleField('${field.id}')" title="${field.isActive !== false ? 'Отключить' : 'Включить'}">
-                            ${field.isActive !== false ? '🔘 Отключить' : '✅ Включить'}
-                        </button>
-                        <button class="btn-icon" onclick="deleteCustomField('${field.id}')" title="Удалить" style="color:var(--danger);">🗑️</button>
-                    </div>
-                `;
+                actions = `<div class="field-actions"><button class="btn-icon" onclick="editCustomField('${field.id}')">✏️</button><button class="btn-icon" onclick="toggleField('${field.id}')">${field.isActive !== false ? '🔘 Отключить' : '✅ Включить'}</button><button class="btn-icon" onclick="deleteCustomField('${field.id}')" style="color:var(--danger);">🗑️</button></div>`;
             }
-            
-            return `
-                <div class="field-card">
-                    <div class="field-header">
-                        <div>
-                            <span class="field-title">${typeIcon} ${escapeHtml(field.label)}</span>
-                            <span class="field-id">${field.id}</span>
-                            <span class="field-badge ${isSystem ? 'badge-system' : 'badge-custom'}">${isSystem ? 'системное' : 'пользовательское'}</span>
-                            <span class="field-badge ${field.isRequired ? 'badge-required' : 'badge-optional'}">${field.isRequired ? 'обязательное' : 'необязательное'}</span>
-                            <span class="field-badge ${field.isActive !== false ? 'badge-active' : 'badge-inactive'}">${field.isActive !== false ? 'активно' : 'отключено'}</span>
-                        </div>
-                        ${actions}
-                    </div>
-                    <div class="field-details">
-                        <div class="field-detail-item">📋 Тип: ${field.type}</div>
-                        <div class="field-detail-item">📂 Категория: ${field.category || 'custom'}</div>
-                        <div class="field-detail-item">🔢 Порядок: ${field.order || 0}</div>
-                        ${field.placeholder ? `<div class="field-detail-item">💡 Подсказка: ${escapeHtml(field.placeholder)}</div>` : ''}
-                    </div>
-                    ${optionsHtml}
-                    ${semanticsHtml}
-                </div>
-            `;
+            return `<div class="field-card"><div class="field-header"><div><span class="field-title">${typeIcon} ${escapeHtml(field.label)}</span><span class="field-id">${field.id}</span><span class="field-badge ${isSystem ? 'badge-system' : 'badge-custom'}">${isSystem ? 'системное' : 'пользовательское'}</span><span class="field-badge ${field.isRequired ? 'badge-required' : 'badge-optional'}">${field.isRequired ? 'обязательное' : 'необязательное'}</span><span class="field-badge ${field.isActive !== false ? 'badge-active' : 'badge-inactive'}">${field.isActive !== false ? 'активно' : 'отключено'}</span></div>${actions}</div><div class="field-details"><div class="field-detail-item">📋 Тип: ${field.type}</div><div class="field-detail-item">📂 Категория: ${field.category || 'custom'}</div><div class="field-detail-item">🔢 Порядок: ${field.order || 0}</div>${field.placeholder ? `<div class="field-detail-item">💡 Подсказка: ${escapeHtml(field.placeholder)}</div>` : ''}</div>${optionsHtml}${semanticsHtml}</div>`;
         }
 
         function renderFieldsTable() {
             const container = document.getElementById('fieldsTableBody');
             if (!container) return;
-            if (!allFields.length) { container.innerHTML = '<tr><td colspan="8" style="text-align:center;">Загрузка...</td></tr>'; return; }
-            
-            container.innerHTML = allFields.map(field => `
+            if (!allFields.length) { container.innerHTML = '<tr><td colspan="8">Загрузка...</td></tr>'; return; }
+            container.innerHTML = allFields.map(f => `
                 <tr>
-                    <td><code>${escapeHtml(field.id)}</code></td>
-                    <td><strong>${escapeHtml(field.label)}</strong> ${field.isSystem ? '<span style="font-size:10px; background:#17a2b8; color:white; padding:2px 6px; border-radius:10px;">сист</span>' : ''}</td>
-                    <td>${field.type}</td>
-                    <td class="semantics-cell">${field.semantics ? `<a href="${escapeHtml(field.semantics)}" target="_blank">${escapeHtml(field.semantics.substring(0, 60))}${field.semantics.length > 60 ? '...' : ''}</a>` : '—'}</td>
-                    <td>${field.category || 'custom'}</td>
-                    <td style="text-align:center;">${field.isRequired ? '✅' : '❌'}</td>
-                    <td><span class="status-badge ${field.isActive !== false ? 'status-active' : 'status-inactive'}">${field.isActive !== false ? 'Активно' : 'Отключено'}</span></td>
+                    <td><code>${escapeHtml(f.id)}</code></td>
+                    <td><strong>${escapeHtml(f.label)}</strong> ${f.isSystem ? '<span style="font-size:10px; background:#17a2b8; color:white; padding:2px 6px; border-radius:10px;">сист</span>' : ''}</td>
+                    <td>${f.type}</td>
+                    <td class="semantics-cell">${f.semantics ? `<a href="${escapeHtml(f.semantics)}" target="_blank">${escapeHtml(f.semantics.substring(0, 60))}${f.semantics.length > 60 ? '...' : ''}</a>` : '—'}</td>
+                    <td>${f.category || 'custom'}</td>
+                    <td style="text-align:center;">${f.isRequired ? '✅' : '❌'}</td>
+                    <td><span class="status-badge ${f.isActive !== false ? 'status-active' : 'status-inactive'}">${f.isActive !== false ? 'Активно' : 'Отключено'}</span></td>
                     <td class="action-buttons">
-                        ${!field.isSystem ? `<button class="btn-warning btn-sm" onclick="editCustomField('${field.id}')">✏️</button>` : ''}
-                        <button class="btn-sm" onclick="toggleField('${field.id}')" style="background:${field.isActive !== false ? '#ff9800' : '#28a745'}; color:white; border:none; padding:4px 8px; border-radius:4px;">${field.isActive !== false ? 'Откл' : 'Вкл'}</button>
-                        ${!field.isSystem ? `<button class="btn-danger btn-sm" onclick="deleteCustomField('${field.id}')">🗑️</button>` : ''}
+                        ${!f.isSystem ? `<button class="btn-warning btn-sm" onclick="editCustomField('${f.id}')">✏️</button>` : ''}
+                        <button class="btn-sm" onclick="toggleField('${f.id}')" style="background:${f.isActive !== false ? '#ff9800' : '#28a745'}; color:white; border:none; padding:4px 8px; border-radius:4px;">${f.isActive !== false ? 'Откл' : 'Вкл'}</button>
+                        ${!f.isSystem ? `<button class="btn-danger btn-sm" onclick="deleteCustomField('${f.id}')">🗑️</button>` : ''}
                     </td>
                 </tr>
             `).join('');
@@ -959,7 +1011,6 @@
             } catch (e) { showToast('Ошибка: ' + e.message, 'error'); }
         }
 
-        // ========== СОЗДАНИЕ/РЕДАКТИРОВАНИЕ ПОЛЕЙ ==========
         function toggleOptionsFields() {
             const type = document.getElementById('fieldType').value;
             document.getElementById('optionsBlock').style.display = (type === 'radio' || type === 'select') ? 'block' : 'none';
@@ -980,7 +1031,6 @@
         function openFieldEditor(fieldId = null) {
             const isEdit = !!fieldId;
             const field = isEdit ? allFields.find(f => f.id === fieldId) : null;
-            
             document.getElementById('fieldEditorTitle').textContent = isEdit ? '✏️ Редактирование поля' : '➕ Создание поля';
             document.getElementById('fieldId').disabled = isEdit;
             document.getElementById('fieldLabel').value = field?.label || '';
@@ -992,7 +1042,6 @@
             document.getElementById('fieldOrder').value = field?.order || 0;
             document.getElementById('fieldRequired').checked = field?.isRequired || false;
             document.getElementById('fieldActive').checked = field?.isActive !== false;
-            
             if (field?.options?.length) {
                 const container = document.getElementById('optionsList');
                 container.innerHTML = '';
@@ -1000,7 +1049,6 @@
             } else {
                 document.getElementById('optionsList').innerHTML = '<div style="display:flex; gap:10px; margin-bottom:8px;"><input type="text" class="option-input" placeholder="Вариант 1" style="flex:1;"><button type="button" onclick="removeOption(this)" style="background:var(--danger); color:white; border:none; padding:8px 12px; border-radius:5px;">✖</button></div>';
             }
-            
             toggleOptionsFields();
             document.getElementById('fieldEditorModal').dataset.editId = fieldId || '';
             document.getElementById('fieldEditorModal').style.display = 'block';
@@ -1024,19 +1072,13 @@
             const order = parseInt(document.getElementById('fieldOrder').value) || 0;
             const isRequired = document.getElementById('fieldRequired').checked;
             const isActive = document.getElementById('fieldActive').checked;
-            
             if (!label) { showToast('Введите название поля', 'warning'); return; }
             if (!isEdit && !fieldId) { showToast('Введите ID поля', 'warning'); return; }
             if ((type === 'radio' || type === 'select') && !options.length) { showToast('Добавьте варианты ответов', 'warning'); return; }
-            
             try {
-                if (isEdit) {
-                    await window.fieldsManager.updateField(editId, { label, type, isRequired, isActive, semantics, placeholder, category, order, options });
-                    showToast('✅ Поле обновлено', 'success');
-                } else {
-                    await window.fieldsManager.addField({ id: fieldId, label, type, isRequired, isActive, semantics, placeholder, category, order, options });
-                    showToast('✅ Поле создано', 'success');
-                }
+                if (isEdit) await window.fieldsManager.updateField(editId, { label, type, isRequired, isActive, semantics, placeholder, category, order, options });
+                else await window.fieldsManager.addField({ id: fieldId, label, type, isRequired, isActive, semantics, placeholder, category, order, options });
+                showToast(isEdit ? '✅ Поле обновлено' : '✅ Поле создано', 'success');
                 closeFieldEditor();
                 await renderFieldsTab();
                 await renderFieldsTable();
@@ -1050,12 +1092,8 @@
             if (!field) return;
             if (!confirm(`⚠️ Удалить поле "${field.label}"?\n\nВсе данные слушателей для этого поля будут потеряны!`)) return;
             if (prompt(`Введите "УДАЛИТЬ" для подтверждения`) !== 'УДАЛИТЬ') return;
-            try {
-                await window.fieldsManager.deleteField(id);
-                showToast('✅ Поле удалено', 'success');
-                await renderFieldsTab();
-                await renderFieldsTable();
-            } catch (e) { showToast('❌ Ошибка: ' + e.message, 'error'); }
+            try { await window.fieldsManager.deleteField(id); showToast('✅ Поле удалено', 'success'); await renderFieldsTab(); await renderFieldsTable(); } 
+            catch (e) { showToast('❌ Ошибка: ' + e.message, 'error'); }
         }
 
         async function logout() { await window.auth.signOut(); window.location.href = 'index.html'; }
