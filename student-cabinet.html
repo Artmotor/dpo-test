@@ -1,264 +1,47 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Институт ДПО - Личный кабинет слушателя</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --primary: #2c5f2d;
-            --primary-dark: #1e3a1f;
-            --secondary: #ffc107;
-            --danger: #dc3545;
-            --success: #28a745;
-            --warning: #ff9800;
-            --gray-light: #f5f5f5;
-            --gray: #ddd;
-            --dark: #333;
-            --white: #fff;
-            --shadow: 0 4px 6px rgba(0,0,0,0.1);
-            --shadow-hover: 0 10px 20px rgba(0,0,0,0.15);
-            --radius: 16px;
-            --radius-sm: 10px;
-        }
-        body {
-            font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
-            min-height: 100vh;
-            color: var(--dark);
-        }
-        .header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: var(--white);
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            box-shadow: var(--shadow);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .logo-area { display: flex; align-items: center; gap: 15px; }
-        .logo { font-size: 36px; background: var(--secondary); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .header h1 { font-size: clamp(18px, 5vw, 24px); font-weight: 500; }
-        .user-info { display: flex; align-items: center; gap: 15px; }
-        .user-name { background: rgba(255,255,255,0.2); padding: 8px 16px; border-radius: 20px; font-size: 14px; }
-        .btn-logout { background: var(--danger); color: white; border: none; padding: 10px 24px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; }
-        .btn-logout:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            background: var(--white);
-            padding: 10px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            flex-wrap: wrap;
-        }
-        .tab-btn {
-            flex: 1;
-            padding: 12px 20px;
-            background: var(--gray-light);
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--dark);
-            transition: all 0.3s;
-        }
-        .tab-btn:hover { background: var(--gray); transform: translateY(-2px); }
-        .tab-btn.active { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; }
-        .tab-content {
-            display: none;
-            background: var(--white);
-            padding: 30px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            animation: fadeIn 0.3s;
-        }
-        .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .info-card { background: var(--gray-light); border-radius: var(--radius); padding: 25px; }
-        .info-card h3 { color: var(--primary); margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid var(--gray); font-weight: 500; }
-        .info-row { margin-bottom: 12px; padding: 12px; background: var(--white); border-radius: var(--radius-sm); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; }
-        .info-label { font-weight: bold; color: #555; min-width: 180px; }
-        .info-value { color: var(--dark); flex: 1; }
-        .edit-btn { background: var(--primary); color: white; border: none; padding: 8px 20px; border-radius: var(--radius-sm); cursor: pointer; margin-top: 15px; transition: all 0.3s; width: auto; }
-        .edit-btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #555; }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid var(--gray);
-            border-radius: var(--radius-sm);
-            font-size: 14px;
-            font-family: inherit;
-            transition: all 0.3s;
-        }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(44,95,45,0.1);
-        }
-        .form-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .save-btn { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; width: auto; }
-        .save-btn:hover { background: #1e7e34; }
-        .cancel-btn { background: var(--secondary); color: var(--dark); border: none; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; width: auto; }
-        .cancel-btn:hover { background: #e0a800; }
-        .success-message, .error-message {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: var(--radius-sm);
-            display: none;
-            z-index: 1001;
-            animation: slideIn 0.3s;
-            box-shadow: var(--shadow-hover);
-            font-weight: 500;
-        }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .success-message { background: var(--success); color: white; }
-        .error-message { background: var(--danger); color: white; }
-        .custom-field { margin-bottom: 20px; padding: 15px; border: 1px solid var(--gray); border-radius: var(--radius-sm); background: #fafafa; transition: all 0.3s; }
-        .save-fields-btn { background: var(--success); color: white; border: none; padding: 12px 24px; border-radius: var(--radius-sm); cursor: pointer; font-size: 14px; font-weight: 500; margin-top: 10px; }
-        .save-fields-btn:hover { background: #1e7e34; transform: translateY(-2px); }
-        .warning-banner { background: #fff3cd; border: 1px solid #ffc107; padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        /* Стили для семантики */
-        .semantics-block {
-            background: #e3f2fd;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            margin-top: 8px;
-            word-break: break-all;
-        }
-        .semantics-block a { color: #1976d2; text-decoration: none; }
-        .semantics-block a:hover { text-decoration: underline; }
-        @media (max-width: 768px) {
-            .header { padding: 15px 20px; }
-            .tabs { flex-direction: column; }
-            .tab-btn { width: 100%; text-align: center; }
-            .info-row { flex-direction: column; align-items: flex-start; gap: 5px; }
-            .info-label { min-width: auto; }
-            .form-actions { flex-direction: column; }
-            .form-actions button { width: 100%; }
-            .tab-content { padding: 20px; }
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <div class="logo-area">
-            <div class="logo">🎓</div>
-            <h1>Институт ДПО - Личный кабинет слушателя</h1>
-        </div>
-        <div class="user-info">
-            <span class="user-name" id="userName">Загрузка...</span>
-            <button class="btn-logout" onclick="logout()">🚪 Выйти</button>
-        </div>
-    </div>
-
-    <div class="container">
-        <div id="successMessage" class="success-message"></div>
-        <div id="errorMessage" class="error-message"></div>
-
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('profile')">👤 Мои данные</button>
-            <button class="tab-btn" onclick="switchTab('documents')">📄 Паспортные данные</button>
-            <button class="tab-btn" onclick="switchTab('address')">🏠 Адреса</button>
-            <button class="tab-btn" onclick="switchTab('additionalFields')">📋 Дополнительные поля</button>
-        </div>
-
-        <div id="profileTab" class="tab-content active">
-            <div class="info-card">
-                <h3>Личная информация</h3>
-                <div id="profileInfo"></div>
-                <button class="edit-btn" onclick="editProfile()">✏️ Редактировать профиль</button>
+// Обновленная функция отображения полей для слушателя (с семантикой и ID)
+function displayCustomFields(fields, values) {
+    const container = document.getElementById('customFieldsContainer');
+    if (!container) return;
+    
+    if (!fields || fields.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">📭 Нет дополнительных полей для заполнения</div>';
+        return;
+    }
+    
+    let html = '<h4 style="margin-bottom:15px; color:var(--primary);">📋 Дополнительная информация</h4>';
+    html += '<div style="margin-bottom:20px; padding:10px; background:#e8f5e9; border-radius:8px; font-size:13px; color:#555;">';
+    html += 'ℹ️ Поля, отмеченные <span style="color:#dc3545;">*</span>, обязательны для заполнения.';
+    html += '</div>';
+    
+    for (const field of fields) {
+        const value = values[field.id] || '';
+        const isRequired = field.isRequired;
+        const isMissing = isRequired && (!value || (typeof value === 'string' && value.trim() === ''));
+        
+        html += `
+            <div class="custom-field" data-field-id="${field.id}" style="margin-bottom:20px; padding:15px; border:1px solid #e0e0e0; border-radius:10px; background:${isMissing ? '#fff8e1' : '#fafafa'}; ${isMissing ? 'border-left:4px solid #ff9800;' : ''}">
+                <label style="display:block; margin-bottom:8px; font-weight:500;">
+                    ${escapeHtml(field.label)}
+                    ${isRequired ? '<span style="color:#dc3545;"> *</span>' : ''}
+                    ${isMissing ? '<span style="background:#ff9800; color:white; padding:2px 8px; border-radius:12px; font-size:11px; margin-left:8px;">Не заполнено</span>' : ''}
+                </label>
+                ${renderFieldInput(field, value)}
+                ${field.semantics ? `
+                    <div style="margin-top:8px; padding:8px 12px; background:#e3f2fd; border-radius:6px; font-size:12px;">
+                        🔗 <strong>Семантика:</strong> <a href="${escapeHtml(field.semantics)}" target="_blank" style="color:#1976d2; text-decoration:none;">${escapeHtml(field.semantics)}</a>
+                        <span style="display:block; font-size:11px; color:#666; margin-top:4px;">ID поля: <code>${field.id}</code></span>
+                    </div>
+                ` : `
+                    <div style="margin-top:8px; padding:4px 8px; font-size:11px; color:#999;">
+                        ID поля: <code>${field.id}</code>
+                    </div>
+                `}
+                ${field.placeholder ? `<small style="display:block; margin-top:5px; color:#999;">💡 ${escapeHtml(field.placeholder)}</small>` : ''}
             </div>
-        </div>
-
-        <div id="documentsTab" class="tab-content">
-            <div class="info-card">
-                <h3>Паспортные данные</h3>
-                <div id="documentsInfo"></div>
-                <button class="edit-btn" onclick="editDocuments()">✏️ Редактировать документы</button>
-            </div>
-        </div>
-
-        <div id="addressTab" class="tab-content">
-            <div class="info-card">
-                <h3>Адреса</h3>
-                <div id="addressInfo"></div>
-                <button class="edit-btn" onclick="editAddress()">✏️ Редактировать адреса</button>
-            </div>
-        </div>
-
-        <div id="additionalFieldsTab" class="tab-content">
-            <div class="info-card">
-                <h3>📋 Дополнительная информация</h3>
-                <div id="missingFieldsWarning" style="display:none;"></div>
-                <div id="customFieldsContainer">
-                    <div style="text-align:center; padding:40px; color:#999;">Загрузка дополнительных полей...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Подключение Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
-    <!-- Конфиг и общие скрипты -->
-    <script src="firebase-config.js"></script>
-    <script src="common.js"></script>
-    <script src="fields-manager.js"></script>
-
-    <!-- Скрипты слушателя -->
-    <script src="student.js"></script>
-    <script src="student-fields.js"></script>
-
-    <!-- Дополнительная инициализация -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('📄 Страница student-cabinet.html загружена');
-            console.log('✅ Firebase готов:', !!window.firebase);
-            console.log('✅ Auth готов:', !!window.auth);
-            console.log('✅ Firestore готов:', !!window.db);
-            console.log('✅ FieldsManager готов:', !!window.fieldsManager);
-            console.log('✅ Student JS готов:', !!window.loadUserData);
-
-            if (window.auth && window.auth.currentUser && !window.currentUserData) {
-                console.log('🔄 Повторная попытка загрузки данных...');
-                setTimeout(() => {
-                    if (typeof window.loadUserData === 'function') {
-                        window.loadUserData();
-                    }
-                }, 1000);
-            }
-        });
-
-        window.addEventListener('error', function(e) {
-            console.error('❌ Ошибка загрузки скрипта:', e.target.src || e.message);
-            const errorDiv = document.getElementById('errorMessage');
-            if (errorDiv && e.target && e.target.src) {
-                errorDiv.textContent = 'Ошибка загрузки: ' + e.target.src.split('/').pop();
-                errorDiv.style.display = 'block';
-                setTimeout(() => {
-                    errorDiv.style.display = 'none';
-                }, 5000);
-            }
-        });
-    </script>
-</body>
-</html>
+        `;
+    }
+    
+    html += `<button class="save-fields-btn" onclick="saveCustomFields()" style="background:#28a745; color:white; border:none; padding:12px 24px; border-radius:8px; cursor:pointer; margin-top:10px; font-weight:500; transition:all 0.3s;">💾 Сохранить все данные</button>`;
+    
+    container.innerHTML = html;
+}
