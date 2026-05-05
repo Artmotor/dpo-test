@@ -114,9 +114,9 @@
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--gray); }
         th { background: var(--gray-light); font-weight: 600; position: sticky; top: 0; }
         tr:hover { background: var(--gray-light); }
-        .edit-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; transition: all 0.3s; }
+        .edit-btn { background: var(--primary); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; transition: all 0.3s; margin: 2px; }
         .edit-btn:hover { transform: scale(1.05); }
-        .email-btn { background: var(--info); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; margin-left: 5px; }
+        .email-btn { background: var(--info); color: white; border: none; padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; margin: 2px; }
         .email-btn:hover { transform: scale(1.05); }
         .create-btn { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; }
         .modal {
@@ -227,7 +227,7 @@
 <body>
     <div class="header">
         <div class="logo-area"><div class="logo">📚</div><h1>Институт ДПО - Панель методиста</h1></div>
-        <div class="user-info"><span class="user-name" id="userName">Загрузка...</span><button class="btn-logout" onclick="logout()">🚪 Выйти</button></div>
+        <div class="user-info"><span class="user-name" id="userName">Загрузка...</span><button class="btn-logout" id="logoutBtn">🚪 Выйти</button></div>
     </div>
 
     <div class="container">
@@ -236,24 +236,24 @@
         <div id="toastWarning" class="toast-message toast-warning"></div>
 
         <div class="stats-grid">
-            <div class="stat-card" onclick="switchTab('students')"><div class="stat-icon">🎓</div><div class="stat-number" id="totalStudents">0</div><div class="stat-label">Всего слушателей</div></div>
-            <div class="stat-card" onclick="switchTab('students')"><div class="stat-icon">✅</div><div class="stat-number" id="verifiedStudents">0</div><div class="stat-label">Подтвердили email</div></div>
-            <div class="stat-card" onclick="switchTab('students')"><div class="stat-icon">📧</div><div class="stat-number" id="unverifiedStudents">0</div><div class="stat-label">Не подтвердили</div></div>
-            <div class="stat-card" onclick="switchTab('fields')"><div class="stat-icon">📋</div><div class="stat-number" id="totalFields">0</div><div class="stat-label">Всего полей</div></div>
+            <div class="stat-card" id="statStudents"><div class="stat-icon">🎓</div><div class="stat-number" id="totalStudents">0</div><div class="stat-label">Всего слушателей</div></div>
+            <div class="stat-card" id="statVerified"><div class="stat-icon">✅</div><div class="stat-number" id="verifiedStudents">0</div><div class="stat-label">Подтвердили email</div></div>
+            <div class="stat-card" id="statUnverified"><div class="stat-icon">📧</div><div class="stat-number" id="unverifiedStudents">0</div><div class="stat-label">Не подтвердили</div></div>
+            <div class="stat-card" id="statFields"><div class="stat-icon">📋</div><div class="stat-number" id="totalFields">0</div><div class="stat-label">Всего полей</div></div>
         </div>
 
         <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('students')">👥 Слушатели</button>
-            <button class="tab-btn" onclick="switchTab('fields')">⚙️ Справочник полей</button>
-            <button class="tab-btn" onclick="switchTab('createStudent')">➕ Создать слушателя</button>
-            <button class="tab-btn" onclick="switchTab('importExport')">📊 Импорт/Экспорт</button>
+            <button class="tab-btn active" data-tab="students">👥 Слушатели</button>
+            <button class="tab-btn" data-tab="fields">⚙️ Справочник полей</button>
+            <button class="tab-btn" data-tab="createStudent">➕ Создать слушателя</button>
+            <button class="tab-btn" data-tab="importExport">📊 Импорт/Экспорт</button>
         </div>
 
         <!-- Вкладка слушателей -->
         <div id="studentsTab" class="tab-content active">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🔍 Поиск по ФИО, email или телефону..." onkeyup="searchStudents()">
-                <button class="btn-export" onclick="exportToExcel()">📥 Экспорт в Excel</button>
+                <input type="text" id="searchInput" placeholder="🔍 Поиск по ФИО, email или телефону...">
+                <button class="btn-export" id="exportBtn">📥 Экспорт в CSV</button>
             </div>
             <div class="table-responsive">
                 <table id="studentsTable">
@@ -267,7 +267,7 @@
         <div id="fieldsTab" class="tab-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
                 <h3>⚙️ Справочник полей</h3>
-                <button class="create-btn" onclick="openFieldEditor()">➕ Создать поле</button>
+                <button class="create-btn" id="createFieldBtn">➕ Создать поле</button>
             </div>
             <p style="color: #666; margin-bottom: 20px;">🔵 <strong>Системные поля</strong> - предустановлены, имеют фиксированные ID и семантику.<br>🟠 <strong>Пользовательские поля</strong> - создаются методистом.<br>📌 Каждое поле имеет <strong>семантику</strong> (URL схемы).</p>
             <div id="fieldsListContainer"></div>
@@ -283,22 +283,22 @@
                 <div class="form-group"><label>Телефон</label><input type="tel" id="newPhone" placeholder="+7 (XXX) XXX-XX-XX"></div>
                 <div class="form-group"><label>Образование</label><select id="newEducation"><option value="">-- Выберите --</option><option value="высшее">Высшее</option><option value="среднее-специальное">Среднее специальное</option><option value="среднее">Среднее</option></select></div>
                 <div class="form-group"><label>Пароль (по умолчанию)</label><input type="text" id="newPassword" value="student123"></div>
-                <button class="save-btn" onclick="createNewStudent()" style="max-width: 300px;">✅ Создать слушателя</button>
+                <button class="save-btn" id="createStudentBtn" style="max-width: 300px;">✅ Создать слушателя</button>
             </div>
         </div>
 
         <!-- Вкладка импорта/экспорта -->
         <div id="importExportTab" class="tab-content">
             <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                <div class="field-category" style="flex: 1;"><h4>📥 Экспорт слушателей</h4><p>Экспорт всех данных слушателей в CSV/Excel файл</p><button class="btn-export" onclick="exportToCSV()" style="margin-top: 10px;">📥 Экспорт в CSV</button></div>
-                <div class="field-category" style="flex: 1;"><h4>📤 Импорт слушателей из CSV/Excel</h4><p>Загрузите файл CSV или Excel с данными слушателей</p><input type="file" id="importFileInput" accept=".csv, .xlsx, .xls" style="margin: 10px 0;"><button class="btn-import" onclick="previewImport()">👁️ Предпросмотр</button><button class="save-btn" onclick="confirmImport()" style="margin-top: 10px; max-width: 200px;">✅ Подтвердить импорт</button><div id="importPreview" class="import-preview" style="display: none;"></div></div>
+                <div class="field-category" style="flex: 1;"><h4>📥 Экспорт слушателей</h4><p>Экспорт всех данных слушателей в CSV файл</p><button class="btn-export" id="exportCsvBtn" style="margin-top: 10px;">📥 Экспорт в CSV</button></div>
+                <div class="field-category" style="flex: 1;"><h4>📤 Импорт слушателей из CSV</h4><p>Загрузите файл CSV с данными слушателей (первая строка - заголовки)</p><input type="file" id="importFileInput" accept=".csv" style="margin: 10px 0;"><button class="btn-import" id="previewImportBtn">👁️ Предпросмотр</button><button class="save-btn" id="confirmImportBtn" style="margin-top: 10px; max-width: 200px;">✅ Подтвердить импорт</button><div id="importPreview" class="import-preview" style="display: none;"></div></div>
             </div>
         </div>
     </div>
 
     <!-- Модальные окна -->
-    <div id="editModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>✏️ Редактирование данных слушателя</h3><span class="close" onclick="closeEditModal()">&times;</span></div><div class="modal-body" id="editModalBody"></div></div></div>
-    <div id="fieldEditorModal" class="modal"><div class="modal-content" style="max-width: 650px;"><div class="modal-header"><h3 id="fieldEditorTitle">Создание поля</h3><span class="close" onclick="closeFieldEditor()">&times;</span></div><div class="modal-body"><div class="form-group"><label>Название поля *</label><input type="text" id="fieldLabel" placeholder="Например: Отчество"></div><div class="form-group"><label>ID поля (латиницей) *</label><input type="text" id="fieldId" placeholder="Например: patronymic"><small>Уникальный ID, только латиница</small></div><div class="form-group"><label>Тип поля</label><select id="fieldType" onchange="toggleOptionsFields()"><option value="text">📝 Текст</option><option value="textarea">📄 Многострочный текст</option><option value="email">📧 Email</option><option value="tel">📞 Телефон</option><option value="date">📅 Дата</option><option value="number">#️⃣ Число</option><option value="radio">🔘 Радиокнопка</option><option value="select">📋 Выпадающий список</option></select></div><div id="optionsBlock" style="display:none;"><div class="form-group"><label>Варианты ответов</label><div id="optionsList"><div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" placeholder="Вариант 1" class="option-input" style="flex:1;"><button type="button" onclick="removeOption(this)" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:5px;">✖</button></div></div><button type="button" onclick="addOptionField()" style="background:#28a745; color:white; border:none; padding:8px 15px; border-radius:5px;">➕ Добавить вариант</button></div></div><div class="form-group"><label>Семантика (URL)</label><input type="url" id="fieldSemantics" placeholder="http://schemas.titul24.ru/simplex/..."><small>Ссылка на схему данных</small></div><div class="form-group"><label>Placeholder</label><input type="text" id="fieldPlaceholder" placeholder="Пример ввода..."></div><div class="form-group"><label>Категория</label><select id="fieldCategory"><option value="custom">📌 Пользовательские</option><option value="personal">👤 Личные</option><option value="documents">📄 Документы</option><option value="address">🏠 Адреса</option></select></div><div class="form-group"><label>Порядок</label><input type="number" id="fieldOrder" value="0"></div><div class="form-group"><label><input type="checkbox" id="fieldRequired"> Обязательное поле</label></div><div class="form-group"><label><input type="checkbox" id="fieldActive" checked> Активно</label></div><div class="form-actions"><button class="save-btn" onclick="saveField()">💾 Сохранить</button><button class="cancel-btn" onclick="closeFieldEditor()">❌ Отмена</button></div></div></div></div>
+    <div id="editModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>✏️ Редактирование данных слушателя</h3><span class="close" id="closeEditModal">&times;</span></div><div class="modal-body" id="editModalBody"></div></div></div>
+    <div id="fieldEditorModal" class="modal"><div class="modal-content" style="max-width: 650px;"><div class="modal-header"><h3 id="fieldEditorTitle">Создание поля</h3><span class="close" id="closeFieldEditor">&times;</span></div><div class="modal-body"><div class="form-group"><label>Название поля *</label><input type="text" id="fieldLabel" placeholder="Например: Отчество"></div><div class="form-group"><label>ID поля (латиницей) *</label><input type="text" id="fieldId" placeholder="Например: patronymic"><small>Уникальный ID, только латиница</small></div><div class="form-group"><label>Тип поля</label><select id="fieldType"><option value="text">📝 Текст</option><option value="textarea">📄 Многострочный текст</option><option value="email">📧 Email</option><option value="tel">📞 Телефон</option><option value="date">📅 Дата</option><option value="number">#️⃣ Число</option><option value="radio">🔘 Радиокнопка</option><option value="select">📋 Выпадающий список</option></select></div><div id="optionsBlock" style="display:none;"><div class="form-group"><label>Варианты ответов</label><div id="optionsList"><div style="display:flex; gap:10px; margin-bottom:10px;"><input type="text" placeholder="Вариант 1" class="option-input" style="flex:1;"><button type="button" class="removeOptionBtn" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:5px;">✖</button></div></div><button type="button" id="addOptionBtn" style="background:#28a745; color:white; border:none; padding:8px 15px; border-radius:5px;">➕ Добавить вариант</button></div></div><div class="form-group"><label>Семантика (URL)</label><input type="url" id="fieldSemantics" placeholder="http://schemas.titul24.ru/simplex/..."><small>Ссылка на схему данных</small></div><div class="form-group"><label>Placeholder</label><input type="text" id="fieldPlaceholder" placeholder="Пример ввода..."></div><div class="form-group"><label>Категория</label><select id="fieldCategory"><option value="custom">📌 Пользовательские</option><option value="personal">👤 Личные</option><option value="documents">📄 Документы</option><option value="address">🏠 Адреса</option></select></div><div class="form-group"><label>Порядок</label><input type="number" id="fieldOrder" value="0"></div><div class="form-group"><label><input type="checkbox" id="fieldRequired"> Обязательное поле</label></div><div class="form-group"><label><input type="checkbox" id="fieldActive" checked> Активно</label></div><div class="form-actions"><button class="save-btn" id="saveFieldBtn">💾 Сохранить</button><button class="cancel-btn" id="cancelFieldBtn">❌ Отмена</button></div></div></div></div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
@@ -312,6 +312,7 @@
         let allFields = [];
         let currentEditStudentId = null;
         let importData = [];
+        let currentUserRole = null;
 
         // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
         function showToast(message, type) {
@@ -320,7 +321,14 @@
         }
 
         function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
-        function formatDate(ts) { if (!ts) return '—'; try { const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString('ru-RU'); } catch(e) { return '—'; } }
+        
+        function formatDate(ts) { 
+            if (!ts) return '—'; 
+            try { 
+                const d = ts.toDate ? ts.toDate() : new Date(ts); 
+                return d.toLocaleDateString('ru-RU'); 
+            } catch(e) { return '—'; } 
+        }
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -343,14 +351,37 @@
                 snapshot.forEach(doc => allStudents.push({ id: doc.id, ...doc.data() }));
                 displayStudents(allStudents);
                 updateStats();
-            } catch (error) { showToast('Ошибка загрузки', 'error'); }
+            } catch (error) { 
+                console.error('Ошибка загрузки:', error);
+                showToast('Ошибка загрузки слушателей', 'error'); 
+            }
         }
 
         function displayStudents(students) {
             const tbody = document.getElementById('studentsTableBody');
             if (!tbody) return;
             if (students.length === 0) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Нет слушателей</td></tr>'; return; }
-            tbody.innerHTML = students.map(s => `<tr><td>${escapeHtml(s.fullName || '—')}</td><td>${escapeHtml(s.email)}</td><td>${escapeHtml(s.phone || '—')}</td><td>${escapeHtml(s.education || '—')}</td><td><span class="status-badge ${s.emailVerified ? 'status-verified' : 'status-unverified'}">${s.emailVerified ? '✅ Подтвержден' : '⏳ Не подтвержден'}</span></td><td class="action-buttons"><button class="edit-btn" onclick="openEditModal('${s.id}')">✏️ Редактировать</button>${!s.emailVerified ? `<button class="email-btn" onclick="resendVerificationEmail('${s.id}', '${escapeHtml(s.email)}')">📧 Отправить письмо</button>` : ''}</td></tr>`).join('');
+            tbody.innerHTML = students.map(s => `
+                <tr>
+                    <td>${escapeHtml(s.fullName || '—')}</td>
+                    <td>${escapeHtml(s.email)}</td>
+                    <td>${escapeHtml(s.phone || '—')}</td>
+                    <td>${escapeHtml(s.education || '—')}</td>
+                    <td><span class="status-badge ${s.emailVerified ? 'status-verified' : 'status-unverified'}">${s.emailVerified ? '✅ Подтвержден' : '⏳ Не подтвержден'}</span></td>
+                    <td class="action-buttons">
+                        <button class="edit-btn" data-student-id="${s.id}" data-action="edit">✏️ Редактировать</button>
+                        ${!s.emailVerified ? `<button class="email-btn" data-student-id="${s.id}" data-email="${escapeHtml(s.email)}" data-action="email">📧 Отправить письмо</button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+            
+            // Привязываем события
+            document.querySelectorAll('[data-action="edit"]').forEach(btn => {
+                btn.addEventListener('click', () => openEditModal(btn.dataset.studentId));
+            });
+            document.querySelectorAll('[data-action="email"]').forEach(btn => {
+                btn.addEventListener('click', () => resendVerificationEmail(btn.dataset.studentId, btn.dataset.email));
+            });
         }
 
         function searchStudents() {
@@ -365,7 +396,7 @@
             document.getElementById('totalFields').textContent = allFields.length;
         }
 
-        // ========== ЭКСПОРТ В CSV (работает без внешних библиотек) ==========
+        // ========== ЭКСПОРТ В CSV ==========
         function exportToCSV() {
             try {
                 const headers = ['ФИО', 'Email', 'Телефон', 'Образование', 'Email подтвержден', 'Дата регистрации', 'Фактический адрес', 'Адрес прописки', 'Номер паспорта', 'Кем выдан', 'Дата выдачи', 'СНИЛС'];
@@ -396,12 +427,7 @@
             } catch (error) { showToast('Ошибка экспорта: ' + error.message, 'error'); }
         }
 
-        // Экспорт в Excel (альтернативный метод)
-        function exportToExcel() {
-            exportToCSV();
-        }
-
-        // ========== ИМПОРТ ИЗ CSV/EXCEL ==========
+        // ========== ИМПОРТ ИЗ CSV ==========
         function parseCSV(text) {
             const lines = text.split(/\r\n|\n/);
             if (lines.length < 2) return [];
@@ -432,17 +458,12 @@
 
         function previewImport() {
             const fileInput = document.getElementById('importFileInput');
-            if (!fileInput.files[0]) { showToast('Выберите файл', 'warning'); return; }
+            if (!fileInput.files[0]) { showToast('Выберите CSV файл', 'warning'); return; }
             const file = fileInput.files[0];
             const reader = new FileReader();
             reader.onload = function(e) {
                 const content = e.target.result;
-                if (file.name.endsWith('.csv')) {
-                    importData = parseCSV(content);
-                } else {
-                    showToast('Для Excel файлов используйте конвертацию в CSV или загрузите CSV', 'warning');
-                    return;
-                }
+                importData = parseCSV(content);
                 const previewDiv = document.getElementById('importPreview');
                 if (importData.length === 0) { previewDiv.innerHTML = '<p>Нет данных для импорта</p>'; previewDiv.style.display = 'block'; return; }
                 let previewHtml = '<table><thead><tr>';
@@ -500,10 +521,12 @@
         // ========== ОТПРАВКА ПИСЬМА ==========
         async function resendVerificationEmail(studentId, email) {
             showToast(`📧 Запрос на отправку письма для ${email} сохранен`, 'info');
-            await window.db.collection('email_verification_requests').add({
-                studentId, email, requestedBy: window.auth.currentUser?.uid,
-                requestedAt: firebase.firestore.FieldValue.serverTimestamp(), status: 'pending'
-            });
+            try {
+                await window.db.collection('email_verification_requests').add({
+                    studentId, email, requestedBy: window.auth.currentUser?.uid,
+                    requestedAt: firebase.firestore.FieldValue.serverTimestamp(), status: 'pending'
+                });
+            } catch(e) { console.error(e); }
         }
 
         // ========== СОЗДАНИЕ НОВОГО СЛУШАТЕЛЯ ==========
@@ -513,8 +536,10 @@
             const phone = document.getElementById('newPhone').value.trim();
             const education = document.getElementById('newEducation').value;
             const password = document.getElementById('newPassword').value;
+            
             if (!fullName || !email) { showToast('Заполните ФИО и Email', 'warning'); return; }
             if (password.length < 6) { showToast('Пароль не менее 6 символов', 'warning'); return; }
+            
             try {
                 const userCred = await window.auth.createUserWithEmailAndPassword(email, password);
                 await userCred.user.sendEmailVerification();
@@ -529,6 +554,7 @@
                 document.getElementById('newPhone').value = '';
                 document.getElementById('newEducation').value = '';
                 await loadStudents();
+                switchTab('students');
             } catch (error) {
                 if (error.code === 'auth/email-already-in-use') showToast('Email уже существует', 'warning');
                 else showToast('Ошибка: ' + error.message, 'error');
@@ -564,9 +590,12 @@
                 }
                 html += '<hr>';
             }
-            html += `<div class="form-actions"><button class="save-btn" onclick="saveStudentData()">💾 Сохранить</button><button class="cancel-btn" onclick="closeEditModal()">❌ Отмена</button></div>`;
+            html += `<div class="form-actions"><button class="save-btn" id="saveStudentDataBtn">💾 Сохранить</button><button class="cancel-btn" id="cancelStudentEditBtn">❌ Отмена</button></div>`;
             document.getElementById('editModalBody').innerHTML = html;
             document.getElementById('editModal').style.display = 'block';
+            
+            document.getElementById('saveStudentDataBtn').onclick = saveStudentData;
+            document.getElementById('cancelStudentEditBtn').onclick = closeEditModal;
         }
 
         function closeEditModal() { document.getElementById('editModal').style.display = 'none'; currentEditStudentId = null; }
@@ -596,8 +625,14 @@
 
         // ========== УПРАВЛЕНИЕ ПОЛЯМИ ==========
         async function loadAllFields() {
-            try { allFields = await window.fieldsManager.getAllFields(true); displayFieldsList(); updateStats(); } 
-            catch (error) { showToast('Ошибка загрузки полей', 'error'); }
+            try { 
+                allFields = await window.fieldsManager.getAllFields(true); 
+                displayFieldsList(); 
+                updateStats(); 
+            } catch (error) { 
+                console.error('Ошибка загрузки полей:', error);
+                showToast('Ошибка загрузки полей', 'error'); 
+            }
         }
 
         function displayFieldsList() {
@@ -621,9 +656,10 @@
             let actions = '';
             if (isSystem) {
                 if (field.id === 'email') actions = '<div><span style="background:#17a2b8; color:white; padding:5px 10px; border-radius:5px;">🔒 Системное</span></div>';
-                else actions = `<div><button class="edit-btn" onclick="toggleSystemField('${field.id}')" style="background:${field.isActive !== false ? '#dc3545' : '#28a745'}">${field.isActive !== false ? '🔘 Отключить' : '✅ Включить'}</button></div>`;
-            } else actions = `<div><button class="edit-btn" onclick="editCustomField('${field.id}')" style="background:#667eea;">✏️</button><button class="edit-btn" onclick="deleteCustomField('${field.id}')" style="background:#dc3545;">🗑️</button></div>`;
-            return `<div class="field-item"><div><strong>${escapeHtml(field.label)}</strong> <span>${typeIcon}</span> <span style="background:${field.isRequired ? '#dc3545' : '#28a745'}; color:white; padding:2px 8px; border-radius:12px;">${field.isRequired ? 'Обязательное' : 'Необязательное'}</span> <span style="background:${field.isActive !== false ? '#28a745' : '#dc3545'}; color:white; padding:2px 8px; border-radius:12px;">${field.isActive !== false ? 'Активно' : 'Отключено'}</span><div style="margin-top:5px;"><span class="field-id-code">ID: ${field.id}</span> ${optionsHtml} ${semanticsHtml} ${field.placeholder ? `<div>💡 ${escapeHtml(field.placeholder)}</div>` : ''}</div></div>${actions}</div>`;
+                else actions = `<div><button class="edit-btn" data-field-id="${field.id}" data-action="toggle">${field.isActive !== false ? '🔘 Отключить' : '✅ Включить'}</button></div>`;
+            } else actions = `<div><button class="edit-btn" data-field-id="${field.id}" data-action="edit">✏️</button><button class="edit-btn" data-field-id="${field.id}" data-action="delete" style="background:#dc3545;">🗑️</button></div>`;
+            const result = `<div class="field-item"><div><strong>${escapeHtml(field.label)}</strong> <span>${typeIcon}</span> <span style="background:${field.isRequired ? '#dc3545' : '#28a745'}; color:white; padding:2px 8px; border-radius:12px;">${field.isRequired ? 'Обязательное' : 'Необязательное'}</span> <span style="background:${field.isActive !== false ? '#28a745' : '#dc3545'}; color:white; padding:2px 8px; border-radius:12px;">${field.isActive !== false ? 'Активно' : 'Отключено'}</span><div style="margin-top:5px;"><span class="field-id-code">ID: ${field.id}</span> ${optionsHtml} ${semanticsHtml} ${field.placeholder ? `<div>💡 ${escapeHtml(field.placeholder)}</div>` : ''}</div></div>${actions}</div>`;
+            return result;
         }
 
         async function toggleSystemField(fieldId) {
@@ -655,12 +691,12 @@
             document.getElementById('fieldOrder').value = '0';
             document.getElementById('fieldRequired').checked = false;
             document.getElementById('fieldActive').checked = true;
-            document.getElementById('optionsList').innerHTML = '<div style="display:flex; gap:10px;"><input type="text" placeholder="Вариант 1" class="option-input" style="flex:1;"><button type="button" onclick="removeOption(this)" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:5px;">✖</button></div>';
+            document.getElementById('optionsList').innerHTML = '<div style="display:flex; gap:10px;"><input type="text" placeholder="Вариант 1" class="option-input" style="flex:1;"><button type="button" class="removeOptionBtn" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:5px;">✖</button></div>';
             toggleOptionsFields();
         }
 
         function toggleOptionsFields() { document.getElementById('optionsBlock').style.display = (document.getElementById('fieldType').value === 'radio' || document.getElementById('fieldType').value === 'select') ? 'block' : 'none'; }
-        function addOptionField(value = '') { const div = document.createElement('div'); div.style.display = 'flex'; div.style.gap = '10px'; div.style.marginBottom = '10px'; div.innerHTML = `<input type="text" placeholder="Вариант" class="option-input" style="flex:1;" value="${escapeHtml(value)}"><button type="button" onclick="removeOption(this)" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:5px;">✖</button>`; document.getElementById('optionsList').appendChild(div); }
+        function addOptionField(value = '') { const div = document.createElement('div'); div.style.display = 'flex'; div.style.gap = '10px'; div.style.marginBottom = '10px'; div.innerHTML = `<input type="text" placeholder="Вариант" class="option-input" style="flex:1;" value="${escapeHtml(value)}"><button type="button" class="removeOptionBtn" style="background:#dc3545; color:white; border:none; padding:10px 15px; border-radius:5px;">✖</button>`; document.getElementById('optionsList').appendChild(div); }
         function removeOption(btn) { btn.parentElement.remove(); }
         function getOptions() { return Array.from(document.querySelectorAll('#optionsList .option-input')).map(i => i.value.trim()).filter(v => v); }
 
@@ -725,19 +761,90 @@
         }
 
         // ========== ВЫХОД ==========
-        async function logout() { await window.auth.signOut(); window.location.href = 'index.html'; }
+        async function logout() { 
+            try {
+                await window.auth.signOut(); 
+                window.location.href = 'index.html';
+            } catch(e) { console.error(e); }
+        }
 
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            // Обработчики для статических элементов
+            document.getElementById('logoutBtn')?.addEventListener('click', logout);
+            document.getElementById('exportBtn')?.addEventListener('click', exportToCSV);
+            document.getElementById('exportCsvBtn')?.addEventListener('click', exportToCSV);
+            document.getElementById('createStudentBtn')?.addEventListener('click', createNewStudent);
+            document.getElementById('createFieldBtn')?.addEventListener('click', () => openFieldEditor());
+            document.getElementById('previewImportBtn')?.addEventListener('click', previewImport);
+            document.getElementById('confirmImportBtn')?.addEventListener('click', confirmImport);
+            document.getElementById('searchInput')?.addEventListener('input', searchStudents);
+            document.getElementById('closeEditModal')?.addEventListener('click', closeEditModal);
+            document.getElementById('closeFieldEditor')?.addEventListener('click', closeFieldEditor);
+            document.getElementById('saveFieldBtn')?.addEventListener('click', saveField);
+            document.getElementById('cancelFieldBtn')?.addEventListener('click', closeFieldEditor);
+            document.getElementById('addOptionBtn')?.addEventListener('click', () => addOptionField());
+            document.getElementById('fieldType')?.addEventListener('change', toggleOptionsFields);
+            
+            // Обработчики для динамических кнопок полей
+            document.addEventListener('click', async (e) => {
+                if (e.target.closest('[data-action="toggle"]')) {
+                    const btn = e.target.closest('[data-action="toggle"]');
+                    await toggleSystemField(btn.dataset.fieldId);
+                }
+                if (e.target.closest('[data-action="edit"]') && e.target.closest('[data-action="edit"]').dataset.fieldId) {
+                    const btn = e.target.closest('[data-action="edit"]');
+                    await editCustomField(btn.dataset.fieldId);
+                }
+                if (e.target.closest('[data-action="delete"]')) {
+                    const btn = e.target.closest('[data-action="delete"]');
+                    await deleteCustomField(btn.dataset.fieldId);
+                }
+                if (e.target.closest('.removeOptionBtn')) {
+                    removeOption(e.target.closest('.removeOptionBtn'));
+                }
+            });
+            
+            // Обработчики табов
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            });
+            document.querySelectorAll('.stat-card').forEach(card => {
+                card.addEventListener('click', () => switchTab('students'));
+            });
+        });
+
+        // Проверка авторизации
         window.auth.onAuthStateChanged(async (user) => {
-            if (!user || !user.emailVerified) { window.location.href = 'index.html'; return; }
-            const userDoc = await window.db.collection('users').doc(user.uid).get();
-            const role = userDoc.data()?.role;
-            if (role === 'admin') window.location.href = 'admin-cabinet.html';
-            else if (role === 'student') window.location.href = 'student-cabinet.html';
-            else if (role !== 'metodist') window.location.href = 'index.html';
-            document.getElementById('userName').textContent = userDoc.data()?.fullName || user.email;
-            await loadStudents();
-            await loadAllFields();
+            console.log('Auth state changed:', user?.email);
+            
+            if (!user) { 
+                window.location.href = 'index.html'; 
+                return; 
+            }
+            
+            if (!user.emailVerified) {
+                showToast('Подтвердите email перед входом', 'warning');
+                setTimeout(async () => { await window.auth.signOut(); window.location.href = 'index.html'; }, 3000);
+                return;
+            }
+            
+            try {
+                const userDoc = await window.db.collection('users').doc(user.uid).get();
+                const userData = userDoc.data();
+                const role = userData?.role;
+                
+                if (role === 'admin') { window.location.href = 'admin-cabinet.html'; return; }
+                if (role === 'student') { window.location.href = 'student-cabinet.html'; return; }
+                if (role !== 'metodist') { await window.auth.signOut(); window.location.href = 'index.html'; return; }
+                
+                document.getElementById('userName').textContent = userData?.fullName || user.email;
+                await loadStudents();
+                await loadAllFields();
+            } catch (error) {
+                console.error('Ошибка загрузки данных пользователя:', error);
+                showToast('Ошибка загрузки данных', 'error');
+            }
         });
     </script>
 </body>
