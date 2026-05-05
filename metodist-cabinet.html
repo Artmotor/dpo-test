@@ -280,7 +280,7 @@
             <div class="table-responsive">
                 <table>
                     <thead><tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Статус</th><th>Инициалы</th><th>Действия</th></tr></thead>
-                    <tbody id="studentsTableBody"><td><td colspan="6" style="text-align:center;">Загрузка...</td></tr></tbody>
+                    <tbody id="studentsTableBody"><tr><td colspan="6" style="text-align:center;">Загрузка...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -300,7 +300,6 @@
                 <div class="import-preview" id="previewTable"></div>
                 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
                 <div id="importStats"></div>
-                <div id="duplicateWarning" style="display:none; background:#fff3cd; padding:10px; border-radius:8px; margin:10px 0;"></div>
                 <div style="display:flex; gap:10px; margin-top:20px;">
                     <button class="btn-success" onclick="confirmImport()">✅ Подтвердить импорт</button>
                     <button class="btn-warning" onclick="clearImport()">🗑️ Очистить</button>
@@ -332,7 +331,7 @@
             <div class="table-responsive">
                 <table class="fields-table">
                     <thead><tr><th>ID поля</th><th>Название</th><th>Тип</th><th>Семантика (URL)</th><th>Категория</th><th>Обязат.</th><th>Статус</th><th>Действия</th></tr></thead>
-                    <tbody id="fieldsTableBody"><tr><td colspan="8" style="text-align:center;">Загрузка...</td></td></tbody>
+                    <tbody id="fieldsTableBody"><tr><td colspan="8" style="text-align:center;">Загрузка...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -492,7 +491,7 @@
 
         function closeEditModal() { document.getElementById('editModal').style.display = 'none'; currentEditStudentId = null; }
 
-        // ========== ИМПОРТ ИЗ EXCEL (УЛУЧШЕННЫЙ) ==========
+        // ========== ИМПОРТ ИЗ EXCEL (ИСПРАВЛЕННЫЙ) ==========
         const semanticsMap = {
             'http://schemas.titul24.ru/simplex/фамилия': 'lastName',
             'http://schemas.titul24.ru/simplex/имя': 'firstName',
@@ -592,16 +591,7 @@
             document.getElementById('importStats').innerHTML = `<p>📊 Найдено: ${users.length}</p>`;
         }
 
-        async function checkExistingEmails(users) {
-            const emails = users.map(u => u.email);
-            const existing = new Set();
-            for (const email of emails) {
-                const snapshot = await window.db.collection('users').where('email', '==', email).get();
-                if (!snapshot.empty) existing.add(email);
-            }
-            return existing;
-        }
-
+        // ОСНОВНАЯ ФУНКЦИЯ ИМПОРТА - ИСПРАВЛЕНА
         async function confirmImport() {
             if (isImporting) { showToast('Импорт уже выполняется', 'warning'); return; }
             const users = window.importedUsersData;
@@ -613,18 +603,6 @@
             const originalBtnText = importBtn?.textContent;
             if (importBtn) { importBtn.textContent = '⏳ Импорт...'; importBtn.disabled = true; }
             
-            // Проверка дубликатов
-            showToast('🔍 Проверка дубликатов...', 'info');
-            const existingEmails = await checkExistingEmails(users);
-            const duplicateCount = existingEmails.size;
-            
-            if (duplicateCount > 0) {
-                const warningDiv = document.getElementById('duplicateWarning');
-                warningDiv.innerHTML = `⚠️ Обнаружено ${duplicateCount} уже существующих email(ов). Они будут пропущены.`;
-                warningDiv.style.display = 'block';
-                showToast(`Найдено ${duplicateCount} дубликатов, они будут пропущены`, 'warning');
-            }
-            
             const apiKey = firebaseConfig.apiKey;
             let success = 0, errors = 0, duplicates = 0;
             
@@ -633,11 +611,7 @@
                 const percent = ((i + 1) / users.length) * 100;
                 progressFill.style.width = `${percent}%`;
                 
-                // Пропускаем дубликаты
-                if (existingEmails.has(u.email)) {
-                    duplicates++;
-                    continue;
-                }
+                if (importBtn) importBtn.textContent = `⏳ Импорт: ${i+1}/${users.length}`;
                 
                 try {
                     const tempPassword = `Temp${Date.now()}${i}${Math.random().toString(36).substring(2,6)}`;
@@ -646,38 +620,75 @@
                     const response = await fetch(signUpUrl, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: u.email, password: tempPassword, returnSecureToken: false })
+                        body: JSON.stringify({ 
+                            email: u.email, 
+                            password: tempPassword, 
+                            returnSecureToken: false 
+                        })
                     });
                     
                     const result = await response.json();
-                    if (result.error) throw new Error(result.error.message);
+                    
+                    // Обработка ошибки EMAIL_EXISTS
+                    if (result.error) {
+                        if (result.error.message === 'EMAIL_EXISTS') {
+                            duplicates++;
+                            console.log(`⏭️ Пропущен (уже существует): ${u.email}`);
+                            continue;
+                        } else {
+                            throw new Error(result.error.message);
+                        }
+                    }
                     
                     const userId = result.localId;
                     
+                    // Сохранение в Firestore
                     const firestoreData = {
-                        role: 'student', emailVerified: false,
+                        role: 'student', 
+                        emailVerified: false,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        importSource: 'excel', email: u.email,
+                        importSource: 'excel', 
+                        email: u.email,
                         customFields: u.customFields || {}
                     };
+                    
                     const systemFields = ['lastName','firstName','patronymic','fullName','initials','birthDate','actualAddress','phone','snils','passportNumber','passportIssuedBy','passportIssueDate'];
-                    for (const f of systemFields) if (u[f]) firestoreData[f] = u[f];
+                    for (const f of systemFields) {
+                        if (u[f]) firestoreData[f] = u[f];
+                    }
                     
                     await window.db.collection('users').doc(userId).set(firestoreData);
                     success++;
                     
                     // Небольшая задержка между запросами
-                    await new Promise(r => setTimeout(r, 200));
+                    await new Promise(r => setTimeout(r, 300));
                     
                 } catch (err) {
                     console.error('Import error:', err);
-                    errors++;
+                    // Дополнительная проверка на дубликаты из Firestore
+                    try {
+                        const existing = await window.db.collection('users').where('email', '==', u.email).get();
+                        if (!existing.empty) {
+                            duplicates++;
+                            console.log(`⏭️ Пропущен (уже существует в Firestore): ${u.email}`);
+                        } else {
+                            errors++;
+                        }
+                    } catch (e) {
+                        errors++;
+                    }
                 }
             }
             
             progressFill.style.width = '100%';
-            showToast(`✅ Импорт завершён: +${success} новых, ⏭️ пропущено ${duplicates}, ❌ ошибок ${errors}`, 'success');
-            document.getElementById('importStats').innerHTML = `<p>✅ Успешно: ${success} | ⏭️ Дубликаты: ${duplicates} | ❌ Ошибок: ${errors}</p>`;
+            
+            let resultMsg = '';
+            if (success > 0) resultMsg += `✅ Успешно: ${success}`;
+            if (duplicates > 0) resultMsg += ` | ⏭️ Дубликаты: ${duplicates}`;
+            if (errors > 0) resultMsg += ` | ❌ Ошибок: ${errors}`;
+            
+            showToast(`Импорт завершён: ${resultMsg}`, success > 0 ? 'success' : 'warning');
+            document.getElementById('importStats').innerHTML = `<p>${resultMsg}</p>`;
             
             if (importBtn) { importBtn.textContent = originalBtnText; importBtn.disabled = false; }
             isImporting = false;
@@ -690,7 +701,6 @@
             document.getElementById('importPreview').style.display = 'none';
             document.getElementById('fileInput').value = '';
             document.getElementById('progressFill').style.width = '0%';
-            document.getElementById('duplicateWarning').style.display = 'none';
             showToast('Импорт очищен', 'success');
         }
 
@@ -706,7 +716,7 @@
             showToast('📎 Экспорт выполнен', 'success');
         }
 
-        // ========== УПРАВЛЕНИЕ ПОЛЯМИ ==========
+        // ========== УПРАВЛЕНИЕ ПОЛЯМИ (сокращено для экономии места) ==========
         async function loadAllFields() { allFields = await window.fieldsManager.getAllFields(true); return allFields; }
         async function renderFieldsTab() {
             await loadAllFields();
