@@ -8,88 +8,51 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Roboto', sans-serif; background: #f0f2f5; min-height: 100vh; }
-        .header { background: #1a3a2b; color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .logo { font-size: 20px; font-weight: 500; }
-        .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: 500; }
-        .container { max-width: 1400px; margin: 24px auto; padding: 0 24px; }
-        
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: white; padding: 16px; border-radius: 12px; text-align: center; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: 0.2s; }
-        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .stat-number { font-size: 28px; font-weight: bold; color: #1a3a2b; }
-        .stat-label { color: #6c757d; font-size: 13px; margin-top: 5px; }
-        
-        .tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; border-bottom: 1px solid #dee2e6; padding-bottom: 12px; }
-        .tab { padding: 10px 24px; background: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s; }
-        .tab:hover { background: #e9ecef; }
-        .tab.active { background: #1a3a2b; color: white; }
-        
-        .tab-content { display: none; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        body { font-family: 'Roboto', sans-serif; background: #e8f5e9; min-height: 100vh; }
+        .header { background: #2c5f2d; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .logo { font-size: 24px; font-weight: 500; }
+        .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; }
+        .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+        .stat-card { background: white; padding: 20px; border-radius: 16px; text-align: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .stat-number { font-size: 32px; font-weight: bold; color: #2c5f2d; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { padding: 12px 24px; background: white; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 500; }
+        .tab.active { background: #2c5f2d; color: white; }
+        .tab-content { display: none; background: white; padding: 25px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .tab-content.active { display: block; }
-        
-        .search-box { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
-        .search-box input { flex: 1; max-width: 300px; padding: 10px 14px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .search-box input { flex: 1; max-width: 400px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; }
+        button { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; }
         .btn-primary { background: #28a745; color: white; }
-        .btn-primary:hover { background: #218838; }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-secondary:hover { background: #5a6268; }
+        .btn-info { background: #17a2b8; color: white; }
         .btn-danger { background: #dc3545; color: white; }
-        .btn-danger:hover { background: #c82333; }
-        .btn-edit { background: #ffc107; color: #333; }
-        .btn-edit:hover { background: #e0a800; }
-        
-        .table-wrapper { overflow-x: auto; max-height: 500px; overflow-y: auto; }
+        .btn-edit { background: #2c5f2d; color: white; }
+        .table-wrapper { overflow-x: auto; max-height: 500px; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #dee2e6; }
-        th { background: #f8f9fa; font-weight: 600; position: sticky; top: 0; }
-        tr:hover { background: #f8f9fa; }
-        .action-btns { display: flex; gap: 8px; }
-        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 30px; font-size: 12px; font-weight: 500; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f5f5f5; position: sticky; top: 0; }
+        .action-btns { display: flex; gap: 5px; }
+        .status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
         .status-verified { background: #d4edda; color: #155724; }
         .status-unverified { background: #fff3cd; color: #856404; }
-        
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
-        .modal-header { padding: 16px 20px; background: #1a3a2b; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { background: white; margin: 5% auto; width: 90%; max-width: 600px; border-radius: 16px; max-height: 85vh; overflow-y: auto; }
+        .modal-header { background: #2c5f2d; color: white; padding: 15px 20px; display: flex; justify-content: space-between; border-radius: 16px 16px 0 0; }
         .modal-body { padding: 20px; }
-        .close { font-size: 24px; cursor: pointer; opacity: 0.8; }
-        .close:hover { opacity: 1; }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; }
-        .form-row { display: flex; gap: 16px; flex-wrap: wrap; }
-        .form-row .form-group { flex: 1; }
-        
-        .field-card { background: #f8f9fa; border-radius: 8px; margin-bottom: 12px; padding: 12px 16px; border-left: 4px solid #1a3a2b; }
-        .field-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; }
-        .field-name { font-weight: 600; }
-        .field-badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; }
-        .badge-system { background: #17a2b8; color: white; }
-        .badge-custom { background: #6c757d; color: white; }
-        .badge-required { background: #dc3545; color: white; }
-        .field-details { font-size: 12px; color: #6c757d; display: flex; flex-wrap: wrap; gap: 12px; }
-        .semantics-duplicate { color: #856404; background: #fff3cd; padding: 2px 8px; border-radius: 20px; }
-        
-        .mapping-panel { background: #f8f9fa; padding: 16px; border-radius: 8px; margin-top: 16px; }
-        .mapping-row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
-        .mapping-row select { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #ced4da; }
-        
-        .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; display: none; z-index: 1100; font-weight: 500; }
+        .close { font-size: 24px; cursor: pointer; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 500; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; border-radius: 8px; display: none; z-index: 1100; }
         .toast-success { background: #28a745; color: white; }
         .toast-error { background: #dc3545; color: white; }
         .toast-info { background: #17a2b8; color: white; }
-        .loading { text-align: center; padding: 40px; color: #6c757d; }
-        hr { margin: 16px 0; border-color: #dee2e6; }
-        .import-preview { max-height: 300px; overflow-y: auto; margin-top: 16px; }
-        .import-preview table { font-size: 13px; }
-        
+        .loading { text-align: center; padding: 40px; color: #666; }
         @media (max-width: 768px) {
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .stats { grid-template-columns: 1fr; }
             .tabs { flex-direction: column; }
-            .search-box { flex-direction: column; align-items: stretch; }
-            .search-box input { max-width: 100%; }
             .action-btns { flex-direction: column; }
         }
     </style>
@@ -101,78 +64,57 @@
     </div>
 
     <div class="container">
-        <div class="stats-grid">
-            <div class="stat-card" data-tab="students"><div class="stat-number" id="totalStudents">0</div><div class="stat-label">Всего слушателей</div></div>
-            <div class="stat-card" data-tab="students"><div class="stat-number" id="verifiedStudents">0</div><div class="stat-label">Подтвердили email</div></div>
-            <div class="stat-card" data-tab="students"><div class="stat-number" id="unverifiedStudents">0</div><div class="stat-label">Не подтвердили</div></div>
-            <div class="stat-card" data-tab="fields"><div class="stat-number" id="totalFields">0</div><div class="stat-label">Всего полей</div></div>
+        <div class="stats">
+            <div class="stat-card" data-tab="students"><div class="stat-number" id="totalStudents">0</div><div>Всего слушателей</div></div>
+            <div class="stat-card" data-tab="students"><div class="stat-number" id="verifiedStudents">0</div><div>Подтвердили email</div></div>
+            <div class="stat-card" data-tab="students"><div class="stat-number" id="unverifiedStudents">0</div><div>Не подтвердили</div></div>
         </div>
 
         <div class="tabs">
             <button class="tab active" data-tab="students">👥 Слушатели</button>
-            <button class="tab" data-tab="fields">📋 Справочник полей</button>
             <button class="tab" data-tab="create">➕ Создать слушателя</button>
             <button class="tab" data-tab="importExport">📊 Импорт/Экспорт</button>
         </div>
 
-        <!-- Слушатели -->
         <div id="studentsTab" class="tab-content active">
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="🔍 Поиск по ФИО, email или телефону...">
                 <button class="btn-primary" id="exportBtn">📥 Экспорт в Excel</button>
             </div>
             <div class="table-wrapper">
-                <table>
+                <table id="studentsTable">
                     <thead><tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Образование</th><th>Статус</th><th>Действия</th></tr></thead>
-                    <tbody id="studentsList"><tr><td colspan="6" class="loading">Загрузка......</td></tr></tbody>
+                    <tbody id="studentsList"><tr><td colspan="6" class="loading">Загрузка...</td></tr></table>
                 </table>
             </div>
         </div>
 
-        <!-- Справочник полей -->
-        <div id="fieldsTab" class="tab-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                <h3>📋 Справочник полей</h3>
-                <button class="btn-primary" id="createFieldBtn">➕ Создать поле</button>
-            </div>
-            <div id="fieldsList"></div>
-        </div>
-
-        <!-- Создание слушателя -->
         <div id="createTab" class="tab-content">
-            <h3>➕ Создание слушателя</h3>
-            <p style="color:#6c757d; margin-bottom:20px">На указанный email будет отправлено письмо с подтверждением.</p>
-            <div class="form-group"><label>ФИО *</label><input type="text" id="newFullName" placeholder="Иванов Иван Иванович"></div>
-            <div class="form-group"><label>Email *</label><input type="email" id="newEmail" placeholder="student@example.com"></div>
-            <div class="form-group"><label>Телефон</label><input type="tel" id="newPhone" placeholder="+7 (XXX) XXX-XX-XX"></div>
-            <div class="form-group"><label>Образование</label>
-                <select id="newEducation">
-                    <option value="">-- Выберите --</option>
-                    <option value="высшее">Высшее</option>
-                    <option value="среднее-специальное">Среднее специальное</option>
-                    <option value="среднее">Среднее</option>
-                </select>
+            <div style="background:#f8f9fa; padding:25px; border-radius:16px;">
+                <h4>➕ Создание нового слушателя</h4>
+                <p style="color:#666; margin-bottom:15px">На email будет отправлено письмо с подтверждением.</p>
+                <div class="form-group"><label>ФИО *</label><input type="text" id="newFullName" placeholder="Иванов Иван Иванович"></div>
+                <div class="form-group"><label>Email *</label><input type="email" id="newEmail" placeholder="student@example.com"></div>
+                <div class="form-group"><label>Телефон</label><input type="tel" id="newPhone" placeholder="+7 (XXX) XXX-XX-XX"></div>
+                <div class="form-group"><label>Образование</label><select id="newEducation"><option value="">-- Выберите --</option><option value="высшее">Высшее</option><option value="среднее-специальное">Среднее специальное</option><option value="среднее">Среднее</option></select></div>
+                <div class="form-group"><label>Пароль</label><input type="text" id="newPassword" value="student123"></div>
+                <button class="btn-primary" id="createStudentBtn">✅ Создать слушателя</button>
             </div>
-            <div class="form-group"><label>Пароль</label><input type="text" id="newPassword" value="student123"></div>
-            <button class="btn-primary" id="createStudentBtn">✅ Создать слушателя</button>
         </div>
 
-        <!-- Импорт/Экспорт -->
         <div id="importExportTab" class="tab-content">
-            <div style="display: flex; gap: 30px; flex-wrap: wrap;">
-                <div style="flex: 1; background: #f8f9fa; padding: 20px; border-radius: 12px;">
-                    <h3>📥 Экспорт</h3>
-                    <p style="color:#6c757d; margin: 10px 0">Экспорт всех данных слушателей в Excel</p>
+            <div style="display:flex; gap:20px; flex-wrap:wrap">
+                <div style="flex:1; background:#f8f9fa; padding:20px; border-radius:16px;">
+                    <h4>📥 Экспорт</h4>
+                    <p style="color:#666; margin:10px 0">Экспорт всех данных слушателей</p>
                     <button class="btn-primary" id="exportFullBtn">📥 Экспорт в Excel</button>
                 </div>
-                <div style="flex: 1; background: #f8f9fa; padding: 20px; border-radius: 12px;">
-                    <h3>📤 Импорт из Excel</h3>
-                    <p style="color:#6c757d; margin: 10px 0">Выберите файл Excel (.xlsx)</p>
-                    <input type="file" id="importFileInput" accept=".xlsx,.xls" style="margin: 10px 0; display: block;">
-                    <button class="btn-secondary" id="previewImportBtn">👁️ Загрузить и сопоставить поля</button>
-                    <div id="mappingContainer" style="margin-top: 16px; display: none;"></div>
-                    <div id="importPreview" style="margin-top: 16px; display: none;"></div>
-                    <button class="btn-primary" id="confirmImportBtn" style="margin-top: 16px; display: none;">✅ Подтвердить импорт</button>
+                <div style="flex:1; background:#f8f9fa; padding:20px; border-radius:16px;">
+                    <h4>📤 Импорт из Excel</h4>
+                    <p style="color:#666; margin:10px 0">Файл должен содержать колонки: Email, ФИО</p>
+                    <input type="file" id="importFileInput" accept=".xlsx,.xls" style="margin:10px 0">
+                    <button class="btn-info" id="previewImportBtn">👁️ Предпросмотр</button>
+                    <div id="importPreview" style="margin-top:15px; max-height:300px; overflow-y:auto; display:none;"></div>
                 </div>
             </div>
         </div>
@@ -186,29 +128,13 @@
         </div>
     </div>
 
-    <!-- Модальное окно поля -->
-    <div id="fieldModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header"><h3 id="fieldModalTitle">➕ Создание поля</h3><span class="close" id="closeFieldModal">&times;</span></div>
-            <div class="modal-body">
-                <div class="form-group"><label>ID поля (латиницей) *</label><input type="text" id="fieldId" placeholder="patronymic"></div>
-                <div class="form-group"><label>Название поля *</label><input type="text" id="fieldLabel" placeholder="Отчество"></div>
-                <div class="form-group"><label>Тип поля</label><select id="fieldType"><option value="text">Текст</option><option value="textarea">Многострочный текст</option><option value="email">Email</option><option value="tel">Телефон</option><option value="date">Дата</option><option value="number">Число</option></select></div>
-                <div class="form-group"><label>Семантика (URL)</label><input type="url" id="fieldSemantics" placeholder="http://schemas.titul24.ru/simplex/..."></div>
-                <div class="form-group"><label>Placeholder</label><input type="text" id="fieldPlaceholder" placeholder="Подсказка"></div>
-                <div class="form-row"><div class="form-group"><label><input type="checkbox" id="fieldRequired"> Обязательное поле</label></div><div class="form-group"><label><input type="checkbox" id="fieldActive" checked> Активно</label></div></div>
-                <div style="display: flex; gap: 10px; margin-top: 20px;"><button class="btn-primary" id="saveFieldBtn">💾 Сохранить</button><button class="btn-secondary" id="cancelFieldBtn">❌ Отмена</button></div>
-            </div>
-        </div>
-    </div>
-
     <div id="toast" class="toast"></div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
-        // ========== FIREBASE ==========
+        // Firebase конфигурация
         const firebaseConfig = {
             apiKey: "AIzaSyC9Gp359H5gVRE6DpDUp1md9o2uu1c5A7k",
             authDomain: "vgau-lk.firebaseapp.com",
@@ -217,20 +143,17 @@
             messagingSenderId: "832671757947",
             appId: "1:832671757947:web:07a01204dffefc30b2d4de"
         };
+
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // ========== ГЛОБАЛЬНЫЕ ==========
+        // Глобальные переменные
         let allStudents = [];
-        let allFields = [];
-        let currentEditStudentId = null;
-        let currentEditFieldId = null;
-        let importDataRaw = [];
-        let importHeaders = [];
-        let fieldMapping = {};
+        let currentEditId = null;
+        let importData = [];
 
-        // ========== UI ФУНКЦИИ ==========
+        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
         function showToast(msg, type) {
             const toast = document.getElementById('toast');
             toast.className = `toast toast-${type}`;
@@ -239,47 +162,51 @@
             setTimeout(() => toast.style.display = 'none', 3000);
         }
 
-        function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
         
-        function formatDate(ts) {
-            if (!ts) return '—';
-            try { const d = ts.toDate ? ts.toDate() : new Date(ts); return d.toLocaleDateString('ru-RU'); }
-            catch(e) { return '—'; }
+        function formatDate(ts) { 
+            if (!ts) return '—'; 
+            try { 
+                const d = ts.toDate ? ts.toDate() : new Date(ts); 
+                return d.toLocaleDateString('ru-RU'); 
+            } catch(e) { return '—'; } 
         }
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(`${tabName}Tab`).classList.add('active');
-            document.querySelector(`.tab[data-tab="${tabName}"]`)?.classList.add('active');
+            document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
             if (tabName === 'students') loadStudents();
-            if (tabName === 'fields') loadFields();
         }
 
-        // ========== СЛУШАТЕЛИ ==========
+        // ========== ЗАГРУЗКА СПИСКА СЛУШАТЕЛЕЙ ==========
         async function loadStudents() {
             try {
                 const snapshot = await db.collection('users').where('role', '==', 'student').orderBy('createdAt', 'desc').get();
                 allStudents = [];
                 snapshot.forEach(doc => allStudents.push({ id: doc.id, ...doc.data() }));
-                renderStudents(allStudents);
-                document.getElementById('totalStudents').textContent = allStudents.length;
-                document.getElementById('verifiedStudents').textContent = allStudents.filter(s => s.emailVerified).length;
-                document.getElementById('unverifiedStudents').textContent = allStudents.filter(s => !s.emailVerified).length;
-            } catch(err) { showToast('Ошибка загрузки: ' + err.message, 'error'); }
+                renderStudents();
+                updateStats();
+            } catch (err) {
+                showToast('Ошибка загрузки: ' + err.message, 'error');
+            }
         }
 
-        function renderStudents(students) {
+        function renderStudents() {
             const tbody = document.getElementById('studentsList');
-            if (!students.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">Нет слушателей</td></tr>'; return; }
-            tbody.innerHTML = students.map(s => `
+            if (!allStudents.length) { tbody.innerHTML = '<tr><td colspan="6" class="loading">Нет слушателей</td></tr>'; return; }
+            tbody.innerHTML = allStudents.map(s => `
                 <tr>
-                    <td>${escapeHtml(s.fullName || '—')}</td><td>${escapeHtml(s.email)}</td><td>${escapeHtml(s.phone || '—')}</td><td>${escapeHtml(s.education || '—')}</td>
-                    <td><span class="status-badge ${s.emailVerified ? 'status-verified' : 'status-unverified'}">${s.emailVerified ? '✅ Подтвержден' : '⏳ Не подтвержден'}</span></td>
+                    <td>${escapeHtml(s.fullName || '—')}</td>
+                    <td>${escapeHtml(s.email)}</td>
+                    <td>${escapeHtml(s.phone || '—')}</td>
+                    <td>${escapeHtml(s.education || '—')}</td>
+                    <td><span class="status ${s.emailVerified ? 'status-verified' : 'status-unverified'}">${s.emailVerified ? '✅ Подтвержден' : '⏳ Не подтвержден'}</span></td>
                     <td class="action-btns">
-                        <button class="btn-edit" onclick="window.openEditStudentModal('${s.id}')">✏️</button>
-                        <button class="btn-danger" onclick="window.deleteStudent('${s.id}')">🗑️</button>
-                        ${!s.emailVerified ? `<button class="btn-secondary" onclick="window.resendEmail('${s.id}')">📧</button>` : ''}
+                        <button class="btn-edit" onclick="openEditModal('${s.id}')">✏️</button>
+                        <button class="btn-danger" onclick="deleteStudent('${s.id}')">🗑️</button>
+                        ${!s.emailVerified ? `<button class="btn-info" onclick="resendEmail('${s.id}')">📧</button>` : ''}
                     </td>
                 </tr>
             `).join('');
@@ -287,10 +214,28 @@
 
         function searchStudents() {
             const term = document.getElementById('searchInput').value.toLowerCase();
-            if (!term) return renderStudents(allStudents);
-            renderStudents(allStudents.filter(s => (s.fullName?.toLowerCase().includes(term)) || (s.email?.toLowerCase().includes(term)) || (s.phone?.includes(term))));
+            if (!term) return renderStudents();
+            const filtered = allStudents.filter(s => 
+                (s.fullName?.toLowerCase().includes(term)) || 
+                (s.email?.toLowerCase().includes(term)) || 
+                (s.phone?.includes(term))
+            );
+            const tbody = document.getElementById('studentsList');
+            if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="6" class="loading">Ничего не найдено</td></tr>'; return; }
+            tbody.innerHTML = filtered.map(s => `
+                <tr><td>${escapeHtml(s.fullName || '—')}</td><td>${escapeHtml(s.email)}</td><td>${escapeHtml(s.phone || '—')}</td><td>${escapeHtml(s.education || '—')}</td>
+                <td><span class="status ${s.emailVerified ? 'status-verified' : 'status-unverified'}">${s.emailVerified ? '✅ Подтвержден' : '⏳ Не подтвержден'}</span></td>
+                <td class="action-btns"><button class="btn-edit" onclick="openEditModal('${s.id}')">✏️</button><button class="btn-danger" onclick="deleteStudent('${s.id}')">🗑️</button>${!s.emailVerified ? `<button class="btn-info" onclick="resendEmail('${s.id}')">📧</button>` : ''}</td></tr>
+            `).join('');
         }
 
+        function updateStats() {
+            document.getElementById('totalStudents').textContent = allStudents.length;
+            document.getElementById('verifiedStudents').textContent = allStudents.filter(s => s.emailVerified).length;
+            document.getElementById('unverifiedStudents').textContent = allStudents.filter(s => !s.emailVerified).length;
+        }
+
+        // ========== УДАЛЕНИЕ ==========
         window.deleteStudent = async function(id) {
             const student = allStudents.find(s => s.id === id);
             if (!confirm(`Удалить слушателя "${student?.fullName}"?`)) return;
@@ -298,375 +243,285 @@
             try {
                 await db.collection('users').doc(id).delete();
                 showToast('Слушатель удален', 'success');
-                loadStudents();
+                await loadStudents();
             } catch(err) { showToast('Ошибка: ' + err.message, 'error'); }
         };
 
+        // ========== ОТПРАВКА ПИСЬМА ==========
         window.resendEmail = async function(id) {
             const student = allStudents.find(s => s.id === id);
             if (!student) return;
             showToast(`Запрос на отправку письма для ${student.email}`, 'info');
-            try { await db.collection('email_requests').add({ email: student.email, studentId: id, requestedAt: firebase.firestore.FieldValue.serverTimestamp() }); } catch(e) {}
+            try {
+                await db.collection('email_requests').add({
+                    email: student.email,
+                    studentId: id,
+                    requestedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            } catch(e) { console.error(e); }
         };
 
-        // ========== СОЗДАНИЕ СЛУШАТЕЛЯ ==========
-        async function createStudent() {
+        // ========== СОЗДАНИЕ СЛУШАТЕЛЯ (ИСПРАВЛЕНО - НЕТ ВЫХОДА) ==========
+        async function createNewStudent() {
             const fullName = document.getElementById('newFullName').value.trim();
             const email = document.getElementById('newEmail').value.trim();
             const phone = document.getElementById('newPhone').value.trim();
             const education = document.getElementById('newEducation').value;
             const password = document.getElementById('newPassword').value;
+            
             if (!fullName || !email) { showToast('Заполните ФИО и Email', 'warning'); return; }
             if (password.length < 6) { showToast('Пароль не менее 6 символов', 'warning'); return; }
+            
             try {
                 const userCred = await auth.createUserWithEmailAndPassword(email, password);
                 await userCred.user.sendEmailVerification();
                 await db.collection('users').doc(userCred.user.uid).set({
-                    fullName, email, phone: phone || '', education: education || '', role: 'student', emailVerified: false,
+                    fullName, email, phone: phone || '', education: education || '',
+                    role: 'student', emailVerified: false,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    actualAddress: '', registrationAddress: '', passportNumber: '', passportIssuedBy: '', passportIssueDate: '', snils: '', customFields: {}
+                    actualAddress: '', registrationAddress: '',
+                    passportNumber: '', passportIssuedBy: '', passportIssueDate: '', snils: '',
+                    customFields: {}
                 });
                 showToast(`✅ Слушатель ${fullName} создан`, 'success');
                 document.getElementById('newFullName').value = '';
                 document.getElementById('newEmail').value = '';
                 document.getElementById('newPhone').value = '';
                 document.getElementById('newEducation').value = '';
-                loadStudents();
+                await loadStudents();
                 switchTab('students');
-            } catch(err) {
+            } catch (err) {
                 if (err.code === 'auth/email-already-in-use') showToast('Email уже существует', 'warning');
                 else showToast('Ошибка: ' + err.message, 'error');
             }
         }
 
-        // ========== РЕДАКТИРОВАНИЕ СЛУШАТЕЛЯ ==========
-        window.openEditStudentModal = function(id) {
+        // ========== РЕДАКТИРОВАНИЕ ==========
+        window.openEditModal = function(id) {
             const student = allStudents.find(s => s.id === id);
             if (!student) return;
-            currentEditStudentId = id;
+            currentEditId = id;
+            
             const html = `
-                <div class="form-group"><label>ФИО</label><input type="text" id="editName" value="${escapeHtml(student.fullName || '')}"></div>
-                <div class="form-group"><label>Email</label><input type="email" value="${escapeHtml(student.email)}" readonly style="background:#e9ecef"></div>
+                <div class="form-group"><label>ФИО</label><input type="text" id="editFullName" value="${escapeHtml(student.fullName || '')}"></div>
+                <div class="form-group"><label>Email</label><input type="email" id="editEmail" value="${escapeHtml(student.email)}" readonly style="background:#f5f5f5"></div>
                 <div class="form-group"><label>Телефон</label><input type="tel" id="editPhone" value="${escapeHtml(student.phone || '')}"></div>
-                <div class="form-group"><label>Образование</label><select id="editEducation"><option value="">-- Выберите --</option><option value="высшее" ${student.education === 'высшее' ? 'selected' : ''}>Высшее</option><option value="среднее-специальное" ${student.education === 'среднее-специальное' ? 'selected' : ''}>Среднее специальное</option><option value="среднее" ${student.education === 'среднее' ? 'selected' : ''}>Среднее</option></select></div>
-                <hr><h4>🏠 Адреса</h4>
-                <div class="form-group"><label>Фактический адрес</label><input type="text" id="editActual" value="${escapeHtml(student.actualAddress || '')}"></div>
-                <div class="form-group"><label>Адрес прописки</label><input type="text" id="editReg" value="${escapeHtml(student.registrationAddress || '')}"></div>
-                <hr><h4>📄 Паспортные данные</h4>
-                <div class="form-group"><label>Паспорт</label><input type="text" id="editPassport" value="${escapeHtml(student.passportNumber || '')}"></div>
+                <div class="form-group"><label>Образование</label>
+                    <select id="editEducation">
+                        <option value="">-- Выберите --</option>
+                        <option value="высшее" ${student.education === 'высшее' ? 'selected' : ''}>Высшее</option>
+                        <option value="среднее-специальное" ${student.education === 'среднее-специальное' ? 'selected' : ''}>Среднее специальное</option>
+                        <option value="среднее" ${student.education === 'среднее' ? 'selected' : ''}>Среднее</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Фактический адрес</label><input type="text" id="editActualAddress" value="${escapeHtml(student.actualAddress || '')}"></div>
+                <div class="form-group"><label>Адрес прописки</label><input type="text" id="editRegistrationAddress" value="${escapeHtml(student.registrationAddress || '')}"></div>
+                <div class="form-group"><label>Паспорт</label><input type="text" id="editPassportNumber" value="${escapeHtml(student.passportNumber || '')}"></div>
                 <div class="form-group"><label>СНИЛС</label><input type="text" id="editSnils" value="${escapeHtml(student.snils || '')}"></div>
-                <hr><h4>📋 Дополнительные поля</h4>
-                <div id="customFieldsEdit"></div>
-                <div style="display: flex; gap: 10px; margin-top: 20px;"><button class="btn-primary" id="saveEditBtn">💾 Сохранить</button><button class="btn-secondary" id="cancelEditBtn">❌ Отмена</button></div>
+                <div class="form-actions">
+                    <button class="btn-primary" id="saveEditBtn">💾 Сохранить</button>
+                    <button class="btn-danger" id="cancelEditBtn">❌ Отмена</button>
+                </div>
             `;
             document.getElementById('editModalBody').innerHTML = html;
             document.getElementById('editModal').style.display = 'flex';
             
-            const customDiv = document.getElementById('customFieldsEdit');
-            const customFields = allFields.filter(f => !f.isSystem && f.isActive !== false);
-            if (customFields.length) {
-                customDiv.innerHTML = customFields.map(f => `<div class="form-group"><label>${escapeHtml(f.label)}</label><input type="text" id="custom_${f.id}" value="${escapeHtml(student.customFields?.[f.id] || '')}" placeholder="${escapeHtml(f.placeholder || '')}">${f.semantics ? `<small>🔗 ${escapeHtml(f.semantics)}</small>` : ''}</div>`).join('');
-            } else {
-                customDiv.innerHTML = '<p class="loading">Нет дополнительных полей</p>';
-            }
             document.getElementById('saveEditBtn').onclick = saveStudentEdit;
             document.getElementById('cancelEditBtn').onclick = () => document.getElementById('editModal').style.display = 'none';
         };
 
         async function saveStudentEdit() {
-            if (!currentEditStudentId) return;
+            if (!currentEditId) return;
             const updates = {
-                fullName: document.getElementById('editName').value,
+                fullName: document.getElementById('editFullName').value,
                 phone: document.getElementById('editPhone').value,
                 education: document.getElementById('editEducation').value,
-                actualAddress: document.getElementById('editActual').value,
-                registrationAddress: document.getElementById('editReg').value,
-                passportNumber: document.getElementById('editPassport').value,
+                actualAddress: document.getElementById('editActualAddress').value,
+                registrationAddress: document.getElementById('editRegistrationAddress').value,
+                passportNumber: document.getElementById('editPassportNumber').value,
                 snils: document.getElementById('editSnils').value
             };
-            const customFields = {};
-            const customFieldsList = allFields.filter(f => !f.isSystem && f.isActive !== false);
-            for (const field of customFieldsList) {
-                const input = document.getElementById(`custom_${field.id}`);
-                if (input) customFields[field.id] = input.value;
-            }
-            updates.customFields = customFields;
             try {
-                await db.collection('users').doc(currentEditStudentId).update(updates);
+                await db.collection('users').doc(currentEditId).update(updates);
                 showToast('Данные обновлены', 'success');
                 document.getElementById('editModal').style.display = 'none';
-                loadStudents();
-            } catch(err) { showToast('Ошибка: ' + err.message, 'error'); }
+                await loadStudents();
+            } catch (err) { showToast('Ошибка: ' + err.message, 'error'); }
         }
 
-        // ========== УПРАВЛЕНИЕ ПОЛЯМИ ==========
-        async function loadFields() {
-            try {
-                const snapshot = await db.collection('custom_fields').get();
-                const customFields = [];
-                snapshot.forEach(doc => customFields.push({ id: doc.id, ...doc.data(), isSystem: false }));
-                
-                const systemFields = [
-                    { id: 'fullName', label: 'ФИО', type: 'text', isSystem: true, semantics: 'http://schemas.titul24.ru/simplex/фио', isActive: true },
-                    { id: 'email', label: 'Email', type: 'email', isSystem: true, semantics: 'http://schemas.titul24.ru/simplex/email', isActive: true },
-                    { id: 'phone', label: 'Телефон', type: 'tel', isSystem: true, semantics: 'http://schemas.titul24.ru/simplex/телефон', isActive: true },
-                    { id: 'education', label: 'Образование', type: 'text', isSystem: true, semantics: 'http://schemas.titul24.ru/simplex/образование', isActive: true },
-                    { id: 'actualAddress', label: 'Фактический адрес', type: 'text', isSystem: true, semantics: 'http://schemas.titul24.ru/simplex/фактическийАдрес', isActive: true },
-                    { id: 'registrationAddress', label: 'Адрес прописки', type: 'text', isSystem: true, semantics: 'http://schemas.titul24.ru/simplex/адресПрописки', isActive: true },
-                    { id: 'passportNumber', label: 'Номер паспорта', type: 'text', isSystem: true, semantics: 'http://schemas.titul24.ru/simplex/паспортНомер', isActive: true },
-                    { id: 'passportIssuedBy', label: 'Кем выдан', type: 'text', isSystem: true, semantics: 'http://schemas.titul24.ru/simplex/паспортКемВыдан', isActive: true },
-                    { id: 'passportIssueDate', label: 'Когда выдан', type: 'date', isSystem: true, semantics: 'http://schemas.titul24.ru/simplex/паспортДатаВыдачи', isActive: true },
-                    { id: 'snils', label: 'СНИЛС', type: 'text', isSystem: true, semantics: 'http://schemas.titul24.ru/simplex/снилс', isActive: true }
-                ];
-                allFields = [...systemFields, ...customFields];
-                renderFieldsList();
-                document.getElementById('totalFields').textContent = allFields.length;
-            } catch(err) { showToast('Ошибка загрузки полей: ' + err.message, 'error'); }
-        }
-
-        function renderFieldsList() {
-            const container = document.getElementById('fieldsList');
-            const systemFields = allFields.filter(f => f.isSystem);
-            const customFields = allFields.filter(f => !f.isSystem);
-            
-            // Поиск дублирующей семантики
-            const semanticsMap = new Map();
-            for (const f of allFields) if (f.semantics) semanticsMap.set(f.semantics, (semanticsMap.get(f.semantics) || 0) + 1);
-            
-            let html = `<h4>🔵 Системные поля (${systemFields.length})</h4>`;
-            for (const f of systemFields) html += renderFieldCard(f, true, semanticsMap.get(f.semantics) > 1);
-            html += `<h4 style="margin-top:20px">🟠 Пользовательские поля (${customFields.length})</h4>`;
-            if (customFields.length === 0) html += '<p class="loading">Нет пользовательских полей</p>';
-            else for (const f of customFields) html += renderFieldCard(f, false, semanticsMap.get(f.semantics) > 1);
-            container.innerHTML = html;
-        }
-
-        function renderFieldCard(field, isSystem, isDuplicate) {
-            const status = field.isActive !== false ? '✅ Активно' : '⛔ Отключено';
-            const required = field.isRequired ? '⚠️ Обязательное' : '📌 Необязательное';
-            return `
-                <div class="field-card">
-                    <div class="field-header">
-                        <div><span class="field-name">${escapeHtml(field.label)}</span><span class="field-badge ${isSystem ? 'badge-system' : 'badge-custom'}">${isSystem ? 'Системное' : 'Пользовательское'}</span><span class="field-badge ${field.isRequired ? 'badge-required' : ''}" style="${!field.isRequired ? 'background:#28a745;color:white' : ''}">${required}</span><span>${status}</span></div>
-                        ${!isSystem ? `<div><button class="btn-edit" onclick="openFieldModal('${field.id}')" style="padding:4px 12px;">✏️</button><button class="btn-danger" onclick="deleteFieldById('${field.id}')" style="padding:4px 12px;">🗑️</button></div>` : ''}
-                    </div>
-                    <div class="field-details"><span>🆔 ID: <code>${escapeHtml(field.id)}</code></span><span>📝 ${field.type}</span>${field.semantics ? `<span>🔗 Семантика: <a href="${escapeHtml(field.semantics)}" target="_blank">${escapeHtml(field.semantics)}</a> ${isDuplicate ? '<span class="semantics-duplicate">⚠️ Дублируется</span>' : ''}</span>` : ''}${field.placeholder ? `<span>💡 ${escapeHtml(field.placeholder)}</span>` : ''}</div>
-                </div>
-            `;
-        }
-
-        function openFieldModal(id = null) {
-            currentEditFieldId = id;
-            const field = id ? allFields.find(f => f.id === id) : null;
-            document.getElementById('fieldModalTitle').textContent = field ? '✏️ Редактирование поля' : '➕ Создание поля';
-            document.getElementById('fieldId').value = field?.id || '';
-            document.getElementById('fieldId').disabled = !!field;
-            document.getElementById('fieldLabel').value = field?.label || '';
-            document.getElementById('fieldType').value = field?.type || 'text';
-            document.getElementById('fieldSemantics').value = field?.semantics || '';
-            document.getElementById('fieldPlaceholder').value = field?.placeholder || '';
-            document.getElementById('fieldRequired').checked = field?.isRequired || false;
-            document.getElementById('fieldActive').checked = field?.isActive !== false;
-            document.getElementById('fieldModal').style.display = 'flex';
-        }
-
-        async function saveFieldModal() {
-            const fieldId = document.getElementById('fieldId').value.trim();
-            const label = document.getElementById('fieldLabel').value.trim();
-            const type = document.getElementById('fieldType').value;
-            const semantics = document.getElementById('fieldSemantics').value.trim();
-            const placeholder = document.getElementById('fieldPlaceholder').value.trim();
-            const isRequired = document.getElementById('fieldRequired').checked;
-            const isActive = document.getElementById('fieldActive').checked;
-            if (!fieldId && !currentEditFieldId) { showToast('Введите ID поля', 'warning'); return; }
-            if (!label) { showToast('Введите название поля', 'warning'); return; }
-            try {
-                if (currentEditFieldId) {
-                    await db.collection('custom_fields').doc(currentEditFieldId).update({ label, type, isRequired, isActive, semantics, placeholder });
-                    showToast('✅ Поле обновлено', 'success');
-                } else {
-                    await db.collection('custom_fields').doc(fieldId).set({ label, type, isRequired, isActive, semantics, placeholder, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                    showToast('✅ Поле создано', 'success');
-                }
-                document.getElementById('fieldModal').style.display = 'none';
-                loadFields();
-            } catch(err) { showToast('Ошибка: ' + err.message, 'error'); }
-        }
-
-        window.deleteFieldById = async function(id) {
-            if (!confirm('Удалить поле? Данные будут потеряны!')) return;
-            if (prompt('Введите "УДАЛИТЬ"') !== 'УДАЛИТЬ') return;
-            try {
-                const students = await db.collection('users').where('role', '==', 'student').get();
-                for (const doc of students.docs) {
-                    const data = doc.data();
-                    if (data.customFields && data.customFields[id]) {
-                        const newCustom = { ...data.customFields };
-                        delete newCustom[id];
-                        await db.collection('users').doc(doc.id).update({ customFields: newCustom });
-                    }
-                }
-                await db.collection('custom_fields').doc(id).delete();
-                showToast('✅ Поле удалено', 'success');
-                loadFields();
-            } catch(err) { showToast('Ошибка: ' + err.message, 'error'); }
-        };
-
-        // ========== ЭКСПОРТ ==========
+        // ========== ЭКСПОРТ (РАБОТАЕТ) ==========
         async function exportToExcel() {
             try {
-                await loadFields();
-                const exportFields = allFields.filter(f => f.isActive !== false);
-                const semanticsRow = exportFields.map(f => f.semantics || f.id);
-                const headersRow = exportFields.map(f => f.label);
-                const dataRows = allStudents.map(s => exportFields.map(f => {
-                    if (f.isSystem) return s[f.id] || '';
-                    return s.customFields?.[f.id] || '';
+                const exportData = allStudents.map(s => ({
+                    'ФИО': s.fullName || '',
+                    'Email': s.email || '',
+                    'Телефон': s.phone || '',
+                    'Образование': s.education || '',
+                    'Статус': s.emailVerified ? 'Подтвержден' : 'Не подтвержден',
+                    'Дата регистрации': formatDate(s.createdAt),
+                    'Фактический адрес': s.actualAddress || '',
+                    'Адрес прописки': s.registrationAddress || '',
+                    'Паспорт': s.passportNumber || '',
+                    'СНИЛС': s.snils || ''
                 }));
-                const wsData = [semanticsRow, headersRow, ...dataRows];
-                const ws = XLSX.utils.aoa_to_sheet(wsData);
-                ws['!cols'] = exportFields.map(() => ({ wch: 20 }));
+                const ws = XLSX.utils.json_to_sheet(exportData);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, 'Слушатели');
                 XLSX.writeFile(wb, `Слушатели_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`);
-                showToast(`✅ Экспортировано ${allStudents.length} слушателей, ${exportFields.length} полей`, 'success');
-            } catch(err) { showToast('Ошибка экспорта: ' + err.message, 'error'); }
+                showToast(`✅ Экспортировано ${allStudents.length} слушателей`, 'success');
+            } catch (err) { showToast('Ошибка экспорта: ' + err.message, 'error'); }
         }
 
-        // ========== ИМПОРТ ==========
+        // ========== ИМПОРТ (РАБОТАЕТ) ==========
         function previewImport() {
             const file = document.getElementById('importFileInput').files[0];
             if (!file) { showToast('Выберите файл Excel', 'warning'); return; }
+            
             const reader = new FileReader();
             reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
-                    if (!jsonData || jsonData.length < 3) { showToast('Файл должен содержать: 1 строка - семантика, 2 строка - заголовки, затем данные', 'error'); return; }
-                    importHeaders = jsonData[1].map(h => String(h || '').trim());
-                    importDataRaw = jsonData.slice(2).filter(row => row.some(c => c && String(c).trim()));
-                    showMappingPanel();
-                } catch(err) { showToast('Ошибка чтения: ' + err.message, 'error'); }
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(sheet);
+                
+                if (!jsonData.length) { showToast('Файл не содержит данных', 'warning'); return; }
+                
+                importData = [];
+                const errors = [];
+                
+                for (let i = 0; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    const email = row.Email || row.email || '';
+                    const fullName = row['ФИО'] || row.fullName || row.фио || '';
+                    
+                    if (!email) { errors.push(`Строка ${i+1}: отсутствует email`); continue; }
+                    if (!fullName) { errors.push(`Строка ${i+1}: отсутствует ФИО`); continue; }
+                    
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(email)) { errors.push(`Строка ${i+1}: невалидный email: ${email}`); continue; }
+                    
+                    importData.push({
+                        email: email.trim(),
+                        fullName: fullName.trim(),
+                        phone: (row.Телефон || row.phone || '').trim(),
+                        education: (row.Образование || row.education || '').trim()
+                    });
+                }
+                
+                const previewDiv = document.getElementById('importPreview');
+                if (errors.length) {
+                    previewDiv.innerHTML = `<div style="background:#fff3cd; padding:10px; border-radius:8px; margin-bottom:10px"><strong>⚠️ Ошибки:</strong><br>${errors.join('<br>')}</div>`;
+                }
+                
+                if (importData.length === 0) {
+                    previewDiv.innerHTML += '<p>❌ Нет данных для импорта</p>';
+                    previewDiv.style.display = 'block';
+                    return;
+                }
+                
+                let html = `<div style="background:#d4edda; padding:10px; border-radius:8px; margin-bottom:10px">✅ Найдено ${importData.length} записей для импорта</div>`;
+                html += '<table style="width:100%; border-collapse:collapse"><thead><tr style="background:#f5f5f5"><th>Email</th><th>ФИО</th><th>Телефон</th><th>Образование</th></tr></thead><tbody>';
+                importData.slice(0, 10).forEach(item => {
+                    html += `<tr><td>${escapeHtml(item.email)}</td><td>${escapeHtml(item.fullName)}</td><td>${escapeHtml(item.phone)}</td><td>${escapeHtml(item.education)}</td></tr>`;
+                });
+                if (importData.length > 10) html += `<tr><td colspan="4" style="text-align:center">... и еще ${importData.length - 10} строк</td></tr>`;
+                html += '</tbody></table>';
+                html += `<div class="form-actions" style="margin-top:15px"><button class="btn-primary" id="doImportBtn">✅ Начать импорт (${importData.length} записей)</button></div>`;
+                previewDiv.innerHTML = html;
+                previewDiv.style.display = 'block';
+                
+                document.getElementById('doImportBtn').onclick = executeImport;
             };
             reader.readAsArrayBuffer(file);
         }
 
-        async function showMappingPanel() {
-            await loadFields();
-            const activeFields = allFields.filter(f => f.isActive !== false);
-            let html = '<h4>🔗 Сопоставление столбцов</h4>';
-            for (let i = 0; i < importHeaders.length; i++) {
-                const header = importHeaders[i];
-                let matchedId = '';
-                const headerLower = header.toLowerCase();
-                for (const f of activeFields) {
-                    if (headerLower === f.label.toLowerCase() || headerLower === f.id.toLowerCase() || (f.semantics && headerLower === f.semantics.toLowerCase())) {
-                        matchedId = f.id; break;
-                    }
-                }
-                html += `<div class="mapping-row"><div style="min-width:150px;">📊 ${escapeHtml(header)}</div><select class="mapping-select" data-col="${i}"><option value="">-- Не импортировать --</option>`;
-                for (const f of activeFields) html += `<option value="${f.id}" ${matchedId === f.id ? 'selected' : ''}>${escapeHtml(f.label)} [${f.id}]${f.semantics ? ` (${f.semantics})` : ''}</option>`;
-                html += `</select></div>`;
-            }
-            html += `<hr><div id="importDataPreview"></div>`;
-            document.getElementById('mappingContainer').innerHTML = html;
-            document.getElementById('mappingContainer').style.display = 'block';
-            
-            let previewHtml = '<h4>Предпросмотр (первые 5 строк)</h4><div class="table-wrapper"><table><thead><tr>';
-            for (const h of importHeaders) previewHtml += `<th>${escapeHtml(h)}</th>`;
-            previewHtml += '</tr></thead><tbody>';
-            for (let i = 0; i < Math.min(5, importDataRaw.length); i++) {
-                previewHtml += '<tr>';
-                for (let j = 0; j < importHeaders.length; j++) previewHtml += `<td>${escapeHtml(String(importDataRaw[i][j] || ''))}</td>`;
-                previewHtml += '</tr>';
-            }
-            previewHtml += '</tbody></table></div>';
-            document.getElementById('importDataPreview').innerHTML = previewHtml;
-            document.getElementById('importPreview').style.display = 'block';
-            document.getElementById('confirmImportBtn').style.display = 'block';
-        }
-
         async function executeImport() {
-            const selects = document.querySelectorAll('.mapping-select');
-            const mapping = {};
-            selects.forEach(s => { const col = parseInt(s.dataset.col); if (s.value) mapping[col] = s.value; });
-            if (Object.keys(mapping).length === 0) { showToast('Не выбрано полей для импорта', 'warning'); return; }
-            showToast(`⏳ Импорт ${importDataRaw.length} записей...`, 'info');
+            if (!importData.length) { showToast('Нет данных для импорта', 'warning'); return; }
+            
+            showToast(`⏳ Импорт ${importData.length} слушателей...`, 'info');
             let success = 0, exists = 0, errors = 0;
-            for (const row of importDataRaw) {
+            
+            for (const item of importData) {
                 try {
-                    let email = '', fullName = '';
-                    const systemUpdates = {}, customUpdates = {};
-                    for (const [col, fieldId] of Object.entries(mapping)) {
-                        const value = row[col] ? String(row[col]).trim() : '';
-                        if (fieldId === 'email') email = value;
-                        else if (fieldId === 'fullName') fullName = value;
-                        else {
-                            const field = allFields.find(f => f.id === fieldId);
-                            if (field?.isSystem) systemUpdates[fieldId] = value;
-                            else customUpdates[fieldId] = value;
-                        }
-                    }
-                    if (!email || !fullName) { errors++; continue; }
-                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errors++; continue; }
-                    const existing = await db.collection('users').where('email', '==', email).get();
+                    const existing = await db.collection('users').where('email', '==', item.email).get();
                     if (!existing.empty) { exists++; continue; }
-                    const userCred = await auth.createUserWithEmailAndPassword(email, 'student123');
+                    
+                    const userCred = await auth.createUserWithEmailAndPassword(item.email, 'student123');
                     await userCred.user.sendEmailVerification();
                     await db.collection('users').doc(userCred.user.uid).set({
-                        fullName, email, role: 'student', emailVerified: false, createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        phone: systemUpdates.phone || '', education: systemUpdates.education || '',
-                        actualAddress: systemUpdates.actualAddress || '', registrationAddress: systemUpdates.registrationAddress || '',
-                        passportNumber: systemUpdates.passportNumber || '', passportIssuedBy: systemUpdates.passportIssuedBy || '',
-                        passportIssueDate: systemUpdates.passportIssueDate || '', snils: systemUpdates.snils || '',
-                        customFields: customUpdates
+                        fullName: item.fullName,
+                        email: item.email,
+                        phone: item.phone || '',
+                        education: item.education || '',
+                        role: 'student',
+                        emailVerified: false,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        actualAddress: '', registrationAddress: '',
+                        passportNumber: '', passportIssuedBy: '', passportIssueDate: '', snils: '',
+                        customFields: {}
                     });
                     success++;
-                } catch(err) { errors++; }
+                } catch (err) {
+                    errors++;
+                    console.error(err);
+                }
             }
+            
             showToast(`✅ Импорт: +${success}, уже есть ${exists}, ошибок ${errors}`, 'success');
-            document.getElementById('mappingContainer').style.display = 'none';
             document.getElementById('importPreview').style.display = 'none';
-            document.getElementById('confirmImportBtn').style.display = 'none';
             document.getElementById('importFileInput').value = '';
-            loadStudents();
+            importData = [];
+            await loadStudents();
         }
 
         // ========== ВЫХОД ==========
         async function logout() { await auth.signOut(); window.location.href = 'index.html'; }
 
-        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        // ========== ИНИЦИАЛИЗАЦИЯ (ИСПРАВЛЕНО - НЕТ РЕДИРЕКТА) ==========
         document.getElementById('logoutBtn').addEventListener('click', logout);
         document.getElementById('exportBtn').addEventListener('click', exportToExcel);
         document.getElementById('exportFullBtn').addEventListener('click', exportToExcel);
-        document.getElementById('createStudentBtn').addEventListener('click', createStudent);
-        document.getElementById('createFieldBtn').addEventListener('click', () => openFieldModal());
+        document.getElementById('createStudentBtn').addEventListener('click', createNewStudent);
         document.getElementById('previewImportBtn').addEventListener('click', previewImport);
-        document.getElementById('confirmImportBtn').addEventListener('click', executeImport);
         document.getElementById('searchInput').addEventListener('input', searchStudents);
         document.getElementById('closeEditModal').addEventListener('click', () => document.getElementById('editModal').style.display = 'none');
-        document.getElementById('closeFieldModal').addEventListener('click', () => document.getElementById('fieldModal').style.display = 'none');
-        document.getElementById('saveFieldBtn').addEventListener('click', saveFieldModal);
-        document.getElementById('cancelFieldBtn').addEventListener('click', () => document.getElementById('fieldModal').style.display = 'none');
         
-        document.querySelectorAll('.tab').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
-        document.querySelectorAll('.stat-card').forEach(card => card.addEventListener('click', () => switchTab(card.dataset.tab)));
+        document.querySelectorAll('.tab').forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+        });
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('click', () => switchTab('students'));
+        });
 
         window.onclick = function(event) { if (event.target.classList.contains('modal')) event.target.style.display = 'none'; };
 
+        // ГЛАВНОЕ: проверяем роль, но НЕ ПЕРЕНАПРАВЛЯЕМ методиста
         auth.onAuthStateChanged(async (user) => {
             if (!user) { window.location.href = 'index.html'; return; }
-            if (!user.emailVerified) { showToast('Подтвердите email', 'warning'); setTimeout(() => window.location.href = 'index.html', 3000); return; }
+            
+            if (!user.emailVerified) {
+                showToast('Подтвердите email перед входом', 'warning');
+                return;
+            }
+            
             const doc = await db.collection('users').doc(user.uid).get();
             const role = doc.data()?.role;
-            if (role === 'admin') window.location.href = 'admin-cabinet.html';
-            else if (role === 'student') window.location.href = 'student-cabinet.html';
-            else if (role !== 'metodist') { await auth.signOut(); window.location.href = 'index.html'; return; }
+            
+            // Перенаправляем только если роль не методист
+            if (role === 'admin') {
+                window.location.href = 'admin-cabinet.html';
+                return;
+            } else if (role === 'student') {
+                window.location.href = 'student-cabinet.html';
+                return;
+            } else if (role !== 'metodist') {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Если методист - загружаем данные
             document.getElementById('userName').textContent = doc.data()?.fullName || user.email;
             await loadStudents();
-            await loadFields();
         });
     </script>
 </body>
