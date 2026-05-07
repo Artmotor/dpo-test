@@ -273,8 +273,9 @@
                     <thead>
                         <tr><th>ФИО</th><th>Email</th><th>Телефон</th><th>Статус</th><th>Дата регистрации</th><th>Действия</th></tr>
                     </thead>
-                    <tbody id="studentsTableBody"><tr><td colspan="6" style="text-align:center;">Загрузка...</td></tr></tbody>
-                </table>
+                    <tbody id="studentsTableBody"><tr><td colspan="6" style="text-align:center;">Загрузка......</td></tr>
+                </tbody>
+            </table>
             </div>
         </div>
 
@@ -303,7 +304,7 @@
     </div>
 
     <div id="editModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>✏️ Редактирование данных слушателя</h3><span class="close" onclick="closeEditModal()">&times;</span></div><div class="modal-body" id="editModalBody"></div></div></div>
-    <div id="resetPwdModal" class="modal"><div class="modal-content" style="max-width:500px;"><div class="modal-header"><h3>🔄 Смена пароля слушателя</h3><span class="close" onclick="closeResetPwdModal()">&times;</span></div><div class="modal-body"><div class="form-group"><label>Новый пароль</label><input type="text" id="newPasswordInput" class="form-control" placeholder="Введите новый пароль"><small style="color:#666; display:block; margin-top:5px;">Пароль будет отправлен на email слушателя. Если учётной записи нет, она будет создана автоматически.</small></div><div class="form-actions"><button class="save-btn" onclick="confirmResetPassword()">💾 Установить и отправить</button><button class="cancel-btn" onclick="closeResetPwdModal()">❌ Отмена</button></div></div></div></div>
+    <div id="resetPwdModal" class="modal"><div class="modal-content" style="max-width:500px;"><div class="modal-header"><h3>🔄 Смена пароля слушателя</h3><span class="close" onclick="closeResetPwdModal()">&times;</span></div><div class="modal-body"><div class="form-group"><label>Новый пароль</label><input type="text" id="newPasswordInput" class="form-control" placeholder="Введите новый пароль"><small style="color:#666; display:block; margin-top:5px;">Пароль будет установлен для входа в систему. Уведомление на email не отправляется.</small></div><div class="form-actions"><button class="save-btn" onclick="confirmResetPassword()">💾 Установить пароль</button><button class="cancel-btn" onclick="closeResetPwdModal()">❌ Отмена</button></div></div></div></div>
 
     <div id="fieldEditorModal" class="modal"><div class="modal-content" style="max-width:650px;"><div class="modal-header"><h3 id="fieldEditorTitle">Создание поля</h3><span class="close" onclick="closeFieldEditor()">&times;</span></div><div class="modal-body"><div class="form-group"><label>Название поля *</label><input type="text" id="fieldLabel"></div><div class="form-group"><label>ID поля (латиницей) *</label><input type="text" id="fieldId"><small>Уникальный ID</small></div><div class="form-group"><label>Тип поля</label><select id="fieldType" onchange="toggleOptionsFields()"><option value="text">📝 Текст</option><option value="textarea">📄 Многострочный</option><option value="email">📧 Email</option><option value="tel">📞 Телефон</option><option value="date">📅 Дата</option><option value="number">#️⃣ Число</option><option value="radio">🔘 Радио</option><option value="select">📋 Выпадающий список</option></select></div><div id="optionsBlock" style="display:none;"><div class="form-group"><label>Варианты ответов</label><div id="optionsList"></div><button type="button" onclick="addOptionField()" style="background:#28a745; color:white; border:none; padding:8px 15px; border-radius:5px;">➕ Добавить вариант</button></div></div><div class="form-group"><label>Категория</label><select id="fieldCategory"><option value="personal">👤 Личные</option><option value="education">🎓 Образование</option><option value="work">💼 Работа</option><option value="documents">📄 Документы</option><option value="address">🏠 Адреса</option><option value="custom">📌 Дополнительные</option></select></div><div class="form-group"><label>Семантика</label><input type="url" id="fieldSemantics" placeholder="http://schemas..."></div><div class="form-group"><label>Placeholder</label><input type="text" id="fieldPlaceholder"></div><div class="form-group"><label>Порядок</label><input type="number" id="fieldOrder" value="0"></div><div class="form-group"><label><input type="checkbox" id="fieldRequired"> Обязательное</label></div><div class="form-group"><label><input type="checkbox" id="fieldActive" checked> Активно</label></div><div class="form-actions"><button class="save-btn" onclick="saveField()">💾 Сохранить</button><button class="cancel-btn" onclick="closeFieldEditor()">❌ Отмена</button></div></div></div></div>
 
@@ -326,7 +327,39 @@
         function searchStudents(){ const term=document.getElementById('searchInput')?.value.toLowerCase()||''; const filtered=allStudents.filter(s=>(s.fullName&&s.fullName.toLowerCase().includes(term))||(s.email&&s.email.toLowerCase().includes(term))||(s.phone&&s.phone.toLowerCase().includes(term))); displayStudents(filtered); }
         function updateStats(){ const total=allStudents.length, verified=allStudents.filter(s=>s.emailVerified).length, active=allStudents.filter(s=>{ const ll=s.lastLogin?.toDate(); if(!ll) return false; return (Date.now()-ll.getTime())/(86400000)<=30; }).length; document.getElementById('totalStudents').textContent=total; document.getElementById('verifiedStudents').textContent=verified; document.getElementById('activeStudents').textContent=active; }
         
-        async function createStudentWithoutAuth(){ const fullName=document.getElementById('newFullName').value.trim(), email=document.getElementById('newEmail').value.trim(), phone=document.getElementById('newPhone').value.trim(), education=document.getElementById('newEducation').value, actualAddress=document.getElementById('newActualAddress').value.trim(), registrationAddress=document.getElementById('newRegistrationAddress').value.trim(); if(!fullName||!email){showToast('Заполните ФИО и Email','warning');return;} const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/; if(!emailRegex.test(email)){showToast('Некорректный email','warning');return;} const existing=await window.db.collection('users').where('email','==',email).get(); if(!existing.empty){showToast('Email уже существует','warning');return;} try{ const studentId=window.db.collection('users').doc().id; await window.db.collection('users').doc(studentId).set({fullName,email,phone:phone||'',education:education||'',actualAddress:actualAddress||'',registrationAddress:registrationAddress||'',role:'student',emailVerified:false,isManuallyCreated:true,createdAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:currentMetodistUser?.uid||null,customFields:{}}); showToast(`✅ Слушатель ${fullName} создан`,'success'); document.getElementById('newFullName').value=''; document.getElementById('newEmail').value=''; document.getElementById('newPhone').value=''; document.getElementById('newEducation').value=''; document.getElementById('newActualAddress').value=''; document.getElementById('newRegistrationAddress').value=''; await loadStudents();}catch(e){showToast('Ошибка: '+e.message,'error');} }
+        async function createStudentWithoutAuth(){ 
+            const fullName=document.getElementById('newFullName').value.trim(), 
+                  email=document.getElementById('newEmail').value.trim(), 
+                  phone=document.getElementById('newPhone').value.trim(), 
+                  education=document.getElementById('newEducation').value, 
+                  actualAddress=document.getElementById('newActualAddress').value.trim(), 
+                  registrationAddress=document.getElementById('newRegistrationAddress').value.trim(); 
+            if(!fullName||!email){showToast('Заполните ФИО и Email','warning');return;} 
+            const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
+            if(!emailRegex.test(email)){showToast('Некорректный email','warning');return;} 
+            const existing=await window.db.collection('users').where('email','==',email).get(); 
+            if(!existing.empty){showToast('Email уже существует','warning');return;} 
+            try{ 
+                const studentId=window.db.collection('users').doc().id; 
+                await window.db.collection('users').doc(studentId).set({
+                    fullName,email,phone:phone||'',education:education||'',
+                    actualAddress:actualAddress||'',registrationAddress:registrationAddress||'',
+                    role:'student',emailVerified:false,isManuallyCreated:true,
+                    createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+                    createdBy:currentMetodistUser?.uid||null,
+                    customFields:{}
+                }); 
+                showToast(`✅ Слушатель ${fullName} создан`,'success'); 
+                document.getElementById('newFullName').value=''; 
+                document.getElementById('newEmail').value=''; 
+                document.getElementById('newPhone').value=''; 
+                document.getElementById('newEducation').value=''; 
+                document.getElementById('newActualAddress').value=''; 
+                document.getElementById('newRegistrationAddress').value=''; 
+                await loadStudents();
+                switchTab('students');
+            }catch(e){showToast('Ошибка: '+e.message,'error');} 
+        }
         
         async function deleteStudent(id, name){ if(!confirm(`Удалить слушателя "${name}"? Все данные будут потеряны безвозвратно.`)) return; try{ const student=allStudents.find(s=>s.id===id); if(student?.uid){ try{ await window.auth.deleteUser(student.uid); }catch(e){console.warn('Не удалось удалить из Auth',e);} } await window.db.collection('users').doc(id).delete(); showToast(`✅ Слушатель удален`,'success'); await loadStudents();}catch(e){showToast('Ошибка: '+e.message,'error');} }
         
@@ -335,7 +368,7 @@
         
         async function confirmResetPassword(){ 
             const newPwd=document.getElementById('newPasswordInput').value.trim(); 
-            if(!newPwd){showToast('Введите новый пароль','warning');return;} 
+            if(!newPwd){showToast('Введите пароль','warning');return;} 
             if(newPwd.length<6){showToast('Пароль минимум 6 символов','warning');return;} 
             try{ 
                 const student=allStudents.find(s=>s.id===resetStudentId); 
@@ -346,11 +379,12 @@
                     const userRecord = await window.auth.getUserByEmail(student.email);
                     if(userRecord) authUserExists = true;
                 }catch(e){ 
-                    console.log('Пользователь не найден в Auth, будет создан новый');
+                    console.log('Пользователь не найден в Auth, будет создан');
                 }
                 
                 if(authUserExists){
                     await window.auth.updateUser(student.email, {password: newPwd});
+                    showToast(`✅ Пароль для ${student.email} обновлен`,'success');
                 } else {
                     await window.auth.createUser({
                         email: student.email,
@@ -362,6 +396,7 @@
                         uid: student.email,
                         emailVerified: false
                     });
+                    showToast(`✅ Учетная запись создана, пароль установлен`,'success');
                 }
                 
                 await window.db.collection('users').doc(resetStudentId).update({
@@ -369,17 +404,10 @@
                     lastPasswordSetBy: currentMetodistUser?.email || 'metodist'
                 });
                 
-                try {
-                    const emailBody = `Здравствуйте, ${student.fullName || 'слушатель'}!\n\nВаш новый пароль для входа в систему: ${newPwd}\n\nПожалуйста, смените пароль после входа.\n\nС уважением, Институт ДПО`;
-                    console.log('Email с паролем отправлен на:', student.email);
-                    showToast(`✅ Пароль установлен и отправлен на ${student.email}`,'success');
-                } catch(mailErr){
-                    showToast(`✅ Пароль изменен, но email не отправлен: ${mailErr.message}`,'warning');
-                }
                 closeResetPwdModal(); 
             }catch(e){ 
                 let errorMsg = e.message;
-                if(e.code === 'auth/email-already-exists') errorMsg = 'Email уже используется в системе Auth';
+                if(e.code === 'auth/email-already-exists') errorMsg = 'Email уже используется в системе Auth другим пользователем';
                 showToast('Ошибка: '+errorMsg,'error'); 
                 closeResetPwdModal(); 
             } 
