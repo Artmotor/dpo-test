@@ -304,7 +304,7 @@
     </div>
 
     <div id="editModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>✏️ Редактирование данных слушателя</h3><span class="close" onclick="closeEditModal()">&times;</span></div><div class="modal-body" id="editModalBody"></div></div></div>
-    <div id="resetPwdModal" class="modal"><div class="modal-content" style="max-width:500px;"><div class="modal-header"><h3>🔄 Установка пароля слушателя</h3><span class="close" onclick="closeResetPwdModal()">&times;</span></div><div class="modal-body"><div class="form-group"><label>Новый пароль</label><input type="text" id="newPasswordInput" class="form-control" placeholder="Введите новый пароль (мин. 6 символов)"><small style="color:#666; display:block; margin-top:5px;">Пароль будет установлен сразу. Учётная запись создастся автоматически, письмо не отправляется.</small></div><div class="form-actions"><button class="save-btn" onclick="confirmResetPassword()">💾 Установить пароль</button><button class="cancel-btn" onclick="closeResetPwdModal()">❌ Отмена</button></div></div></div></div>
+    <div id="resetPwdModal" class="modal"><div class="modal-content" style="max-width:500px;"><div class="modal-header"><h3>🔄 Установка пароля слушателя</h3><span class="close" onclick="closeResetPwdModal()">&times;</span></div><div class="modal-body"><div class="form-group"><label>Новый пароль</label><input type="text" id="newPasswordInput" class="form-control" placeholder="Введите новый пароль (мин. 6 символов)"><small style="color:#666; display:block; margin-top:5px;">Если учётная запись существует — пароль будет обновлён. Если нет — создана новая. Письма не отправляются.</small></div><div class="form-actions"><button class="save-btn" onclick="confirmResetPassword()">💾 Установить пароль</button><button class="cancel-btn" onclick="closeResetPwdModal()">❌ Отмена</button></div></div></div></div>
 
     <div id="fieldEditorModal" class="modal"><div class="modal-content" style="max-width:650px;"><div class="modal-header"><h3 id="fieldEditorTitle">Создание поля</h3><span class="close" onclick="closeFieldEditor()">&times;</span></div><div class="modal-body"><div class="form-group"><label>Название поля *</label><input type="text" id="fieldLabel"></div><div class="form-group"><label>ID поля (латиницей) *</label><input type="text" id="fieldId"><small>Уникальный ID</small></div><div class="form-group"><label>Тип поля</label><select id="fieldType" onchange="toggleOptionsFields()"><option value="text">📝 Текст</option><option value="textarea">📄 Многострочный</option><option value="email">📧 Email</option><option value="tel">📞 Телефон</option><option value="date">📅 Дата</option><option value="number">#️⃣ Число</option><option value="radio">🔘 Радио</option><option value="select">📋 Выпадающий список</option></select></div><div id="optionsBlock" style="display:none;"><div class="form-group"><label>Варианты ответов</label><div id="optionsList"></div><button type="button" onclick="addOptionField()" style="background:#28a745; color:white; border:none; padding:8px 15px; border-radius:5px;">➕ Добавить вариант</button></div></div><div class="form-group"><label>Категория</label><select id="fieldCategory"><option value="personal">👤 Личные</option><option value="education">🎓 Образование</option><option value="work">💼 Работа</option><option value="documents">📄 Документы</option><option value="address">🏠 Адреса</option><option value="custom">📌 Дополнительные</option></select></div><div class="form-group"><label>Семантика</label><input type="url" id="fieldSemantics" placeholder="http://schemas..."></div><div class="form-group"><label>Placeholder</label><input type="text" id="fieldPlaceholder"></div><div class="form-group"><label>Порядок</label><input type="number" id="fieldOrder" value="0"></div><div class="form-group"><label><input type="checkbox" id="fieldRequired"> Обязательное</label></div><div class="form-group"><label><input type="checkbox" id="fieldActive" checked> Активно</label></div><div class="form-actions"><button class="save-btn" onclick="saveField()">💾 Сохранить</button><button class="cancel-btn" onclick="closeFieldEditor()">❌ Отмена</button></div></div></div></div>
 
@@ -361,7 +361,7 @@
             }catch(e){showToast('Ошибка: '+e.message,'error');} 
         }
         
-        async function deleteStudent(id, name){ if(!confirm(`Удалить слушателя "${name}"? Все данные будут потеряны безвозвратно.`)) return; try{ const student=allStudents.find(s=>s.id===id); if(student?.authUid){ try{ await window.auth.deleteUser(student.authUid); }catch(e){console.warn(e);} } await window.db.collection('users').doc(id).delete(); showToast(`✅ Слушатель удален`,'success'); await loadStudents();}catch(e){showToast('Ошибка: '+e.message,'error');} }
+        async function deleteStudent(id, name){ if(!confirm(`Удалить слушателя "${name}"? Все данные будут потеряны безвозвратно.`)) return; try{ const student=allStudents.find(s=>s.id===id); if(student?.authUid){ try{ const user = window.auth.currentUser; if(user && user.uid === student.authUid){} }catch(e){} } await window.db.collection('users').doc(id).delete(); showToast(`✅ Слушатель удален`,'success'); await loadStudents();}catch(e){showToast('Ошибка: '+e.message,'error');} }
         
         function openResetPwdModal(id, email){ resetStudentId=id; document.getElementById('resetPwdModal').style.display='block'; document.getElementById('newPasswordInput').value=''; }
         function closeResetPwdModal(){ document.getElementById('resetPwdModal').style.display='none'; resetStudentId=null; }
@@ -374,11 +374,12 @@
             const student = allStudents.find(s=>s.id===resetStudentId);
             if(!student){showToast('Слушатель не найден','error'); closeResetPwdModal(); return;}
             
-            showToast('⏳ Создание учётной записи...','info');
+            showToast('⏳ Установка пароля...','info');
             
             try {
                 let userCredential = null;
                 let userExists = false;
+                let authUser = null;
                 
                 try {
                     const signInMethods = await window.auth.fetchSignInMethodsForEmail(student.email);
@@ -390,14 +391,18 @@
                 
                 if (userExists) {
                     try {
-                        await window.auth.signInWithEmailAndPassword(student.email, newPwd);
-                        showToast(`✅ Пользователь уже существует, проверьте пароль`,'success');
-                    } catch(loginErr) {
-                        showToast(`⚠️ Учётная запись существует, но пароль не совпадает. Используйте восстановление пароля.`,'warning');
+                        await window.auth.sendPasswordResetEmail(student.email);
+                        showToast(`✉️ На email ${student.email} отправлена ссылка для сброса пароля. Пользователь сможет установить пароль сам.`,'success');
+                        await window.db.collection('users').doc(resetStudentId).update({
+                            passwordResetRequestedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            resetRequestedBy: currentMetodistUser?.email || 'metodist'
+                        });
+                    } catch(resetErr) {
+                        showToast('Не удалось отправить запрос на сброс: '+resetErr.message,'error');
                     }
                 } else {
                     userCredential = await window.auth.createUserWithEmailAndPassword(student.email, newPwd);
-                    const authUser = userCredential.user;
+                    authUser = userCredential.user;
                     
                     await window.db.collection('users').doc(resetStudentId).update({
                         authUid: authUser.uid,
@@ -417,7 +422,7 @@
                 let errorMsg = '';
                 switch(e.code) {
                     case 'auth/email-already-in-use':
-                        errorMsg = 'Email уже используется в системе';
+                        errorMsg = 'Email уже используется. Отправлен запрос на сброс пароля.';
                         break;
                     case 'auth/invalid-email':
                         errorMsg = 'Неверный формат email';
