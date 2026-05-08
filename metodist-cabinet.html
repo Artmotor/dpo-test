@@ -304,7 +304,7 @@
     </div>
 
     <div id="editModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>✏️ Редактирование данных слушателя</h3><span class="close" onclick="closeEditModal()">&times;</span></div><div class="modal-body" id="editModalBody"></div></div></div>
-    <div id="resetPwdModal" class="modal"><div class="modal-content" style="max-width:500px;"><div class="modal-header"><h3>🔄 Установка пароля слушателя</h3><span class="close" onclick="closeResetPwdModal()">&times;</span></div><div class="modal-body"><div class="form-group"><label>Новый пароль</label><input type="text" id="newPasswordInput" class="form-control" placeholder="Введите новый пароль"><small style="color:#666; display:block; margin-top:5px;">Пароль будет установлен для входа. Если учётная запись не существует, она будет создана автоматически.</small></div><div class="form-actions"><button class="save-btn" onclick="confirmResetPassword()">💾 Установить пароль</button><button class="cancel-btn" onclick="closeResetPwdModal()">❌ Отмена</button></div></div></div></div>
+    <div id="resetPwdModal" class="modal"><div class="modal-content" style="max-width:500px;"><div class="modal-header"><h3>🔄 Установка пароля слушателя</h3><span class="close" onclick="closeResetPwdModal()">&times;</span></div><div class="modal-body"><div class="form-group"><label>Новый пароль</label><input type="text" id="newPasswordInput" class="form-control" placeholder="Введите новый пароль (мин. 6 символов)"><small style="color:#666; display:block; margin-top:5px;">Пароль будет установлен сразу. Учётная запись создастся автоматически, письмо не отправляется.</small></div><div class="form-actions"><button class="save-btn" onclick="confirmResetPassword()">💾 Установить пароль</button><button class="cancel-btn" onclick="closeResetPwdModal()">❌ Отмена</button></div></div></div></div>
 
     <div id="fieldEditorModal" class="modal"><div class="modal-content" style="max-width:650px;"><div class="modal-header"><h3 id="fieldEditorTitle">Создание поля</h3><span class="close" onclick="closeFieldEditor()">&times;</span></div><div class="modal-body"><div class="form-group"><label>Название поля *</label><input type="text" id="fieldLabel"></div><div class="form-group"><label>ID поля (латиницей) *</label><input type="text" id="fieldId"><small>Уникальный ID</small></div><div class="form-group"><label>Тип поля</label><select id="fieldType" onchange="toggleOptionsFields()"><option value="text">📝 Текст</option><option value="textarea">📄 Многострочный</option><option value="email">📧 Email</option><option value="tel">📞 Телефон</option><option value="date">📅 Дата</option><option value="number">#️⃣ Число</option><option value="radio">🔘 Радио</option><option value="select">📋 Выпадающий список</option></select></div><div id="optionsBlock" style="display:none;"><div class="form-group"><label>Варианты ответов</label><div id="optionsList"></div><button type="button" onclick="addOptionField()" style="background:#28a745; color:white; border:none; padding:8px 15px; border-radius:5px;">➕ Добавить вариант</button></div></div><div class="form-group"><label>Категория</label><select id="fieldCategory"><option value="personal">👤 Личные</option><option value="education">🎓 Образование</option><option value="work">💼 Работа</option><option value="documents">📄 Документы</option><option value="address">🏠 Адреса</option><option value="custom">📌 Дополнительные</option></select></div><div class="form-group"><label>Семантика</label><input type="url" id="fieldSemantics" placeholder="http://schemas..."></div><div class="form-group"><label>Placeholder</label><input type="text" id="fieldPlaceholder"></div><div class="form-group"><label>Порядок</label><input type="number" id="fieldOrder" value="0"></div><div class="form-group"><label><input type="checkbox" id="fieldRequired"> Обязательное</label></div><div class="form-group"><label><input type="checkbox" id="fieldActive" checked> Активно</label></div><div class="form-actions"><button class="save-btn" onclick="saveField()">💾 Сохранить</button><button class="cancel-btn" onclick="closeFieldEditor()">❌ Отмена</button></div></div></div></div>
 
@@ -361,7 +361,7 @@
             }catch(e){showToast('Ошибка: '+e.message,'error');} 
         }
         
-        async function deleteStudent(id, name){ if(!confirm(`Удалить слушателя "${name}"? Все данные будут потеряны безвозвратно.`)) return; try{ await window.db.collection('users').doc(id).delete(); showToast(`✅ Слушатель удален`,'success'); await loadStudents();}catch(e){showToast('Ошибка: '+e.message,'error');} }
+        async function deleteStudent(id, name){ if(!confirm(`Удалить слушателя "${name}"? Все данные будут потеряны безвозвратно.`)) return; try{ const student=allStudents.find(s=>s.id===id); if(student?.authUid){ try{ await window.auth.deleteUser(student.authUid); }catch(e){console.warn(e);} } await window.db.collection('users').doc(id).delete(); showToast(`✅ Слушатель удален`,'success'); await loadStudents();}catch(e){showToast('Ошибка: '+e.message,'error');} }
         
         function openResetPwdModal(id, email){ resetStudentId=id; document.getElementById('resetPwdModal').style.display='block'; document.getElementById('newPasswordInput').value=''; }
         function closeResetPwdModal(){ document.getElementById('resetPwdModal').style.display='none'; resetStudentId=null; }
@@ -370,49 +370,70 @@
             const newPwd=document.getElementById('newPasswordInput').value.trim(); 
             if(!newPwd){showToast('Введите пароль','warning');return;} 
             if(newPwd.length<6){showToast('Пароль минимум 6 символов','warning');return;} 
-            try{ 
-                const student=allStudents.find(s=>s.id===resetStudentId); 
-                if(!student){showToast('Слушатель не найден','error'); closeResetPwdModal(); return;} 
-                
-                const actionCodeSettings = {
-                    url: window.location.origin + '/index.html',
-                    handleCodeInApp: false
-                };
-                
-                const email = student.email;
+            
+            const student = allStudents.find(s=>s.id===resetStudentId);
+            if(!student){showToast('Слушатель не найден','error'); closeResetPwdModal(); return;}
+            
+            showToast('⏳ Создание учётной записи...','info');
+            
+            try {
+                let userCredential = null;
                 let userExists = false;
+                
                 try {
-                    const signInMethods = await window.auth.fetchSignInMethodsForEmail(email);
+                    const signInMethods = await window.auth.fetchSignInMethodsForEmail(student.email);
                     userExists = signInMethods.length > 0;
                 } catch(e) {
-                    console.log('Проверка email:', e);
+                    console.log('Проверка email:', e.message);
                     userExists = false;
                 }
                 
-                if (!userExists) {
-                    await window.auth.createUserWithEmailAndPassword(email, newPwd);
-                    showToast(`✅ Учетная запись создана с паролем`,'success');
+                if (userExists) {
+                    try {
+                        await window.auth.signInWithEmailAndPassword(student.email, newPwd);
+                        showToast(`✅ Пользователь уже существует, проверьте пароль`,'success');
+                    } catch(loginErr) {
+                        showToast(`⚠️ Учётная запись существует, но пароль не совпадает. Используйте восстановление пароля.`,'warning');
+                    }
+                } else {
+                    userCredential = await window.auth.createUserWithEmailAndPassword(student.email, newPwd);
+                    const authUser = userCredential.user;
+                    
                     await window.db.collection('users').doc(resetStudentId).update({
+                        authUid: authUser.uid,
                         emailVerified: false,
                         hasAuthAccount: true,
-                        passwordSetAt: firebase.firestore.FieldValue.serverTimestamp()
+                        passwordSetAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        passwordSetBy: currentMetodistUser?.email || 'metodist'
                     });
-                } else {
-                    await window.auth.sendPasswordResetEmail(email, actionCodeSettings);
-                    showToast(`✉️ На email ${email} отправлена ссылка для сброса пароля. Пользователь сможет установить новый пароль самостоятельно.`,'success');
-                    await window.db.collection('users').doc(resetStudentId).update({
-                        passwordResetRequestedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        requestedBy: currentMetodistUser?.email || 'metodist'
-                    });
+                    
+                    showToast(`✅ Учётная запись создана! Пароль: ${newPwd}`, 'success');
                 }
-                closeResetPwdModal(); 
-            }catch(e){ 
-                let errorMsg = e.message;
-                if(e.code === 'auth/email-already-in-use') errorMsg = 'Email уже используется, отправлен запрос на сброс пароля';
-                else if(e.code === 'auth/invalid-email') errorMsg = 'Неверный email адрес';
-                showToast('Ошибка: '+errorMsg,'error'); 
-                closeResetPwdModal(); 
-            } 
+                
+                closeResetPwdModal();
+                await loadStudents();
+                
+            } catch(e) {
+                let errorMsg = '';
+                switch(e.code) {
+                    case 'auth/email-already-in-use':
+                        errorMsg = 'Email уже используется в системе';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMsg = 'Неверный формат email';
+                        break;
+                    case 'auth/weak-password':
+                        errorMsg = 'Пароль слишком слабый (мин. 6 символов)';
+                        break;
+                    case 'auth/operation-not-allowed':
+                        errorMsg = 'Регистрация отключена в настройках Firebase';
+                        break;
+                    default:
+                        errorMsg = e.message;
+                }
+                showToast('Ошибка: '+errorMsg, 'error');
+                closeResetPwdModal();
+            }
         }
         
         async function openEditModal(id){ const student=allStudents.find(s=>s.id===id); if(!student) return; currentEditStudentId=id; await loadAllFields(); const container=document.getElementById('editModalBody'); const categories={personal:{title:'👤 Личная информация',fields:[]},education:{title:'🎓 Образование',fields:[]},work:{title:'💼 Место работы',fields:[]},documents:{title:'📄 Паспортные данные',fields:[]},address:{title:'🏠 Адреса',fields:[]},custom:{title:'📋 Дополнительные поля',fields:[]}}; for(const f of systemFields){ if(f.id==='email') continue; let cat=f.category||'personal'; if(categories[cat]) categories[cat].fields.push(f); else categories.custom.fields.push(f); } for(const f of allCustomFields){ if(f.isActive===false) continue; let cat=f.category||'custom'; if(categories[cat]) categories[cat].fields.push(f); else categories.custom.fields.push(f); } let html=''; for(const cat of Object.values(categories)){ if(cat.fields.length===0) continue; html+=`<h4>${cat.title}</h4><div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(350px,1fr)); gap:15px; margin-bottom:20px;">`; for(const f of cat.fields){ let value=f.isSystem? (student[f.id]||''):(student.customFields?.[f.id]||''); const fid=`edit_field_${f.id}`; html+=`<div class="dynamic-field"><label style="font-weight:500;">${escapeHtml(f.label)}${f.isRequired?'<span style="color:#dc3545;"> *</span>':''}</label>`; if(f.type==='radio' && f.options?.length){ html+='<div class="radio-group">'; for(const opt of f.options){ html+=`<label><input type="radio" name="${fid}" value="${escapeHtml(opt)}" ${value===opt?'checked':''}> ${escapeHtml(opt)}</label>`; } html+='</div>'; }else if(f.type==='select' && f.options?.length){ html+=`<select id="${fid}" style="width:100%; padding:10px; border-radius:8px;"><option value="">-- Выберите --</option>`; for(const opt of f.options){ html+=`<option value="${escapeHtml(opt)}" ${value===opt?'selected':''}>${escapeHtml(opt)}</option>`; } html+='</select>'; }else if(f.type==='textarea'){ html+=`<textarea id="${fid}" rows="2" style="width:100%; padding:10px; border-radius:8px;" placeholder="${escapeHtml(f.placeholder||'')}">${escapeHtml(value)}</textarea>`; }else{ html+=`<input type="${f.type||'text'}" id="${fid}" value="${escapeHtml(value)}" placeholder="${escapeHtml(f.placeholder||'')}" style="width:100%; padding:10px; border-radius:8px;">`; } html+=`${f.semantics?`<div class="semantics-badge" style="font-size:11px;">🔗 ${escapeHtml(f.semantics)}</div>`:''}</div>`; } html+=`</div><hr>`; } html+=`<div class="form-actions"><button class="save-btn" onclick="saveStudentData()">💾 Сохранить</button><button class="cancel-btn" onclick="closeEditModal()">❌ Отмена</button></div>`; container.innerHTML=html; document.getElementById('editModal').style.display='block'; }
